@@ -9,11 +9,11 @@ Training datasets and results of the inverse design study are available in https
 ## How to use:
 
 ### 1. General_setup:
-Put Materials Project's new API key in APIKEY.ini. 
+Put Materials Project's new API key in "APIKEY.ini". 
 
-Edit "CPUs" in slurm.conf to set up the number of CPU threads available for the docker container.
+Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for the docker container.
 
-Put this folder's absolute path in "[]" in rundocker.sh to setup share folder for the docker container.
+Put this folder's absolute path in "[]" in "rundocker.sh" to setup share folder for the docker container.
 
 Download SLICES_docker.tar.gz.* (https://10.6084/m9.figshare.22707946) with pre-installed SLICES and other relevant packages. 
 ```bash
