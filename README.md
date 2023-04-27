@@ -4,7 +4,7 @@ Scripts to reproduce results of benchmark and the inverse design case study.
 
 Developed by Hang Xiao 2023.04 xiaohang007@gmail.com https://github.com/xiaohang007
 
-Training datasets and results of the inverse design study are available in https://10.6084/m9.figshare.22707472.
+Training datasets and results of the inverse design study are available in https://doi.org/10.6084/m9.figshare.22707472.
 
 ## How to use:
 
@@ -15,7 +15,7 @@ Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for th
 
 Put this folder's absolute path in "[]" in "rundocker.sh" to setup share folder for the docker container.
 
-Download SLICES_docker.tar.gz.* (https://10.6084/m9.figshare.22707946) with pre-installed SLICES and other relevant packages. 
+Download SLICES_docker.tar.gz.* from https://doi.org/10.6084/m9.figshare.22707946 with pre-installed SLICES and other relevant packages. 
 ```bash
 cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
 docker load -i SLICES_docker_image.tar.gz #  Install the docker image
