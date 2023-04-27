@@ -1,0 +1,9 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -N ./structures/Nb3I8L1.vasp
+#PBS -o job.out
+#PBS -e job.err
+#PBS -l walltime=4800:00:00
+export MKL_SERVICE_FORCE_INTEL=1
+export OMP_NUM_THREADS=1
+python 0_run.py

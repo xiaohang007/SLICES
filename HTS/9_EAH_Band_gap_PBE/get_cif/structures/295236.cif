@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Mg(ZnAs)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.29333637
+_cell_length_b   7.29333637
+_cell_length_c   7.29333637
+_cell_angle_alpha   32.61416012
+_cell_angle_beta   32.61416012
+_cell_angle_gamma   32.61416012
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mg(ZnAs)2
+_chemical_formula_sum   'Mg1 Zn2 As2'
+_cell_volume   100.23061497
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mg  Mg0  1  0.00000000  0.00000000  -0.00000000  1
+  Zn  Zn1  1  0.13036093  0.13036093  0.13036093  1
+  Zn  Zn2  1  0.86963907  0.86963907  0.86963907  1
+  As  As3  1  0.25495202  0.25495202  0.25495202  1
+  As  As4  1  0.74504798  0.74504798  0.74504798  1

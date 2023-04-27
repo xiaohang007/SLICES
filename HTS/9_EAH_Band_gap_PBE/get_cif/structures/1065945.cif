@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ca6Sn2PF
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.79754445
+_cell_length_b   8.79754445
+_cell_length_c   7.28953455
+_cell_angle_alpha   67.36365825
+_cell_angle_beta   112.63634175
+_cell_angle_gamma   147.46822808
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca6Sn2PF
+_chemical_formula_sum   'Ca6 Sn2 P1 F1'
+_cell_volume   277.94843925
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ca  Ca0  1  0.22532062  0.77467938  0.24049513  1
+  Ca  Ca1  1  0.82740329  0.17259671  0.64439518  1
+  Ca  Ca2  1  0.44725781  0.55274219  0.50271014  1
+  Ca  Ca3  1  0.66306596  0.33693404  0.84119969  1
+  Ca  Ca4  1  0.06601848  0.93398152  0.41477083  1
+  Ca  Ca5  1  0.47506402  0.52493598  0.03844412  1
+  Sn  Sn6  1  0.04062549  0.95937451  0.83634337  1
+  Sn  Sn7  1  0.85792412  0.14207588  0.16701775  1
+  P  P8  1  0.64234635  0.35765365  0.41604321  1
+  F  F9  1  0.32963054  0.67036946  0.58254059  1

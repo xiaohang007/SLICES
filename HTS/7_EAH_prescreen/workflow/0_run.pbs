@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -N ./structures/gcmc_Oremoved_opt.vasp
+#PBS -o job.out
+#PBS -e job.err
+#PBS -l walltime=100000:00:00
+
+ulimit -s unlimited
+
+export OMP_NUM_THREADS=1
+date
+sh 0_run.sh
+date
+

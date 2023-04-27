@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_SrCaZnAs2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.57538473
+_cell_length_b   4.57538473
+_cell_length_c   7.48663604
+_cell_angle_alpha   90.00000000
+_cell_angle_beta   90.00000000
+_cell_angle_gamma   120.00000000
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrCaZnAs2
+_chemical_formula_sum   'Sr1 Ca1 Zn1 As2'
+_cell_volume   135.72898128
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.33333333  0.66666667  0.64184367  1
+  Ca  Ca1  1  0.66666667  0.33333333  0.02515970  1
+  Zn  Zn2  1  0.00000000  -0.00000000  0.27875029  1
+  As  As3  1  0.00000000  -0.00000000  0.90190155  1
+  As  As4  1  0.66666667  0.33333333  0.40101479  1

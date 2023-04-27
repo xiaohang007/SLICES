@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Na2Mg2BiAs
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.79224057
+_cell_length_b   4.79224057
+_cell_length_c   7.18063027
+_cell_angle_alpha   90.00000000
+_cell_angle_beta   90.00000000
+_cell_angle_gamma   90.00000000
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Na2Mg2BiAs
+_chemical_formula_sum   'Na2 Mg2 Bi1 As1'
+_cell_volume   164.90726519
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Na  Na0  1  0.50000000  0.00000000  0.72669371  1
+  Na  Na1  1  0.00000000  0.50000000  0.72669371  1
+  Mg  Mg2  1  0.50000000  0.00000000  0.19483213  1
+  Mg  Mg3  1  0.00000000  0.50000000  0.19483213  1
+  Bi  Bi4  1  0.00000000  0.00000000  0.43346968  1
+  As  As5  1  0.50000000  0.50000000  0.99403831  1

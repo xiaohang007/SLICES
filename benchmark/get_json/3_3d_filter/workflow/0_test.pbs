@@ -1,0 +1,10 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -N ./structures/Nb3I8L1.vasp
+#PBS -o job.out
+#PBS -e job.err
+echo "begin time"; date
+#PBS -l walltime=48:00:00
+export XTB_MOD_PATH=/opt/xtb
+python 0_run.py test
+echo "End time"; date

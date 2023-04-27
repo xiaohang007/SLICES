@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CsZnAs
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.78788077
+_cell_length_b   7.78788077
+_cell_length_c   6.08678368
+_cell_angle_alpha   90.00000000
+_cell_angle_beta   90.00000000
+_cell_angle_gamma   147.86979541
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CsZnAs
+_chemical_formula_sum   'Cs2 Zn2 As2'
+_cell_volume   196.34127356
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cs  Cs0  1  0.92493669  0.07506331  0.48885103  1
+  Cs  Cs1  1  0.07506331  0.92493669  0.98885103  1
+  Zn  Zn2  1  0.22738894  0.77261106  0.41858268  1
+  Zn  Zn3  1  0.77261106  0.22738894  0.91858268  1
+  As  As4  1  0.32955625  0.67044375  0.07967013  1
+  As  As5  1  0.67044375  0.32955625  0.57967013  1
