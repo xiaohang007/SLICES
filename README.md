@@ -1,4 +1,4 @@
-# SLICES: An Invertible, Symmetry-invariant, and String-based Crystallographic Representation
+# Simplified line-input crystal-encoding system (SLICES): An Invertible, Symmetry-invariant, and String-based Crystallographic Representation
 
 Scripts to reproduce results of benchmark and the inverse design case study. 
 
