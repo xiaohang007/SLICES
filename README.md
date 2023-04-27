@@ -8,13 +8,12 @@ All results are available in the link mentioned in the paper: "SLICES: An Invert
 
 ### 1. General_setup:
 Put Materials Project's new API key in APIKEY.ini. 
-
 Edit "CPUs" in slurm.conf to set up the number of CPU threads available for the docker container.
-
 Put this folder's absolute path in "[]" in rundocker.sh to setup share folder for the docker container.
-
-Run the docker container with pre-installed SLICES and other relevant packages, allowing easy installation and reproduction of the reconstruction benchmark and inverse design case study. 
+Download SLICES_docker.tar.gz.* () with pre-installed SLICES and other relevant packages. 
 ```bash
+cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
+docker load -i SLICES_docker_image.tar.gz #  Install the docker image
 sh rundocker.sh
 ```
 
