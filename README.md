@@ -1,7 +1,9 @@
 # SLICES: An Invertible, Symmetry-invariant, and String-based Crystallographic Representation
 
 Scripts to reproduce results of benchmark and inverse design case study. 
+
 Developed by Hang Xiao 2023.04 xiaohang007@gmail.com https://github.com/xiaohang007
+
 Training datasets and results of the inverse design study are available in https://10.6084/m9.figshare.22707472.
 
 ## How to use:
