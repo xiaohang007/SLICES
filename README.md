@@ -17,7 +17,7 @@ Put this folder's absolute path in "[]" in "rundocker.sh" to setup share folder 
 
 Download SLICES_docker.tar.gz.* from https://doi.org/10.6084/m9.figshare.22707946 with pre-installed SLICES and other relevant packages. 
 
-It is recommemded to run this docker image under Linux. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible Sleep (D) State due to a weird bug in WSL2.
+It is recommemded to run this docker image under Linux. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible Sleep (D) State due to a weird bug of running tensorflow in docker container using WSL2.
 ```bash
 cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
 docker load -i SLICES_docker_image.tar.gz #  Install the docker image
