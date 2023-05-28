@@ -117,7 +117,8 @@ Reconstruct crystal structures from SLICES strings
 cd /crystal/HTS/3_inverse
 python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect_clean_glob_details.py
-!!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of restarting the Python script at regular intervals, with a batch size of 30.
+!!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of 
+restarting the Python script at regular intervals, with a batch size of 30.
 ```
 Filter out crystals with compositions that exist in the Materials Project database
 ```bash
