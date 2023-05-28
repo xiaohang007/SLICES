@@ -24,8 +24,7 @@ It is recommemded to run this docker image under Linux. Running on docker on win
 
 
 ```bash
-cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
-docker load -i SLICES_docker_image.tar.gz #  Install the docker image
+docker pull xiaohang07/slices:v2
 sh rundocker.sh
 ```
 
