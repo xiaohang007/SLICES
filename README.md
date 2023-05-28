@@ -24,6 +24,14 @@ docker pull xiaohang07/slices:v2   # Download SLICES_docker with pre-installed S
 docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v2 /crystal/entrypoint_set_cpus.sh  
 ```
 
+!!!In case "docker pull xiaohang07/slices:v2" is not working, one can download SLICES_docker.tar.gz.* from https://doi.org/10.6084/m9.figshare.22707946 with pre-installed SLICES and other relevant packages.  
+```bash
+cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
+docker load -i SLICES_docker_image.tar.gz #  Install the docker image
+# Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
+docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
+```
+
 ### 2. Benchmark:
 Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
 ```bash
