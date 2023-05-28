@@ -70,8 +70,8 @@ Download entries to build general and transfer datasets
 cd /crystal/HTS/0_get_json_mp_api
 python 0_prior_model_dataset.py
 python 1_transfer_learning_dataset.py
-!!! In some rare cases, “mp_api.client.core.client.MPRestError: REST query returned with error status code” occurs. The solution is:
-pip install mp-api
+!!! If “mp_api.client.core.client.MPRestError: REST query returned with error status code” occurs. The solution is:
+pip install -U mp-api
 ```
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals) in general dataset
 ```bash
