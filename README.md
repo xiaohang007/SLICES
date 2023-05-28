@@ -18,13 +18,10 @@ Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for th
 
 Put the absolute path of this repo's unzipped folder in "[]" in "rundocker.sh" to setup share folder for the docker container.
 
-Download SLICES_docker using "docker pull xiaohang07/slices:v2" with pre-installed SLICES and other relevant packages. 
-
 It is recommemded to run this docker image under Linux. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible sleep (D) state due to a weird bug of running m3gnet in docker container using WSL2.
 
-
 ```bash
-docker pull xiaohang07/slices:v2
+docker pull xiaohang07/slices:v2   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 sh rundocker.sh
 ```
 
