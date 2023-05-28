@@ -26,7 +26,7 @@ It is recommemded to run this docker image under Linux. Running on docker on win
 ```bash
 cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
 docker load -i SLICES_docker_image.tar.gz #  Install the docker image
-docker run  -it -h workq --shm-size=0.1gb  -v /:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
+sh rundocker.sh
 ```
 
 ### 2. Benchmark:
