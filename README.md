@@ -20,7 +20,8 @@ It is recommemded to run this docker image under Linux. Running on docker on win
 
 ```bash
 docker pull xiaohang07/slices:v2   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
-docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v2 /crystal/entrypoint_set_cpus.sh  # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
+# Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
+docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v2 /crystal/entrypoint_set_cpus.sh  
 ```
 
 ### 2. Benchmark:
