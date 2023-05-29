@@ -31,8 +31,30 @@ docker load -i SLICES_docker_image.tar.gz #  Install the docker image
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
 docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
 ```
+### 2. Introductory example: converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
+Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
+```python
+import os
+from invcryrep.invcryrep import InvCryRep
+from pymatgen.core.structure import Structure
+# setup modified XTB's path
+os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
+# obtaining the pymatgen Structure instance of NdSiRu
+original_structure = Structure.from_file(filename='NdSiRu.cif')
+# creating an instance of the InvCryRep Class (initialization)
+backend=InvCryRep()
+# converting a crystal structure to its SLICES string
+slices_NdSiRu=backend.structure2SLICES(original_structure) 
+# converting a SLICES string back to its original crystal structure and obtaining its M3GNet_IAP-predicted energy_per_atom
+reconstructed_structure,final_energy_per_atom_IAP = backend.SLICES2structure(slices_NdSiRu)
+print('SLICES string of NdSiRu is: ',slices_NdSiRu)
+print('\nReconstructed_structure is: ',reconstructed_structure)
+print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
+# if final_energy_per_atom_IAP is 0, it means the M3GNet_IAP refinement failed, and the reconstructed_structure is the ZL*-optimized structure.
+```
 
-### 2. Benchmark:
+
+### 3. Benchmark:
 Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
 ```bash
 cd /crystal/benchmark/0_get_mp20_json
@@ -71,7 +93,7 @@ cd /crystal/benchmark/matchcheck4
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py
 ```
-### 3. Inverse design of direct narrow-gap semiconductors for optical applications
+### 4. Inverse design of direct narrow-gap semiconductors for optical applications
 Download entries to build general and transfer datasets
 ```bash
 cd /crystal/HTS/0_get_json_mp_api
