@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
-import os,subprocess,random
+import os,subprocess,random,warnings
+warnings.filterwarnings("ignore")
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
@@ -18,6 +19,7 @@ from collections import defaultdict, deque
 from io import StringIO
 import pandas as pd
 import matplotlib.pyplot as plt
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 from m3gnet.models import Relaxer
 import logging
 import tensorflow as tf
@@ -1397,6 +1399,15 @@ class InvCryRep:
             return [structure_recreated_std, structure_recreated_opt,  structure_recreated_opt2 ],final_energy_per_atom
         except:
             return [structure_recreated_std, structure_recreated_opt],0
+
+    def SLICES2structure(self,SLICES):
+        """
+        convert a SLICES string back to its original crystal structure
+        """
+        self.from_SLICES(SLICES)
+        structures,final_energy_per_atom = self.to_structures()
+        return structures[-1],final_energy_per_atom
+
 
     def to_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
