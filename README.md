@@ -1,6 +1,6 @@
 # Simplified line-input crystal-encoding system (SLICES): An Invertible, Symmetry-invariant, and String-based Crystallographic Representation
 
-Scripts to reproduce results of benchmark and the inverse design case study. 
+Scripts to reproduce results of benchmark and the inverse design case study in https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0. 
 
 Developed by Hang Xiao 2023.04 xiaohang007@gmail.com https://github.com/xiaohang007
 
