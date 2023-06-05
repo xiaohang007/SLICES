@@ -7,6 +7,7 @@ Developed by Hang Xiao 2023.04 xiaohang007@gmail.com https://github.com/xiaohang
 Training datasets and results of the inverse design study are available in https://doi.org/10.6084/m9.figshare.22707472.
 
 !!! We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. https://codeocean.com/capsule/8643173/tree/v1
+![Optional Text](./figure_intro.png)
 ## How to use:
 
 ### 1. General_setup:
