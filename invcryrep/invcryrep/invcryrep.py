@@ -26,6 +26,8 @@ import tensorflow as tf
 import signal,gc
 from contextlib import contextmanager
 from functools import wraps
+import itertools
+import copy
 logging.captureWarnings(False)
 tf.get_logger().setLevel(logging.ERROR)
 tf.config.threading.set_inter_op_parallelism_threads(1)
@@ -534,37 +536,6 @@ class InvCryRep:
         (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
         with a data augmentation scheme
         """
-        structure_graph=self.structure2structure_graph(structure)
-        atom_types = np.array(structure.atomic_numbers)
-        atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
-        edge_indices, to_jimages = [], []
-        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
-            edge_indices.append([i, j])
-            to_jimages.append(to_jimage)
-        # shuffle to get permu
-        permu=[]
-        for i in range(num):
-            permu.append(tuple(random.sample(atom_symbols, k=len(atom_symbols))))
-        permu_unique=list(set(permu))
-        #print(permu_unique)
-        # For duplicates, we take the smallest index that has not been taken.
-        def get_index_list_allow_duplicates(ori,mod):
-            indexes = defaultdict(deque)
-            for i, x in enumerate(mod):
-                indexes[x].append(i)
-            ids = [indexes[x].popleft() for x in ori]
-            return ids
-        index_mapping=[]
-        for i in permu_unique:
-            if i != tuple(atom_symbols):
-                index_mapping.append(get_index_list_allow_duplicates(atom_symbols,i))
         def get_slices1(atom_symbols,edge_indices,to_jimages):
             atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
             SLICES=""
@@ -607,6 +578,20 @@ class InvCryRep:
                     if j==1:
                         SLICES+='+ '
             return SLICES
+        structure_graph=self.structure2structure_graph(structure)
+        atom_types = np.array(structure.atomic_numbers)
+        atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
+        G = nx.MultiGraph()
+        G.add_nodes_from(structure_graph.graph.nodes)
+        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
+        if b < 3:
+            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
+        edge_indices, to_jimages = [], []
+        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
+            edge_indices.append([i, j])
+            to_jimages.append(to_jimage)
         SLICES_list=[]
         if strategy==1:
             SLICES_list.append(get_slices1(atom_symbols,edge_indices,to_jimages))
@@ -614,24 +599,61 @@ class InvCryRep:
             SLICES_list.append(get_slices2(atom_symbols,edge_indices,to_jimages))
         if strategy==3:
             SLICES_list.append(get_slices3(atom_symbols,edge_indices,to_jimages))
+        #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
+        num_permutation=round((num/6)**(1/2))
+        # shuffle to get permu
+        permu=[]
+        for i in range(num):
+            permu.append(tuple(random.sample(atom_symbols, k=len(atom_symbols))))
+        permu_unique=list(set(permu))
+        # For duplicates, we take the smallest index that has not been taken.
+        def get_index_list_allow_duplicates(ori,mod):
+            indexes = defaultdict(deque)
+            for i, x in enumerate(mod):
+                indexes[x].append(i)
+            ids = [indexes[x].popleft() for x in ori]
+            return ids
+        index_mapping=[]
+        for i in permu_unique[:num_permutation]:
+            index_mapping.append(get_index_list_allow_duplicates(atom_symbols,i))
         def shuffle_dual_list(a,b):
             c = list(zip(a, b))
             random.shuffle(c)
             a2, b2 = zip(*c)
             return a2,b2
+        def remove_duplicate_arrays(arrays):
+            unique_arrays = []
+            for array in arrays:
+                if array not in unique_arrays:
+                    unique_arrays.append(array)
+            return unique_arrays
         for i in range(len(index_mapping)):
             atom_symbols_new=permu_unique[i]
-            edge_indices_new=edge_indices.copy()
+            edge_indices_new=copy.deepcopy(edge_indices)
             for j in range(len(edge_indices)):
                 edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
                 edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
-            edge_indices_new_shuffled,to_jimages_shuffled=shuffle_dual_list(edge_indices_new,to_jimages)
-            if strategy==1:
-                SLICES_list.append(get_slices1(atom_symbols_new,edge_indices_new_shuffled,to_jimages_shuffled))
-            if strategy==2:
-                SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_shuffled,to_jimages_shuffled))
-            if strategy==3:
-                SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_shuffled,to_jimages_shuffled))
+            edge_indices_new_shuffled_list=[]
+            to_jimages_shuffled_list=[]
+            for j in range(num):
+                edge_indices_new_shuffled,to_jimages_shuffled=shuffle_dual_list(edge_indices_new,to_jimages)
+                edge_indices_new_shuffled_list.append(edge_indices_new_shuffled)
+                to_jimages_shuffled_list.append(to_jimages_shuffled)
+            edge_indices_new_shuffled_list_unique = remove_duplicate_arrays(edge_indices_new_shuffled_list)
+            to_jimages_shuffled_list_unique = remove_duplicate_arrays(to_jimages_shuffled_list)
+            #print(edge_indices_new_shuffled_list_unique[:6])
+            for j in range(min(num_permutation,len(edge_indices_new_shuffled_list_unique))):
+                edge_indices_new_final=edge_indices_new_shuffled_list_unique[j]
+                to_jimages_shuffled_transposed = [list(x) for x in zip(*to_jimages_shuffled_list_unique[j])]
+                to_jimages_shu_trans_per=list(itertools.permutations(to_jimages_shuffled_transposed))
+                for k in range(6):
+                    to_jimages_shu_trans_per_trans_final=[list(x) for x in zip(*to_jimages_shu_trans_per[k])]
+                    if strategy==1:
+                        SLICES_list.append(get_slices1(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
+                    if strategy==2:
+                        SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
+                    if strategy==3:
+                        SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
         return SLICES_list
 
     def get_dim(self,structure):
