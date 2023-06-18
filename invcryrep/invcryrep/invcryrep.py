@@ -541,7 +541,7 @@ class InvCryRep:
             return False
         return True
 
-    def get_cannonical_SLICES(self,SLICES): 
+    def get_canonical_SLICES(self,SLICES): 
         def get_index_list_allow_duplicates(ori,mod):
             indexes = defaultdict(deque)
             for i, x in enumerate(mod):
