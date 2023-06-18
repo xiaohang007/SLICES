@@ -437,6 +437,9 @@ class InvCryRep:
         """
         extract edge_indices, to_jimages and atom_types from decoding a SLICES string
         """
+        self.atom_types = None
+        self.edge_indices = None
+        self.to_jimages = None
         tokens=SLICES.split(" ")
         for i in range(len(tokens)):
             if tokens[i].isnumeric():
@@ -450,17 +453,93 @@ class InvCryRep:
             edge=tokens[num_atoms+i*5:num_atoms+(i+1)*5]
             edge_indices[i,0]=int(edge[0])
             edge_indices[i,1]=int(edge[1])
+            if edge_indices[i,0] > num_atoms-1 or edge_indices[i,1] > num_atoms-1:
+                raise Exception("Error: wrong edge indices")
             for j in range(3):
                 if edge[j+2]=='-':
                     to_jimages[i,j]=-1
-                if edge[j+2]=='o':
+                elif edge[j+2]=='o':
                     to_jimages[i,j]=0
-                if edge[j+2]=='+':
+                elif edge[j+2]=='+':
                     to_jimages[i,j]=1
+                else:
+                    raise Exception("Error: wrong edge label")
         self.edge_indices=edge_indices
         self.to_jimages=to_jimages
         self.atom_types=np.array([int(periodic_data.loc[periodic_data["symbol"]==i].values[0][0]) for i in self.atom_symbols])        
 
+    def check_SLICES(self,SLICES):
+        try:
+            self.from_SLICES(SLICES)
+        except:
+            return False
+        # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 
+        G = nx.MultiGraph()
+        G.add_nodes_from([i for i in range(len(self.atom_types))])
+        G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+        b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
+        print(b)
+        if b < 3:
+            return False
+        # check if all nodes has been covered by edges
+        nodes_covered=[]
+        for i in self.edge_indices:
+            nodes_covered.append(i[0])
+            nodes_covered.append(i[1])
+        if len(set(nodes_covered))!=len(self.atom_types):
+            return False
+        # check if edge labels covers 3 dimension in at least 3 edges, in order to get 3D embedding
+        edge_index_covered=[[],[],[]]
+        for i in range(len(self.to_jimages)):
+            for j in range(3):
+                if self.to_jimages[i][j]!=0:
+                    edge_index_covered[j].append(i)
+        for i in edge_index_covered:
+            if len(i)==0:
+                return False
+        #print(edge_index_covered)
+        # check dumplicates(flip)
+        edge_data_ascending=[]
+        for i in range(len(self.edge_indices)):
+            if self.edge_indices[i][0]<self.edge_indices[i][1]:
+                edge_data_ascending.append(list(self.edge_indices[i])+list(self.to_jimages[i]))
+            else:
+                edge_data_ascending.append([self.edge_indices[i][1],self.edge_indices[i][0]]+list(np.array(self.to_jimages[i])*-1))
+        def remove_duplicate_arrays(arrays):
+            unique_arrays = []
+            for array in arrays:
+                if array not in unique_arrays:
+                    unique_arrays.append(array)
+            return unique_arrays
+        if len(edge_data_ascending)>len(remove_duplicate_arrays(edge_data_ascending)):
+            return False
+        # strict case: (still not covering all cases)
+        if len(edge_index_covered[1])>=len(edge_index_covered[0]):
+            b_sub_a = [i for i in edge_index_covered[1] if i not in edge_index_covered[0]]
+        else:
+            b_sub_a = [i for i in edge_index_covered[0] if i not in edge_index_covered[1]]
+        a_add_b = edge_index_covered[0]+edge_index_covered[1]
+        if len(a_add_b)>=len(edge_index_covered[2]):
+            c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
+        else:    
+            c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
+        print(b_sub_a,c_sub_ab)
+        if len(b_sub_a)==0 or len(c_sub_ab)==0:
+            return False
+        try:
+            x_dat, net_voltage = self.convert_graph()
+            #print(x_dat,net_voltage)
+            net = Net(x_dat,dim=3)
+            net.voltage = net_voltage
+            #print(net.graph.edges)
+            # check the graph first (super fast)
+            net.simple_cycle_basis()
+            net.get_lattice_basis()
+            net.get_cocycle_basis()
+        except:
+            return False
+        return True
 
     def structure2SLICES(self,structure,strategy=3):
         """
@@ -592,6 +671,7 @@ class InvCryRep:
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
             to_jimages.append(to_jimage)
+        num_edges=len(edge_indices)
         SLICES_list=[]
         if strategy==1:
             SLICES_list.append(get_slices1(atom_symbols,edge_indices,to_jimages))
@@ -600,7 +680,7 @@ class InvCryRep:
         if strategy==3:
             SLICES_list.append(get_slices3(atom_symbols,edge_indices,to_jimages))
         #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
-        num_permutation=round((num/6)**(1/2))
+        num_permutation=round((num/6)**(1/3))
         # shuffle to get permu
         permu=[]
         for i in range(num):
@@ -627,10 +707,19 @@ class InvCryRep:
                 if array not in unique_arrays:
                     unique_arrays.append(array)
             return unique_arrays
+        # calculate filp list
+        flip_list=[]
+        flip_list_unique=[]
+        for i in range(num):
+            flip_list.append(list(np.random.randint(2, size=num_edges)))
+        flip_list_unique=remove_duplicate_arrays(flip_list)
+        if len(flip_list_unique)>=num_permutation:
+            flip_list_unique=flip_list_unique[:num_permutation]
+        # shuffle atom list
         for i in range(len(index_mapping)):
             atom_symbols_new=permu_unique[i]
             edge_indices_new=copy.deepcopy(edge_indices)
-            for j in range(len(edge_indices)):
+            for j in range(num_edges):
                 edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
                 edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
             edge_indices_new_shuffled_list=[]
@@ -648,12 +737,23 @@ class InvCryRep:
                 to_jimages_shu_trans_per=list(itertools.permutations(to_jimages_shuffled_transposed))
                 for k in range(6):
                     to_jimages_shu_trans_per_trans_final=[list(x) for x in zip(*to_jimages_shu_trans_per[k])]
-                    if strategy==1:
-                        SLICES_list.append(get_slices1(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
-                    if strategy==2:
-                        SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
-                    if strategy==3:
-                        SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_final,to_jimages_shu_trans_per_trans_final))
+                    # randomly flip edges
+                    for l in range(len(flip_list_unique)):
+                        edge_indices_new_final_flip=[]
+                        to_jimages_shu_trans_per_trans_final_flip=[]
+                        for m in range(num_edges):
+                            if flip_list_unique[l][m]==1:
+                                edge_indices_new_final_flip.append([edge_indices_new_final[m][1],edge_indices_new_final[m][0]])
+                                to_jimages_shu_trans_per_trans_final_flip.append(list(np.array(to_jimages_shu_trans_per_trans_final[m])*-1))
+                            else:
+                                edge_indices_new_final_flip.append(edge_indices_new_final[m])
+                                to_jimages_shu_trans_per_trans_final_flip.append(to_jimages_shu_trans_per_trans_final[m])
+                        if strategy==1:
+                            SLICES_list.append(get_slices1(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                        if strategy==2:
+                            SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                        if strategy==3:
+                            SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
         return SLICES_list
 
     def get_dim(self,structure):
@@ -963,7 +1063,6 @@ class InvCryRep:
             return inner_p_target, colattice_inds, colattice_weights
         except:
             temp_dir.cleanup()
-
 
     def convert_graph(self):
         """
@@ -1316,7 +1415,7 @@ class InvCryRep:
         (3) non-barycentric net embedding undergone cell optimization using M3GNet IAPs
         if cell optimization failed, then output (1) and (2)
         """
-        from datetime import datetime
+        #from datetime import datetime
         #print("before inner_p =", datetime.now())
         #print("after inner_p =", datetime.now())
         x_dat, net_voltage = self.convert_graph()
@@ -1328,13 +1427,15 @@ class InvCryRep:
             nx.draw(net.graph, ax=fig.add_subplot(111))
             fig.savefig("graph.png")
         #print(net.graph.edges)
+        # check the graph first (super fast)
+        net.simple_cycle_basis()
+        net.get_lattice_basis()
+        net.get_cocycle_basis()
+        # then calculate inner_p_target (slower)
         inner_p_target, colattice_inds, colattice_weights = self.get_inner_p_target(bond_scaling)
         uncovered_pair = self.get_uncovered_pair(net.graph)
         uncovered_pair_lj = self.get_uncovered_pair_lj(uncovered_pair)
         covered_pair_lj = self.get_covered_pair_lj()
-        net.simple_cycle_basis()
-        net.get_lattice_basis()
-        net.get_cocycle_basis()
         #deal with cocycle == none 
         if net.cocycle is not None: 
             net.periodic_rep = np.concatenate((net.cycle_rep, net.cocycle_rep), axis=0)
@@ -1430,7 +1531,6 @@ class InvCryRep:
         structures,final_energy_per_atom = self.to_structures()
         return structures[-1],final_energy_per_atom
 
-
     def to_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
         convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
@@ -1441,7 +1541,7 @@ class InvCryRep:
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
         return structures[-1]
-        
+
     def to_relaxed_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
         convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
