@@ -502,7 +502,7 @@ class InvCryRep:
         # check dumplicates(flip)
         edge_data_ascending=[]
         for i in range(len(self.edge_indices)):
-            if self.edge_indices[i][0]<self.edge_indices[i][1]:
+            if self.edge_indices[i][0]<=self.edge_indices[i][1]:
                 edge_data_ascending.append(list(self.edge_indices[i])+list(self.to_jimages[i]))
             else:
                 edge_data_ascending.append([self.edge_indices[i][1],self.edge_indices[i][0]]+list(np.array(self.to_jimages[i])*-1))
@@ -540,6 +540,69 @@ class InvCryRep:
         except:
             return False
         return True
+
+    def get_cannonical_SLICES(self,SLICES): 
+        def get_index_list_allow_duplicates(ori,mod):
+            indexes = defaultdict(deque)
+            for i, x in enumerate(mod):
+                indexes[x].append(i)
+            ids = [indexes[x].popleft() for x in ori]
+            return ids
+        def get_slices3(atom_symbols,edge_indices,to_jimages):
+            SLICES=''
+            for i in atom_symbols:
+                SLICES+=i+' '
+            for i in range(len(edge_indices)):
+                SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
+                for j in to_jimages[i]:
+                    if j==-1:
+                        SLICES+='- '
+                    if j==0:
+                        SLICES+='o '
+                    if j==1:
+                        SLICES+='+ '
+            return SLICES
+        self.from_SLICES(SLICES)
+        # sort elements
+        atom_types_sorted=copy.deepcopy(self.atom_types)
+        atom_types_sorted=np.sort(atom_types_sorted)
+        atom_types_sorted=list(atom_types_sorted)
+        index_mapping=get_index_list_allow_duplicates(self.atom_types,atom_types_sorted)
+        edge_indices=copy.deepcopy(self.edge_indices)
+        for j in range(len(self.edge_indices)):
+            edge_indices[j][0]=index_mapping[edge_indices[j][0]]
+            edge_indices[j][1]=index_mapping[edge_indices[j][1]]
+        # sort edges (to facilitate rough edge label sorting)
+        edge_indices_asc=copy.deepcopy(edge_indices)
+        to_jimages_asc=copy.deepcopy(self.to_jimages)
+        for i in range(len(edge_indices)):
+            if edge_indices[i][0]>edge_indices[i][1]:
+                edge_indices_asc[i][0]=edge_indices[i][1]
+                edge_indices_asc[i][1]=edge_indices[i][0]
+                to_jimages_asc[i]=self.to_jimages[i]*-1
+        atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types_sorted]
+        c =np.concatenate((edge_indices_asc, to_jimages_asc), axis=1) 
+        sorted_data = np.array(sorted(c, key=lambda x: (x[0], x[1])))
+        edge_indices = sorted_data[:, :2]
+        to_jimages = sorted_data[:, 2:]
+        # sort edge labels
+        column_sums = np.sum(to_jimages, axis=0)
+        def custom_sort_rule(column): # sum(x*index_x)
+            weighted_sum=[]
+            for i in range(3):
+                temp=0
+                for j in range(len(column)):
+                    temp+=(j+1)*column[j,i]
+                weighted_sum.append(temp)
+            return weighted_sum
+        sorted_column_indices = np.lexsort((custom_sort_rule(to_jimages), column_sums))
+        to_jimages_column_sorted = to_jimages[:, sorted_column_indices]
+        # sort edge+ij together
+        c =np.concatenate((edge_indices, to_jimages_column_sorted), axis=1) 
+        sorted_data = np.array(sorted(c, key=lambda x: (x[0], x[1],x[2],x[3],x[4])))
+        edge_indices = sorted_data[:, :2]
+        to_jimages = sorted_data[:, 2:]        
+        return get_slices3(atom_symbols,edge_indices,to_jimages)
 
     def structure2SLICES(self,structure,strategy=3):
         """
