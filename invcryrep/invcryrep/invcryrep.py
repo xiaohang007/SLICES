@@ -672,7 +672,7 @@ class InvCryRep:
         if strategy==3:
             return get_slices3(atom_symbols,edge_indices,to_jimages)
 
-    def structure2SLICESAug(self,structure,strategy=3,num=40):
+    def structure2SLICESAug(self,structure,strategy=3,num=200):
         """
         (1) extract edge_indices, to_jimages and atom_types from a pymatgen structure object
         (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
@@ -743,7 +743,7 @@ class InvCryRep:
         if strategy==3:
             SLICES_list.append(get_slices3(atom_symbols,edge_indices,to_jimages))
         #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
-        num_permutation=round((num/6)**(1/3))
+        num_permutation=int(math.ceil((num/6)**(1/3)))
         # shuffle to get permu
         permu=[]
         for i in range(num):
@@ -817,7 +817,8 @@ class InvCryRep:
                             SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
                         if strategy==3:
                             SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
-        return SLICES_list
+        random.shuffle(SLICES_list)
+        return SLICES_list[:num]
 
     def get_dim(self,structure):
         """
