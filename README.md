@@ -196,3 +196,9 @@ python 3_filter.py # check results_7_EAH_prescreenfiltered_0.05eV.csv for detail
 cd invcryrep
 python setup.py install
 ```
+## Citation
+@article{xiao2023invertible,
+  title={An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
+  author={Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Wang, Lei and Chen, Xi},
+  year={2023}
+}
