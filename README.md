@@ -29,7 +29,7 @@ docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang0
 
 !!! In case "docker pull xiaohang07/slices:v2" is not working, one can download SLICES_docker.tar.gz.* from https://doi.org/10.6084/m9.figshare.22707946 with pre-installed SLICES and other relevant packages.  
 ```bash
-cat SLICES_docker.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
+cat SLICES_docker_image.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
 docker load -i SLICES_docker_image.tar.gz #  Install the docker image
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
 docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
