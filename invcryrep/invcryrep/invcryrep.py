@@ -587,12 +587,12 @@ class InvCryRep:
         to_jimages = sorted_data[:, 2:]
         # sort edge labels
         column_sums = np.sum(to_jimages, axis=0)
-        def custom_sort_rule(column): # sum(x*index_x)
+        def custom_sort_rule(column): # sum(x*index_x**3)
             weighted_sum=[]
             for i in range(3):
                 temp=0
                 for j in range(len(column)):
-                    temp+=(j+1)*column[j,i]
+                    temp+=(j+1)**3*column[j,i]
                 weighted_sum.append(temp)
             return weighted_sum
         sorted_column_indices = np.lexsort((custom_sort_rule(to_jimages), column_sums))
