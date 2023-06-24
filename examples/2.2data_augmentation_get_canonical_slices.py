@@ -8,7 +8,7 @@ original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
 backend=InvCryRep(graph_method='econnn')
 # converting a crystal structure to its SLICES string and perform data augmentation (2000x)
-slices_list=backend.structure2SLICESAug(original_structure,3,2000) 
+slices_list=backend.structure2SLICESAug(structure=original_structure,num=2000) 
 slices_list_unique=list(set(slices_list))
 cannon_slices_list=[]
 for i in slices_list_unique:
