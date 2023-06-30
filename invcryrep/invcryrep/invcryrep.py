@@ -7,6 +7,8 @@ from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,Mi
 from pymatgen.core.periodic_table import ElementBase
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.analysis.dimensionality import get_dimensionality_larsen
+from pymatgen.core.composition import Composition
+import re
 import networkx as nx
 from networkx.algorithms import tree
 import numpy as np
@@ -603,6 +605,19 @@ class InvCryRep:
         edge_indices = sorted_data[:, :2]
         to_jimages = sorted_data[:, 2:]        
         return get_slices3(atom_symbols,edge_indices,to_jimages)
+
+    def SLICES2formula(self,SLICES):
+        """
+        convert SLICES to chemical formula (to facilitate composition screening before SLICES2structure)
+        """ 
+        match = re.search(r'^(.*?)(\d+)', SLICES)
+        extracted_string = match.group(1)
+        try:
+            composition = Composition(extracted_string)
+            formula = composition.formula.replace(' ', '')
+            return formula
+        except:
+            print(SLICES,extracted_string)
 
     def structure2SLICES(self,structure,strategy=3):
         """
