@@ -481,7 +481,7 @@ class InvCryRep:
         G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
         mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
         b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        print(b)
+        #print(b)
         if b < 3:
             return False
         # check if all nodes has been covered by edges
@@ -526,7 +526,7 @@ class InvCryRep:
             c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
         else:    
             c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
-        print(b_sub_a,c_sub_ab)
+        #print(b_sub_a,c_sub_ab)
         if len(b_sub_a)==0 or len(c_sub_ab)==0:
             return False
         try:
