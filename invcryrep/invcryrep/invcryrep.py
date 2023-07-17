@@ -543,6 +543,64 @@ class InvCryRep:
             return False
         return True
 
+    def check_SLICES_without_dupli(self,SLICES):
+        try:
+            self.from_SLICES(SLICES)
+        except:
+            return False
+        # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 
+        G = nx.MultiGraph()
+        G.add_nodes_from([i for i in range(len(self.atom_types))])
+        G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+        b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
+        #print(b)
+        if b < 3:
+            return False
+        # check if all nodes has been covered by edges
+        nodes_covered=[]
+        for i in self.edge_indices:
+            nodes_covered.append(i[0])
+            nodes_covered.append(i[1])
+        if len(set(nodes_covered))!=len(self.atom_types):
+            return False
+        # check if edge labels covers 3 dimension in at least 3 edges, in order to get 3D embedding
+        edge_index_covered=[[],[],[]]
+        for i in range(len(self.to_jimages)):
+            for j in range(3):
+                if self.to_jimages[i][j]!=0:
+                    edge_index_covered[j].append(i)
+        for i in edge_index_covered:
+            if len(i)==0:
+                return False
+        #print(edge_index_covered)
+        # strict case: (still not covering all cases)
+        if len(edge_index_covered[1])>=len(edge_index_covered[0]):
+            b_sub_a = [i for i in edge_index_covered[1] if i not in edge_index_covered[0]]
+        else:
+            b_sub_a = [i for i in edge_index_covered[0] if i not in edge_index_covered[1]]
+        a_add_b = edge_index_covered[0]+edge_index_covered[1]
+        if len(a_add_b)>=len(edge_index_covered[2]):
+            c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
+        else:    
+            c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
+        #print(b_sub_a,c_sub_ab)
+        if len(b_sub_a)==0 or len(c_sub_ab)==0:
+            return False
+        try:
+            x_dat, net_voltage = self.convert_graph()
+            #print(x_dat,net_voltage)
+            net = Net(x_dat,dim=3)
+            net.voltage = net_voltage
+            #print(net.graph.edges)
+            # check the graph first (super fast)
+            net.simple_cycle_basis()
+            net.get_lattice_basis()
+            net.get_cocycle_basis()
+        except:
+            return False
+        return True
+
     def get_canonical_SLICES(self,SLICES): 
         def get_index_list_allow_duplicates(ori,mod):
             indexes = defaultdict(deque)
@@ -1041,6 +1099,105 @@ class InvCryRep:
                 json.dump(bdict,f)
         return nbf, blist
 
+    def get_inner_p_target_debug(self, bond_scaling=1.05):
+        """
+        get inner_p_target(inner_p matrix obtained by gfnff): np.array
+        get colattice_inds(keep track of all the valid colattice dot indices): list
+        get colattice_weights(colattice weights for bond or angle): list
+        """
+        nbf, blist = self.get_nbf_blist()
+        temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
+        with open(temp_dir.name+'/testBonds_cut.top','w') as f:
+            f.write(nbf)
+        subprocess.call(os.environ["XTB_MOD_PATH"]+' --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl', \
+        cwd=temp_dir.name, shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        if self.check_results:
+            os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
+            os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
+        with open(temp_dir.name+'/gfnff_lists.json', 'r') as fgfn:
+            txt=fgfn.read()
+            txt=txt.replace("********","       0") # deal with the xtb output bug
+            data = json.loads(txt)  # read blist,vbond,alist,vangl
+            del(txt)
+        temp_dir.cleanup()
+        blist_original=blist
+        blist_flip=np.flip(blist_original,1) # reverse the order
+        bond_weight=[]
+        blist_super=np.array(data['blist'],dtype=int)
+        inner_p_target=np.zeros((len(blist_original),len(blist_original)))
+        # bond
+        bond_repul_scale=[]  # track repul scale of all bonds
+        for i in range(len(blist_original)):
+            #matching
+            temp1=np.where((blist_super ==blist_original[i] ).all(axis=1))
+            temp2=np.where((blist_super ==blist_flip[i] ).all(axis=1))
+            if len(temp1[0]):
+                index=temp1[0][0]
+            elif len(temp2[0]):
+                index=temp2[0][0]
+            else:
+                print('Cannot find bond!!!') 
+            if np.isnan(data['vbond'][index][2]):
+                bond_weight.append(1)
+                data['vbond'][index][2]=1
+            else:
+                bond_weight.append(abs(data['vbond'][index][2])) # convert back to angstrom
+            inner_p_target[i,i]=round((data['vbond'][index][3]*0.529177*1.05*bond_scaling)**2,5)  # *1.04, a empirical parameter
+        blist_unique=np.unique(blist_original)
+        alist_original=np.array(data['alist'],dtype=int)
+        #print(list(alist_original))
+        colattice_inds=[[],[]]
+        colattice_weights=[]
+        for i in range(len(alist_original)):
+            ab=alist_original[i][[0,1]] # first bond
+            ac=alist_original[i][[0,2]] # second bond
+            #print(ab,ac)
+            temp1=np.where((blist_original ==ab ).all(axis=1))
+            temp2=np.where((blist_flip ==ab ).all(axis=1))
+            temp3=np.where((blist_original ==ac ).all(axis=1))
+            temp4=np.where((blist_flip ==ac ).all(axis=1))   
+            if (len(temp1[0])+len(temp2[0])) and (len(temp3[0])+len(temp4[0])):
+                sign=1
+                if len(temp1[0]):
+                    index_x=temp1[0][0]
+                elif len(temp2[0]):
+                    index_x=temp2[0][0]
+                    sign=sign*(-1)
+                else:
+                    print('Cannot find bond1!!!') 
+                if len(temp3[0]):
+                    index_y=temp3[0][0]
+                elif len(temp4[0]):
+                    index_y=temp4[0][0]
+                    sign=sign*(-1)
+                else:
+                    print('Cannot find bond2!!!')  
+                #print(inner_p_target[index_x,index_y],index_x,index_y)
+                inner_p_target[index_x,index_y]=sign*math.sqrt(inner_p_target[index_x,index_x])*math.sqrt(inner_p_target[index_y,index_y])*math.cos(data['vangl'][i][0])
+                colattice_inds[0].append(int(index_x))
+                colattice_inds[1].append(int(index_y))
+                colattice_weights.append(abs(data['vangl'][i][1])) # vangl params could be negative numbers
+        # colattice_inds weight
+        temp_max=0  # angle weight is larger than 0
+        for i in range(len(colattice_weights)):
+            if colattice_weights[i] > temp_max:
+                temp_max=colattice_weights[i]
+        for i in range(len(colattice_weights)):
+            colattice_weights[i]=round(colattice_weights[i]/temp_max,2)
+        temp_max=0 
+        for i in range(len(bond_weight)):
+            if bond_weight[i] > temp_max:
+                temp_max=bond_weight[i]
+        for i in range(len(bond_weight)):
+            colattice_inds[0].append(i)
+            colattice_inds[1].append(i)
+            colattice_weights.append(round(bond_weight[i]/temp_max,2))  # angleweight first, bondweight second
+        if self.check_results:
+            inner_p_target_dict={'inner_p_target':inner_p_target.tolist(),'colattice_inds':colattice_inds,'colattice_weights':colattice_weights}
+            with open('inner_p_target.json', 'w') as  f:
+                json.dump(inner_p_target_dict,f)
+        return inner_p_target, colattice_inds, colattice_weights
+
     def get_inner_p_target(self, bond_scaling=1.05):
         """
         get inner_p_target(inner_p matrix obtained by gfnff): np.array
@@ -1511,7 +1668,10 @@ class InvCryRep:
         net.get_lattice_basis()
         net.get_cocycle_basis()
         # then calculate inner_p_target (slower)
-        inner_p_target, colattice_inds, colattice_weights = self.get_inner_p_target(bond_scaling)
+        if self.check_results:
+            inner_p_target, colattice_inds, colattice_weights = self.get_inner_p_target_debug(bond_scaling)
+        else:
+            inner_p_target, colattice_inds, colattice_weights = self.get_inner_p_target(bond_scaling)
         uncovered_pair = self.get_uncovered_pair(net.graph)
         uncovered_pair_lj = self.get_uncovered_pair_lj(uncovered_pair)
         covered_pair_lj = self.get_covered_pair_lj()
