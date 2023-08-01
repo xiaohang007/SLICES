@@ -1,6 +1,10 @@
 # -*- coding: UTF-8 -*-
+# Hang Xiao 2023.04
+# xiaohang007@gmail.com
 import os,subprocess,random,warnings
 warnings.filterwarnings("ignore")
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
@@ -22,7 +26,6 @@ from collections import defaultdict, deque
 from io import StringIO
 import pandas as pd
 import matplotlib.pyplot as plt
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 from m3gnet.models import Relaxer
 import logging
 import tensorflow as tf
@@ -35,11 +38,19 @@ logging.captureWarnings(False)
 tf.get_logger().setLevel(logging.ERROR)
 tf.config.threading.set_inter_op_parallelism_threads(1)
 tf.config.threading.set_intra_op_parallelism_threads(1)
-os.environ["OMP_NUM_THREADS"] = "1"
 
-# define a decorator that sets a time limit for a function call
 def function_timeout(seconds: int):
-    """Wrapper of Decorator to pass arguments"""
+    """Define a decorator that sets a time limit for a function call.
+
+    Args:
+        seconds (int): Time limit.
+
+    Raises:
+        SystemExit: Timeout exception.
+
+    Returns:
+        Decorator: Timeout Decorator.
+    """
     def decorator(func):
         @contextmanager
         def time_limit(seconds_):
@@ -59,27 +70,31 @@ def function_timeout(seconds: int):
     return decorator
 
 class InvCryRep:
-    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn',check_results=False, optimizer="BFGS",fmax=0.2,steps=100):
-        """
-        atom_types: np.array
-        edge_indices: np.array
-        to_jimages: np.array
-        graph_method: string
-        check_results: bool
-        atom_symbols: list
-        SLICES: string
-        unstable_graph: bool
-        relaxer: m3gnet class
-        fmax: float
-        steps: int
-        """    
+    """Invertible Crystal Representation (SLICES and labeled quotient graph)
+    """    
+    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100):
+        """__init__
+
+        Args:
+            atom_types (np.array, optional): Atom types in a SLICES string. Defaults to None.
+            edge_indices (np.array, optional): Edge indices in a SLICES string. Defaults to None.
+            to_jimages (np.array, optional): Edge labels in a SLICES string. Defaults to None.
+            graph_method (str, optional): The method used for analyzing the local chemical environments 
+                to generate labeled quotient graphs. Defaults to 'econnn'.
+            check_results (bool, optional): Flag to indicate whether to output intermediate results for 
+                debugging purposes. Defaults to False.
+            optimizer (str, optional): Optimizer used in M3GNet_IAP optimization. Defaults to "BFGS".
+            fmax (float, optional): Convergence criterion of maximum allowable force on each atom. 
+                Defaults to 0.2.
+            steps (int, optional): Max steps. Defaults to 100.
+        """        
         tf.keras.backend.clear_session()
         gc.collect()
         self.atom_types = atom_types
         self.edge_indices = edge_indices
         self.to_jimages = to_jimages
         self.graph_method = graph_method
-        self.check_results = check_results  # for debug
+        self.check_results = check_results
         self.atom_symbols = None
         self.SLICES = None
         self.unstable_graph = False  # unstable graph flag
@@ -88,15 +103,24 @@ class InvCryRep:
         self.steps=steps
 
     def check_element(self):
-        # make sure no atoms with atomic numbers higher than 86 (gfnff)
+        """Make sure no atoms with atomic numbers higher than 86 (due to GFN-FF's limitation).
+
+        Returns:
+            bool: Return True if all atoms with Z < 87.
+        """        
         if self.atom_types.max() < 87:
             return True
         else:
             return False
 
     def file2structure_graph(self,filename):
-        """
-        convert file to pymatgen structure_graph object
+        """Convert a file to a pymatgen structure_graph object.
+
+        Args:
+            filename (str): Filename.
+
+        Returns:
+            StructureGraph: Pymatgen structure_graph object.
         """
         structure = Structure.from_file(filename)
         if self.graph_method == 'brunnernn':
@@ -116,8 +140,13 @@ class InvCryRep:
         return structure_graph,structure
 
     def cif2structure_graph(self,string):
-        """
-        convert a cif string to structure_graph
+        """Convert a cif string to a structure_graph.
+
+        Args:
+            string (str): String of a cif file.
+
+        Returns:
+            StructureGraph: Pymatgen structure_graph object.
         """
         structure = Structure.from_str(string,'cif')
         if self.graph_method == 'brunnernn':
@@ -137,8 +166,13 @@ class InvCryRep:
         return structure_graph,structure
 
     def structure2structure_graph(self,structure):
-        """
-        convert pymatgen structure to structure_graph
+        """Convert a pymatgen structure to a structure_graph.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+
+        Returns:
+            StructureGraph: A Pymatgen StructureGraph object.
         """
         if self.graph_method == 'brunnernn':
             structure_graph = StructureGraph.with_local_env_strategy(
@@ -157,8 +191,16 @@ class InvCryRep:
         return structure_graph
 
     def from_SLICES(self,SLICES,fix_duplicate_edge=False):
-        """
-        extract edge_indices, to_jimages and atom_types from decoding a SLICES string
+        """Extract edge_indices, to_jimages and atom_types from decoding a SLICES string.
+
+        Args:
+            SLICES (str): SLICES string.
+            fix_duplicate_edge (bool, optional): Flag to indicate whether to fix duplicate edges in 
+            SLICES (due to RNN's difficulty in learning long SLICES). Defaults to False.
+
+        Raises:
+            Exception: Error: wrong edge indices.
+            Exception: Error: wrong edge label.
         """
         self.atom_types = None
         self.edge_indices = None
@@ -203,6 +245,10 @@ class InvCryRep:
         self.atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in self.atom_symbols])        
 
     def to_SLICES(self):
+        """Output a SLICES string based on self.atom_types & self.edge_indices & self.to_jimages.
+        Returns:
+            str: SLICES string.
+        """
         def get_slices3(atom_symbols,edge_indices,to_jimages):
             SLICES=''
             for i in atom_symbols:
@@ -222,8 +268,13 @@ class InvCryRep:
 
     @staticmethod
     def check_structural_validity(str1):
-        """
-        check_structure_validity with minimal distance > 0.5 Ang
+        """Check the structural validity of a Structure with minimal distance > 0.5 Ang.
+
+        Args:
+            str1 (Structure): Input Structure.
+
+        Returns:
+            bool: Return True if Structure is structurally valid.
         """
         distance_matrix=str1.lattice.get_all_distances(str1.frac_coords,str1.frac_coords)
         min_value = 10000000 # inf
@@ -239,6 +290,16 @@ class InvCryRep:
             return True
 
     def check_SLICES(self,SLICES,dupli_check=True):
+        """Check if a slices string conforms to the proper syntax.
+
+        Args:
+            SLICES (str): A SLICES string.
+            dupli_check (bool, optional): Flag to indicate whether to check if a SLICES has duplicate
+                edges. Defaults to True.
+
+        Returns:
+            bool: Return True if a SLICES is syntaxlly valid.
+        """
         try:
             self.from_SLICES(SLICES)
         except:
@@ -249,7 +310,6 @@ class InvCryRep:
         G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
         mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
         b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        #print(b)
         if b < 3:
             return False
         # check if all nodes has been covered by edges
@@ -268,7 +328,6 @@ class InvCryRep:
         for i in edge_index_covered:
             if len(i)==0:
                 return False
-        #print(edge_index_covered)
         # check dumplicates(flip)
         if dupli_check:
             edge_data_ascending=[]
@@ -295,15 +354,12 @@ class InvCryRep:
             c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
         else:    
             c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
-        #print(b_sub_a,c_sub_ab)
         if len(b_sub_a)==0 or len(c_sub_ab)==0:
             return False
         try:
             x_dat, net_voltage = self.convert_graph()
-            #print(x_dat,net_voltage)
             net = Net(x_dat,dim=3)
             net.voltage = net_voltage
-            #print(net.graph.edges)
             # check the graph first (super fast)
             net.simple_cycle_basis()
             net.get_lattice_basis()
@@ -312,7 +368,15 @@ class InvCryRep:
             return False
         return True
 
-    def get_canonical_SLICES(self,SLICES): 
+    def get_canonical_SLICES(self,SLICES):
+        """Convert a SLICES to its canonical form.
+
+        Args:
+            SLICES (str): A SLICES string.
+
+        Returns:
+            str: The canonical SLICES string.
+        """
         def get_index_list_allow_duplicates(ori,mod):
             indexes = defaultdict(deque)
             for i, x in enumerate(mod):
@@ -376,9 +440,15 @@ class InvCryRep:
         return get_slices3(atom_symbols,edge_indices,to_jimages)
 
     def SLICES2formula(self,SLICES):
+        """Convert a SLICES string to its chemical formula (to facilitate composition screening 
+        before SLICES2structure).
+
+        Args:
+            SLICES (str): A SLICES string.
+
+        Returns:
+            str: Chemical formula.
         """
-        convert SLICES to chemical formula (to facilitate composition screening before SLICES2structure)
-        """ 
         match = re.search(r'^(.*?)(\d+)', SLICES)
         extracted_string = match.group(1)
         try:
@@ -389,10 +459,16 @@ class InvCryRep:
             print(SLICES,extracted_string)
 
     def structure2SLICES(self,structure,strategy=3):
-        """
-        extract edge_indices, to_jimages and atom_types from a pymatgen structure object
-         then encoding them into a SLICES string
-        """        
+        """Extract edge_indices, to_jimages and atom_types from a pymatgen structure object
+         then encode them into a SLICES string.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+            strategy (int, optional): Strategy number. Defaults to 3.
+
+        Returns:
+            str: A SLICES string.
+        """ 
         structure_graph=self.structure2structure_graph(structure)
         atom_types = np.array(structure.atomic_numbers)
         atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
@@ -457,10 +533,19 @@ class InvCryRep:
             return get_slices3(atom_symbols,edge_indices,to_jimages)
 
     def structure2SLICESAug(self,structure,strategy=3,num=200):
-        """
+        """ Convert Structure to SLICES and conduct data augmentation.
+        
         (1) extract edge_indices, to_jimages and atom_types from a pymatgen structure object
         (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
-        with a data augmentation scheme
+            with a data augmentation scheme
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+            strategy (int, optional): Strategy number. Defaults to 3.
+            num (int, optional): Increase the dataset size by a magnitude of num. Defaults to 200.
+
+        Returns:
+            list: A list of num SLICES strings.
         """
         def get_slices1(atom_symbols,edge_indices,to_jimages):
             atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
@@ -577,7 +662,6 @@ class InvCryRep:
                 to_jimages_shuffled_list.append(to_jimages_shuffled)
             edge_indices_new_shuffled_list_unique = remove_duplicate_arrays(edge_indices_new_shuffled_list)
             to_jimages_shuffled_list_unique = remove_duplicate_arrays(to_jimages_shuffled_list)
-            #print(edge_indices_new_shuffled_list_unique[:6])
             for j in range(min(num_permutation,len(edge_indices_new_shuffled_list_unique))):
                 edge_indices_new_final=edge_indices_new_shuffled_list_unique[j]
                 to_jimages_shuffled_transposed = [list(x) for x in zip(*to_jimages_shuffled_list_unique[j])]
@@ -605,8 +689,13 @@ class InvCryRep:
         return SLICES_list[:num]
 
     def get_dim(self,structure):
-        """
-        get the dimension of a structure
+        """Get the dimension of a Structure.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+
+        Returns:
+            int: The dimension of a Structure.
         """
         if self.graph_method == 'brunnernn':
             bonded_structure = BrunnerNN_reciprocal().get_bonded_structure(structure)
@@ -622,9 +711,11 @@ class InvCryRep:
         return dim
 
     def from_cif(self, string):
+        """Extract edge_indices, to_jimages and atom_types from a cif string.
+
+        Args:
+            string (str): String of a cif file.
         """
-        extract edge_indices, to_jimages and atom_types from a cif string
-        """        
         structure_graph,structure = self.cif2structure_graph(string)
         if self.check_results:
             structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
@@ -644,9 +735,11 @@ class InvCryRep:
         self.to_jimages = np.array(to_jimages)
 
     def from_file(self, filename):
+        """Extract edge_indices, to_jimages and atom_types from a file.
+
+        Args:
+            filename (str): Filename.
         """
-        extract edge_indices, to_jimages and atom_types from a file
-        """            
         structure_graph,structure = self.file2structure_graph(filename)
         if self.check_results:
             structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
@@ -666,9 +759,11 @@ class InvCryRep:
         self.to_jimages = np.array(to_jimages)
 
     def from_structure(self, structure):
+        """Extract edge_indices, to_jimages and atom_types from a pymatgen structure object.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
         """
-        extract edge_indices, to_jimages and atom_types from a pymatgen structure object
-        """    
         structure_graph = self.structure2structure_graph(structure)
         if self.check_results:
             structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
@@ -688,8 +783,15 @@ class InvCryRep:
         self.to_jimages = np.array(to_jimages)
 
     def structure2crystal_graph_rep(self, structure):
-        """
-        convert a pymatgen structure object into the crystal graph representation (atom_types,edge_indices,to_jimages)
+        """convert a pymatgen structure object into the crystal graph representation:
+            atom_types, edge_indices, to_jimages.
+        Args:
+            structure (_type_): _description_
+
+        Returns:
+            np.array: Atom types.
+            np.array: Edge indices.
+            np.array: Edge labels.            
         """
         structure_graph = self.structure2structure_graph(structure)
         if self.check_results:
@@ -709,14 +811,16 @@ class InvCryRep:
         return atom_types,np.array(edge_indices),np.array(to_jimages)
 
     def get_nbf_blist(self):
-        """
-        get nbf(neighbor list with atom types for xtb_mod): str
-        get blist(node indexes of the central unit cell edges in the 3*3*3 supercell): np.array
+        """ (1) Get nbf(neighbor list with atom types for xtb_mod).
+            (2) Get blist(node indexes of the central unit cell edges in the 3*3*3 supercell). 
+
+        Returns:
+            str: nbf.
+            np.array: blist.
         """
         if self.atom_types is not None and self.edge_indices is not None and self.to_jimages is not None:
             n_atom=len(self.atom_types)
             voltage=np.concatenate((self.edge_indices, self.to_jimages), axis=1) # voltage is actually [i j volatge]
-            #print(voltage)
             voltage_super=[] # [i j volatge] array for the supercell
             for i in range(len(OFFSET)):
                 for j in range(len(voltage)):
@@ -756,7 +860,6 @@ class InvCryRep:
                     temp.append(voltage_super[i,1])
                     voltage_super_cut.append(temp)
             voltage_super_cut=np.array(voltage_super_cut,dtype=int)
-            #print((voltage_super_cut))
             # reindex voltage_super_cut due to the removal of atoms with no neighbor
             no_neighbor_index=[]
             for i in range(n_atom*27):
@@ -773,7 +876,6 @@ class InvCryRep:
                 for i in range(len(voltage_super_cut)):
                     voltage_super_cut[i,0]=voltage_super_cut[i,0]-len(np.where(no_neighbor_index < voltage_super_cut[i,0])[0]) # offset index
                     voltage_super_cut[i,1]=voltage_super_cut[i,1]-len(np.where(no_neighbor_index < voltage_super_cut[i,1])[0])
-                #print(voltage_super_cut)
                 for i in range(len(voltage_super)):  # modify voltage_super's index 
                     voltage_super[i,0]=voltage_super[i,0]-len(np.where(no_neighbor_index < voltage_super[i,0])[0]) # offset index
                     voltage_super[i,1]=voltage_super[i,1]-len(np.where(no_neighbor_index < voltage_super[i,1])[0])
@@ -811,10 +913,19 @@ class InvCryRep:
         return nbf, blist
 
     def get_inner_p_target_debug(self, bond_scaling=1.05):
-        """
-        get inner_p_target(inner_p matrix obtained by gfnff): np.array
-        get colattice_inds(keep track of all the valid colattice dot indices): list
-        get colattice_weights(colattice weights for bond or angle): list
+        """ Get inner product matrix, colattice indices, colattice weights with debug outputs.
+
+        (1) Get inner_p_target(inner_p matrix obtained by gfnff).
+        (2) Get colattice_inds(keep track of all the valid colattice dot indices).
+        (3) Get colattice_weights(colattice weights for bond or angle).
+
+        Args:
+            bond_scaling (float, optional): Bond scaling factor. Defaults to 1.05.
+
+        Returns:
+            np.array: Inner product matrix.
+            list: Colattice indices.
+            list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
         temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
@@ -856,13 +967,11 @@ class InvCryRep:
             inner_p_target[i,i]=round((data['vbond'][index][3]*0.529177*1.05*bond_scaling)**2,5)  # *1.04, a empirical parameter
         blist_unique=np.unique(blist_original)
         alist_original=np.array(data['alist'],dtype=int)
-        #print(list(alist_original))
         colattice_inds=[[],[]]
         colattice_weights=[]
         for i in range(len(alist_original)):
             ab=alist_original[i][[0,1]] # first bond
             ac=alist_original[i][[0,2]] # second bond
-            #print(ab,ac)
             temp1=np.where((blist_original ==ab ).all(axis=1))
             temp2=np.where((blist_flip ==ab ).all(axis=1))
             temp3=np.where((blist_original ==ac ).all(axis=1))
@@ -883,7 +992,6 @@ class InvCryRep:
                     sign=sign*(-1)
                 else:
                     print('Cannot find bond2!!!')  
-                #print(inner_p_target[index_x,index_y],index_x,index_y)
                 inner_p_target[index_x,index_y]=sign*math.sqrt(inner_p_target[index_x,index_x])*math.sqrt(inner_p_target[index_y,index_y])*math.cos(data['vangl'][i][0])
                 colattice_inds[0].append(int(index_x))
                 colattice_inds[1].append(int(index_y))
@@ -910,10 +1018,19 @@ class InvCryRep:
         return inner_p_target, colattice_inds, colattice_weights
 
     def get_inner_p_target(self, bond_scaling=1.05):
-        """
-        get inner_p_target(inner_p matrix obtained by gfnff): np.array
-        get colattice_inds(keep track of all the valid colattice dot indices): list
-        get colattice_weights(colattice weights for bond or angle): list
+        """ Get inner product matrix, colattice indices, colattice weights.
+
+        (1) Get inner_p_target(inner_p matrix obtained by gfnff).
+        (2) Get colattice_inds(keep track of all the valid colattice dot indices).
+        (3) Get colattice_weights(colattice weights for bond or angle).
+
+        Args:
+            bond_scaling (float, optional): Bond scaling factor. Defaults to 1.05.
+
+        Returns:
+            np.array: Inner product matrix.
+            list: Colattice indices.
+            list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
         temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
@@ -956,13 +1073,11 @@ class InvCryRep:
                 inner_p_target[i,i]=round((data['vbond'][index][3]*0.529177*1.05*bond_scaling)**2,5)  # *1.04, a empirical parameter
             blist_unique=np.unique(blist_original)
             alist_original=np.array(data['alist'],dtype=int)
-            #print(list(alist_original))
             colattice_inds=[[],[]]
             colattice_weights=[]
             for i in range(len(alist_original)):
                 ab=alist_original[i][[0,1]] # first bond
                 ac=alist_original[i][[0,2]] # second bond
-                #print(ab,ac)
                 temp1=np.where((blist_original ==ab ).all(axis=1))
                 temp2=np.where((blist_flip ==ab ).all(axis=1))
                 temp3=np.where((blist_original ==ac ).all(axis=1))
@@ -982,8 +1097,7 @@ class InvCryRep:
                         index_y=temp4[0][0]
                         sign=sign*(-1)
                     else:
-                        print('Cannot find bond2!!!')  
-                    #print(inner_p_target[index_x,index_y],index_x,index_y)
+                        print('Cannot find bond2!!!') 
                     inner_p_target[index_x,index_y]=sign*math.sqrt(inner_p_target[index_x,index_x])*math.sqrt(inner_p_target[index_y,index_y])*math.cos(data['vangl'][i][0])
                     colattice_inds[0].append(int(index_x))
                     colattice_inds[1].append(int(index_y))
@@ -1012,8 +1126,11 @@ class InvCryRep:
             temp_dir.cleanup()
 
     def convert_graph(self):
-        """
-        convert edge_indices, to_jimages into networkx format
+        """Convert self.edge_indices, self.to_jimages into networkx format.
+
+        Returns:
+            list: x_dat.
+            list: net_voltage(edge labels).
         """
         edges=list(np.concatenate((self.edge_indices, self.to_jimages), axis=1))
         x_dat,net_voltage = [],[]
@@ -1025,9 +1142,15 @@ class InvCryRep:
         return x_dat, net_voltage
 
     @staticmethod 
-    def get_uncovered_pair(graph):  # assuming that all atoms has been included in graph 
-        """
-        get atom pairs not covered by edges of the structure graph 
+    def get_uncovered_pair(graph):  # 
+        """Get atom pairs not covered by edges of the structure graph. Assuming that all atoms 
+            has been included in graph.
+
+        Args:
+            graph (Graph): Networkx graph.
+
+        Returns:
+            list: Atom pairs not covered by edges of the structure graph.
         """
         num_nodes=len(graph.nodes)
         unique_covered_pair=[]
@@ -1050,8 +1173,13 @@ class InvCryRep:
         return uncovered_pair
 
     def get_uncovered_pair_lj(self,uncovered_pair):
-        """
-        get the lj parameters for atom pairs not covered by edges of the structure graph 
+        """Get the lj parameters for atom pairs not covered by edges of the structure graph.
+
+        Args:
+            uncovered_pair (list): Atom pairs not covered by edges of the structure graph.
+
+        Returns:
+            list: lj parameters for atom pairs not covered by edges of the structure graph.
         """
         uncovered_pair_lj=[]
         # read lj params
@@ -1067,8 +1195,10 @@ class InvCryRep:
         return uncovered_pair_lj
 
     def get_covered_pair_lj(self):
-        """
-        get atom pairs covered by edges of the structure graph 
+        """Get atom pairs covered by edges of the structure graph stored in self.atom_types.
+
+        Returns:
+            list: Atom pairs covered by edges of the structure graph.
         """
         covered_pair_lj=[]
         # read lj params
@@ -1084,9 +1214,17 @@ class InvCryRep:
         return covered_pair_lj
 
     def get_rescaled_lattice_vectors(self,inner_p_target,inner_p_std,lattice_vectors_std,arc_coord_std):
-        """
-        get rescaled_lattice_vectors based on the GFNFF bond lengths
-         calculated using the topological neighbor list as input
+        """Get rescaled_lattice_vectors based on the GFNFF bond lengths calculated using the
+            topological neighbor list as input.
+
+        Args:
+            inner_p_target (np.array): Inner product matrix obtained by GFNFF.
+            inner_p_std (np.array): Inner product matrix of the barycentric embedding.
+            lattice_vectors_std (np.array): Lattice vectors of the barycentric embedding.
+            arc_coord_std (np.array): Edge vectors (fractional coords) of the barycentric embedding.
+
+        Returns:
+            np.array: Rescaled lattice vectors.
         """
         scaleList=[]
         inner_p_std_diag=np.diag(inner_p_std)
@@ -1106,7 +1244,6 @@ class InvCryRep:
         for i in range(len(self.edge_indices)):
             if i not in nonzero_edge_index:
                 scaleList[i]=scale_ave_temp # replace problematic scales with the average of valid values
-        #print("scaleList:",scaleList) 
         weight_sum=[0,0,0]
         scale_sum=[0,0,0]
         for i in range(len(arc_coord_std)):
@@ -1115,18 +1252,22 @@ class InvCryRep:
         scale_vector=[0,0,0]
         for i in range(len(scale_sum)):
             scale_vector[i]=scale_sum[i]/weight_sum[i]
-        #print("scale_vector",scale_vector)
         lattice_vectors_scaled = np.dot(lattice_vectors_std,np.diag(scale_vector))
-        #print(arc_coord_std)
-        #print("cartisian length:",np.sqrt(np.sum(np.square(np.dot(arc_coord_std,lattice_vectors_scaled)),axis=1))) # should be like this
-        #print(lattice_vectors_scaled)
         return lattice_vectors_scaled
 
-    # calcualte the fractional coordinates of vertices 
     @staticmethod 
     def get_coordinates(arc_coord,num_nodes,shortest_path_spanning_graph,spanning):
-        """
-        get fractional coordinates of atoms from fractional coordinates of arcs vectors
+        """Get fractional coordinates of atoms from fractional coordinates of edge vectors.
+
+        Args:
+            arc_coord (np.array): Edge vectors (fractional coords) of a labeled quotient graph.
+            num_nodes (int): Number of atoms(nodes) of a labeled quotient graph.
+            shortest_path_spanning_graph (list): Shortest path of the spanning graph of a labeled 
+                quotient graph.
+            spanning (list): Spanning graph of a labeled quotient graph.
+
+        Returns:
+            np.array: Fractional coordinates of atoms.
         """
         coordinates=np.zeros((num_nodes,3))  #v0 
         if num_nodes>1:  # !deal with single node case
@@ -1143,9 +1284,19 @@ class InvCryRep:
         return coordinates
 
     @staticmethod
-    def convert_params(x, ndim, angle_inds, cocycle_size, lattice_type, metric_tensor_std):
-        """
-        extract metric_tensor and cocycle_rep from x vector
+    def convert_params(x, ndim, cocycle_size, lattice_type, metric_tensor_std):
+        """Extract metric tensor and cocycle rep from x vector.
+
+        Args:
+            x (np.array): Ndarray of metric tensor components and colattice vectors.
+            ndim (int): Dimensionality of crystal structure corresponding to the labeled quotient graph.
+            cocycle_size (int): Size of the cocycle vectors.
+            lattice_type (int): Lattice type. 1: a=b=c, 21: a!=b=c, 22: b!=a=c, 23: c!=a=b , 3: a!=b!=c.
+            metric_tensor_std (np.array): Metric tensor of the barycentric embedding.
+
+        Returns:
+            np.array: Updated metric tensor based on colattice vectors, x.
+            np.array: Cocycle rep, the bottom n-1 rows of the alpha matrix.
         """
         if lattice_type==1: 
             cell_lengths = x[:1]
@@ -1186,9 +1337,23 @@ class InvCryRep:
         return mt, cocycle_rep
     
     @staticmethod
-    def initialize_x_bounds(ndim,cocycle_rep,metric_tensor_std,lattice_type,delta_theta,delta_x,lattice_expand,lattice_shrink): # 
-        """
-        initialize x vectors and bounds based on metric_tensor_std, lattice_type and other settings
+    def initialize_x_bounds(ndim,cocycle_rep,metric_tensor_std,lattice_type,delta_theta,delta_x,lattice_expand,lattice_shrink):
+        """Initialize x vectors and bounds based on metric_tensor_std, lattice_type and other settings.
+
+        Args:
+            ndim (int): Dimensionality of crystal structure corresponding to the labeled quotient graph.
+            cocycle_rep (np.array): Cocycle rep, the bottom n-1 rows of the alpha matrix.
+            metric_tensor_std (np.array): Metric tensor of the barycentric embedding.
+            lattice_type (int): Lattice type. 1: a=b=c, 21: a!=b=c, 22: b!=a=c, 23: c!=a=b , 3: a!=b!=c.
+            delta_theta (float): Angle change limit(deprecated! not deleted due to compatibility of HTS 
+                scripts, will be deleted in future).
+            delta_x (float): Maximum x change allowed.
+            lattice_expand (float): Maximum lattice expansion allowed.
+            lattice_shrink (float): Maximum lattice shrinkage allowed.
+
+        Returns:
+            np.array: Intitial value of x.
+            list: Upper and lower bounds of x.
         """
         if lattice_type==1: 
             # equal length 
@@ -1262,14 +1427,15 @@ class InvCryRep:
 
     @staticmethod
     def all_distances(coords1, coords2):
-        """
-        Returns the distances between two lists of coordinates
+        """Returns the distances between two lists of coordinates
+        
         Args:
             coords1: First set of Cartesian coordinates.
             coords2: Second set of Cartesian coordinates.
+
         Returns:
-            2d array of Cartesian distances. E.g the distance between
-            coords1[i] and coords2[j] is distances[i,j]
+            np.array: 2d array of Cartesian distances. E.g the distance between
+                coords1[i] and coords2[j] is distances[i,j]
         """
         c1 = np.array(coords1)
         c2 = np.array(coords2)
@@ -1281,14 +1447,39 @@ class InvCryRep:
         cycle_rep,cycle_cocycle_I,num_nodes,shortest_path,spanning,uncovered_pair, \
         uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
         lattice_vectors_scaled,structure_species,angle_weight,repul,lattice_type,metric_tensor_std):
-        """
-        objective function: sum squared differences between the inner products of the GFN-FF predicted 
-        geometry and the associated inner products (gjk) of the edges in the non-barycentric embedded net
+        """Objective function: sum squared differences between the inner products of the GFN-FF predicted 
+        geometry and the associated inner products (gjk) of the edges in the non-barycentric embedded net.
+
+        Args:
+            x (np.array): Ndarray of metric tensor components and colattice vectors.
+            ndim (int): Dimensionality of crystal structure corresponding to the labeled quotient graph.
+            order (int): Number of nodes of the labeled quotient graph.
+            mat_target (np.array): Inner product matrix target calculated with GFNFF predicted geometry.
+            colattice_inds (list): keep track of all the valid colattice dot indices.
+            colattice_weights (list): Colattice weights for bond or angle.
+            cycle_cocycle_I (np.array): The inverse of B matrix.
+            num_nodes (int): Number of nodes of the labeled quotient graph(duplicate! not deleted due to 
+                compatibility of HTS scripts, will be deleted in future). 
+            shortest_path (list): Shortest path of the spanning graph of the labeled quotient graph.
+            spanning (list): Spanning graph of the labeled quotient graph.
+            uncovered_pair (list): Atom pairs not covered by edges of the structure graph.
+            covered_pair_lj (list): lj parameters for atom pairs covered by edges of the structure graph.
+            vbond_param_ave_covered (float): Repulsive potential well depth of atom pairs covered by edges 
+                of the structure graph. 
+            vbond_param_ave (float): Repulsive potential well depth of atom pairs not covered by edges of
+                the structure graph.
+            structure_species (list): Atom symbols of the labeled quotient graph.
+            angle_weight (float): Weight of angular terms in the object function.
+            repul (bool): Flag to indicate whether repulsive potential is considered in the object function.
+            lattice_type (int): Lattice type. 1: a=b=c, 21: a!=b=c, 22: b!=a=c, 23: c!=a=b , 3: a!=b!=c.
+            metric_tensor_std (np.array): Metric tensor of the barycentric embedding.
+
+        Returns:
+            float: Value of the object function.
         """
         square_diff=0
         # convert x to inner_p
-        angle_inds = int(math.factorial(ndim) / math.factorial(2) / math.factorial(ndim - 2))
-        metric_tensor, cocycle_rep = self.convert_params(x, ndim, angle_inds, int(order - 1),lattice_type,metric_tensor_std)
+        metric_tensor, cocycle_rep = self.convert_params(x, ndim, int(order - 1),lattice_type,metric_tensor_std)
         if cocycle_rep is not None: 
             periodic_rep = np.concatenate((cycle_rep, cocycle_rep))
         else:
@@ -1316,13 +1507,40 @@ class InvCryRep:
         return square_diff
 
     def func_check(self,x,ndim,order,mat_target,colattice_inds,colattice_weights,cycle_rep,cycle_cocycle_I,num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave,lattice_vectors_scaled,structure_species,angle_weight,repul,lattice_type,metric_tensor_std):
-        """
-        print debug info
+        """Objective function: sum squared differences between the inner products of the GFN-FF predicted 
+        geometry and the associated inner products (gjk) of the edges in the non-barycentric embedded net.
+        This version of func() will output debug info.
+
+        Args:
+            x (np.array): Ndarray of metric tensor components and colattice vectors.
+            ndim (int): Dimensionality of crystal structure corresponding to the labeled quotient graph.
+            order (int): Number of nodes of the labeled quotient graph.
+            mat_target (np.array): Inner product matrix target calculated with GFNFF predicted geometry.
+            colattice_inds (list): keep track of all the valid colattice dot indices.
+            colattice_weights (list): Colattice weights for bond or angle.
+            cycle_cocycle_I (np.array): The inverse of B matrix.
+            num_nodes (int): Number of nodes of the labeled quotient graph(duplicate! not deleted due to 
+                compatibility of HTS scripts, will be deleted in future). 
+            shortest_path (list): Shortest path of the spanning graph of the labeled quotient graph.
+            spanning (list): Spanning graph of the labeled quotient graph.
+            uncovered_pair (list): Atom pairs not covered by edges of the structure graph.
+            covered_pair_lj (list): lj parameters for atom pairs covered by edges of the structure graph.
+            vbond_param_ave_covered (float): Repulsive potential well depth of atom pairs covered by edges 
+                of the structure graph. 
+            vbond_param_ave (float): Repulsive potential well depth of atom pairs not covered by edges of
+                the structure graph.
+            structure_species (list): Atom symbols of the labeled quotient graph.
+            angle_weight (float): Weight of angular terms in the object function.
+            repul (bool): Flag to indicate whether repulsive potential is considered in the object function.
+            lattice_type (int): Lattice type. 1: a=b=c, 21: a!=b=c, 22: b!=a=c, 23: c!=a=b , 3: a!=b!=c.
+            metric_tensor_std (np.array): Metric tensor of the barycentric embedding.
+
+        Returns:
+            float: Value of the object function.
         """
         square_diff=0
         # convert x to inner_p
-        angle_inds = int(math.factorial(ndim) / math.factorial(2) / math.factorial(ndim - 2))
-        metric_tensor, cocycle_rep = self.convert_params(x, ndim, angle_inds, int(order - 1),lattice_type,metric_tensor_std)
+        metric_tensor, cocycle_rep = self.convert_params(x, ndim, int(order - 1),lattice_type,metric_tensor_std)
         if cocycle_rep is not None: 
             periodic_rep = np.concatenate((cycle_rep, cocycle_rep))
         else:
@@ -1352,28 +1570,43 @@ class InvCryRep:
         return square_diff
 
     def to_structures(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.00,vbond_param_ave=0.01,repul=True):        
-        """
-        convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
-        3 pymatgen structure objects:
+        """The inverse transform of the crystal graph of a SLICES string to its crystal structure.
+        Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
+        3 pymatgen structure objects and the energy per atom predicted with M3GNet.
+
         (1) barycentric embedding net with rescaled lattice based on the average bond scaling factors
          calculated with modified GFN-FF predicted geometry 
         (2) non-barycentric net embedding that matches bond lengths and bond angles predicted with
          modified GFN-FF
         (3) non-barycentric net embedding undergone cell optimization using M3GNet IAPs
         if cell optimization failed, then output (1) and (2)
+
+        Args:
+            bond_scaling (float, optional): Bond scaling factor. Defaults to 1.05.
+            delta_theta (float): Angle change limit(deprecated! not deleted due to compatibility of HTS 
+                scripts, will be deleted in future).
+            delta_x (float, optional): Maximum x change allowed. Defaults to 0.45.
+            lattice_shrink (int, optional): Maximum lattice shrinkage allowed. Defaults to 1.
+            lattice_expand (float, optional): Maximum lattice expansion allowed. Defaults to 1.25.
+            angle_weight (float, optional): Weight of angular terms in the object function. Defaults to 0.5.
+            vbond_param_ave_covered (float, optional): Repulsive potential well depth of atom pairs covered 
+                by edges of the structure graph. Defaults to 0.00.
+            vbond_param_ave (float, optional): Repulsive potential well depth of atom pairs not covered by 
+                edges of the structure graph. Defaults to 0.01.
+            repul (bool, optional): Flag to indicate whether repulsive potential is considered in the object 
+                function. Defaults to True.
+
+        Returns:
+            list: [Rescaled Structure, ZL*-optimized Structure,  IAP-optimized Structure]
+            float: Energy per atom predicted with M3GNet.
         """
-        #from datetime import datetime
-        #print("before inner_p =", datetime.now())
-        #print("after inner_p =", datetime.now())
         x_dat, net_voltage = self.convert_graph()
-        #print(x_dat,net_voltage)
         net = Net(x_dat,dim=3)
         net.voltage = net_voltage
         if self.check_results:
             fig = plt.figure()
             nx.draw(net.graph, ax=fig.add_subplot(111))
             fig.savefig("graph.png")
-        #print(net.graph.edges)
         # check the graph first (super fast)
         net.simple_cycle_basis()
         net.get_lattice_basis()
@@ -1430,8 +1663,6 @@ class InvCryRep:
         atom_symbols=[str(ElementBase.from_Z(i)) for i in self.atom_types]
         structure_recreated_std = Structure(lattice_vectors_scaled, atom_symbols,coordinates_std)
         # optimize X (lattice vectors and cocycle_rep)
-        # opt x
-        #print("before optimize =", datetime.now())
         # get lattice type
         lattice_length_list=[metric_tensor_std[0,0],metric_tensor_std[1,1],metric_tensor_std[2,2]]
         lattice_length_list_unique=list(set(lattice_length_list))
@@ -1451,8 +1682,7 @@ class InvCryRep:
         approx_grad=True, bounds=bounds, m=10, factr=10000000.0, pgtol=1e-05, \
         epsilon=1e-08, iprint=- 1, maxfun=15000, maxiter=15000, disp=None, callback=None, maxls=20)
         #get optimized structure
-        angle_inds = int(math.factorial(net.ndim) / math.factorial(2) / math.factorial(net.ndim - 2))
-        net.metric_tensor, net.cocycle_rep = self.convert_params(x[0], net.ndim, angle_inds, int(net.order - 1),lattice_type,metric_tensor_std)
+        net.metric_tensor, net.cocycle_rep = self.convert_params(x[0], net.ndim, int(net.order - 1),lattice_type,metric_tensor_std)
         lattice_vectors_new=np.linalg.cholesky(net.metric_tensor)
         if net.cocycle is not None: 
             net.periodic_rep = np.concatenate((net.cycle_rep, net.cocycle_rep), axis=0)
@@ -1461,7 +1691,6 @@ class InvCryRep:
         arc_coord_new=net.lattice_arcs
         coordinates_new=self.get_coordinates(arc_coord_new,num_nodes,shortest_path,spanning) 
         structure_recreated_opt = Structure(lattice_vectors_new, atom_symbols,coordinates_new)
-        #print("after opt =", datetime.now())
         if self.check_results:
             print(x[0])
             print(self.func_check(x[0],net.ndim,net.order,inner_p_target,colattice_inds,colattice_weights,net.cycle_rep,net.cycle_cocycle_I, \
@@ -1474,8 +1703,14 @@ class InvCryRep:
             return [structure_recreated_std, structure_recreated_opt],0
 
     def SLICES2structure(self,SLICES):
-        """
-        convert a SLICES string back to its original crystal structure
+        """Convert a SLICES string back to its original crystal structure.
+
+        Args:
+            SLICES (str): A SLICES string.
+
+        Returns:
+            Structure: A pymatgen Structure object.
+            float: Energy per atom predicted with M3GNet.
         """
         self.from_SLICES(SLICES)
         structures,final_energy_per_atom = self.to_structures()
@@ -1483,21 +1718,20 @@ class InvCryRep:
 
     def to_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
-        convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
+        Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
         a pymatgen structure object: non-barycentric net embedding undergone cell optimization 
-        using M3GNet IAPs
-        if cell optimization failed, then output non-barycentric net embedding that matches 
-        bond lengths and bond angles predicted with modified GFN-FF
+        using M3GNet IAPs. If cell optimization failed, then output non-barycentric net embedding 
+        that matches bond lengths and bond angles predicted with modified GFN-FF.
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
         return structures[-1]
 
     def to_relaxed_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
-        convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
+        Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
         a pymatgen structure object: non-barycentric net embedding undergone cell optimization 
-        using M3GNet IAPs
-        if cell optimization failed, then raise error
+        using M3GNet IAPs.
+        If cell optimization failed, then raise error.
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
         if len(structures)==3:        
@@ -1507,7 +1741,7 @@ class InvCryRep:
 
     def to_4structures(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
-        designed for benchmark 
+        Designed for benchmark.
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
         try:
@@ -1518,9 +1752,15 @@ class InvCryRep:
 
     @function_timeout(seconds=60)
     def m3gnet_relax(self,struc):
-        """
-        cell optimization using M3GNet IAPs (time limit is set to 200 seconds 
-        to prevent buggy cell optimization that takes fovever to finish)
+        """Cell optimization using M3GNet IAPs (time limit is set to XX seconds 
+        to prevent buggy cell optimization that takes fovever to finish).
+
+        Args:
+            struc (Structure): A pymatgen Structure object.
+
+        Returns:
+            Structure: Optimized pymatgen Structure object with M3GNet IAP.
+            float: Energy per atom predicted with M3GNet.
         """
         relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
         final_structure = relax_results['final_structure']
@@ -1529,10 +1769,10 @@ class InvCryRep:
 
 
     def match_check(self,ori,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
-        """
-        calculate match rates of structure (2) and (1) with respect to the original structure
-        calculate topological distances of structuregraph of structure (2) and (1) with respect to 
-        structuregraph of the original structure
+        """ (1) Calculate match rates of structure (2) and (1) with respect to the 
+                original structure.
+            (2) Calculate topological(Jaccard) distances of structuregraph of structure
+                (2) and (1) with respect to structuregraph of the original structure.
         """
         ori_checked=Structure.from_str(ori.to(fmt="poscar"),"poscar") 
         opt_checked=Structure.from_str(opt.to(fmt="poscar"),"poscar")
@@ -1544,8 +1784,8 @@ class InvCryRep:
         return str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std_checked))),str(sg_ori.diff(sg_opt,strict=False)["dist"]),str(sg_ori.diff(sg_std,strict=False)["dist"])
 
     def match_check2(self,ori,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
-        """
-        calculate match rates of structure (2) and (1) with respect to the original structure
+        """ Calculate match rates of structure (2) and (1) with respect to the 
+                original structure.
         """
         ori_checked=Structure.from_str(ori.to(fmt="poscar"),"poscar") 
         opt_checked=Structure.from_str(opt.to(fmt="poscar"),"poscar")
@@ -1554,10 +1794,10 @@ class InvCryRep:
         return str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std_checked)))
 
     def match_check3(self,ori,opt2,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
-        """
-        calculate match rates of structure (3), (2) and (1) with respect to the original structure
-        calculate topological distances of structuregraph of structure (3), (2) and (1) with respect to 
-        structuregraph of the original structure
+        """ (1) Calculate match rates of structure (3), (2) and (1) with 
+                respect to the original structure.
+            (2) Calculate topological distances of structuregraph of structure (3), (2)
+                and (1) with respect to structuregraph of the original structure.
         """
         ori_checked=Structure.from_str(ori.to(fmt="poscar"),"poscar") 
         opt2_checked=Structure.from_str(opt2.to(fmt="poscar"),"poscar")
@@ -1571,11 +1811,31 @@ class InvCryRep:
         return str(int(sm.fit(ori_checked, opt2_checked))),str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std_checked))),str(sg_ori.diff(sg_opt2,strict=False)["dist"]),str(sg_ori.diff(sg_opt,strict=False)["dist"]),str(sg_ori.diff(sg_std,strict=False)["dist"])
 
     def match_check4(self,ori,opt2,opt,std2,std,ltol=0.2, stol=0.3, angle_tol=5):
-        """
-        structure (4): barycentric embedding net with rescaled lattice undergone cell optimization using M3GNet IAPs
-        calculate match rates of structure (3), (2), (4) and (1) with respect to the original structure
-        calculate topological distances of structuregraph of structure (3), (2), (4) and (1) with respect to 
-        structuregraph of the original structure
+        """ (1) Calculate match rates of structure (3), (2), (4) and (1) with respect to the 
+                original structure.
+            (2) Calculate topological distances of structuregraph of structure (3), (2), (4) 
+                and (1) with respect to structuregraph of the original structure.
+
+        Args:
+            ori (Structure): Original Structure.
+            opt2 (Structure): IAP-optimized Structure.
+            opt (Structure): ZL*-Optimized Structure.
+            std2 (Structure): IAP-optimized rescaled Structure.
+            std (Structure): Rescaled Structure.
+            ltol (float, optional): Fractional length tolerance. Default is 0.2.
+            stol (float, optional): Site tolerance. Defined as the fraction of the average 
+                free length per atom := ( V / Nsites ) ** (1/3). Default is 0.3.
+            angle_tol (int, optional): Angle tolerance in degrees. Default is 5.
+
+        Returns:
+            str: "1" if IAP-optimized Structure matches original Structure. "0" otherwise.
+            str: "1" if ZL*-Optimized Structure matches original Structure. "0" otherwise.
+            str: "1" if IAP-optimized rescaled Structure matches original Structure. "0" otherwise.
+            str: "1" if Rescaled Structure matches original Structure. "0" otherwise.
+            str: The topological distance between IAP-optimized Structure and original Structure.  
+            str: The topological distance between ZL*-Optimized Structure and original Structure.  
+            str: The topological distance between IAP-optimized Rescaled Structure and original Structure.
+            str: The topological distance between Rescaled Structure and original Structure.
         """
         ori_checked=Structure.from_str(ori.to(fmt="poscar"),"poscar") 
         opt2_checked=Structure.from_str(opt2.to(fmt="poscar"),"poscar")
