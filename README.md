@@ -216,6 +216,7 @@ python 2_collect_clean_glob_details.py
 python 3_filter.py # check results_7_EAH_prescreenfiltered_0.05eV.csv for details of promising candidates; check ./candidates for band structures
 ```
 ### How to install invcryrep(SLICES) python package:
+Prerequisites: m3gnet, pygraphviz, graphviz. Tip: using pip or conda or apt install/yum install to install these packages.
 ```bash
 cd invcryrep
 python setup.py install
