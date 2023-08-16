@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang007@gmail.com
 import os,subprocess,random,warnings
@@ -288,6 +288,86 @@ class InvCryRep:
             return False
         else:
             return True
+
+    def check_SLICES_debug(self,SLICES,dupli_check=True):
+        """Check if a slices string conforms to the proper syntax.
+
+        Args:
+
+            SLICES (str): A SLICES string.
+            dupli_check (bool, optional): Flag to indicate whether to check if a SLICES has duplicate
+                edges. Defaults to True.
+
+        Returns:
+            bool: Return True if a SLICES is syntaxlly valid.
+        """
+        try:
+            self.from_SLICES(SLICES)
+        except:
+            return "from_SLICES error"
+        # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 
+        G = nx.MultiGraph()
+        G.add_nodes_from([i for i in range(len(self.atom_types))])
+        G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+        b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
+        if b < 3:
+            return "b<3"
+        # check if all nodes has been covered by edges
+        nodes_covered=[]
+        for i in self.edge_indices:
+            nodes_covered.append(i[0])
+            nodes_covered.append(i[1])
+        if len(set(nodes_covered))!=len(self.atom_types):
+            return "nodes not covered by edges"
+        # check if edge labels covers 3 dimension in at least 3 edges, in order to get 3D embedding
+        edge_index_covered=[[],[],[]]
+        for i in range(len(self.to_jimages)):
+            for j in range(3):
+                if self.to_jimages[i][j]!=0:
+                    edge_index_covered[j].append(i)
+        for i in edge_index_covered:
+            if len(i)==0:
+                return "edge labels not covers 3 dimension in at least 3 edges"
+        # check dumplicates(flip)
+        if dupli_check:
+            edge_data_ascending=[]
+            for i in range(len(self.edge_indices)):
+                if self.edge_indices[i][0]<=self.edge_indices[i][1]:
+                    edge_data_ascending.append(list(self.edge_indices[i])+list(self.to_jimages[i]))
+                else:
+                    edge_data_ascending.append([self.edge_indices[i][1],self.edge_indices[i][0]]+list(np.array(self.to_jimages[i])*-1))
+            def remove_duplicate_arrays(arrays):
+                unique_arrays = []
+                for array in arrays:
+                    if array not in unique_arrays:
+                        unique_arrays.append(array)
+                return unique_arrays
+            if len(edge_data_ascending)>len(remove_duplicate_arrays(edge_data_ascending)):
+                return "duplicate edges"
+        # strict case: (still not covering all cases)
+        if len(edge_index_covered[1])>=len(edge_index_covered[0]):
+            b_sub_a = [i for i in edge_index_covered[1] if i not in edge_index_covered[0]]
+        else:
+            b_sub_a = [i for i in edge_index_covered[0] if i not in edge_index_covered[1]]
+        a_add_b = edge_index_covered[0]+edge_index_covered[1]
+        if len(a_add_b)>=len(edge_index_covered[2]):
+            c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
+        else:    
+            c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
+        if len(b_sub_a)==0 or len(c_sub_ab)==0:
+            return "edge label logic check"
+        try:
+            x_dat, net_voltage = self.convert_graph()
+            net = Net(x_dat,dim=3)
+            net.voltage = net_voltage
+            # check the graph first (super fast)
+            net.simple_cycle_basis()
+            net.get_lattice_basis()
+            net.get_cocycle_basis()
+        except:
+            return "simple_cycle_basis,get_lattice_basis,get_cocycle_basis error"
+        return True
 
     def check_SLICES(self,SLICES,dupli_check=True):
         """Check if a slices string conforms to the proper syntax.
@@ -718,7 +798,7 @@ class InvCryRep:
         """
         structure_graph,structure = self.cif2structure_graph(string)
         if self.check_results:
-            structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
+            structure_graph.draw_graph_to_file('sg.png',hide_image_edges = False,node_labels=True)
         self.atom_types = np.array(structure.atomic_numbers)
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
@@ -1697,7 +1777,12 @@ class InvCryRep:
             num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
             lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std))
         try:
-            structure_recreated_opt2, final_energy_per_atom=self.m3gnet_relax(structure_recreated_opt)
+            if num_nodes <= 20:
+                structure_recreated_opt2, final_energy_per_atom=self.m3gnet_relax(structure_recreated_opt)
+            elif 20 < num_nodes <= 40:
+                structure_recreated_opt2, final_energy_per_atom=self.m3gnet_relax_large_cell1(structure_recreated_opt)
+            else:
+                structure_recreated_opt2, final_energy_per_atom=self.m3gnet_relax_large_cell2(structure_recreated_opt)                                
             return [structure_recreated_std, structure_recreated_opt,  structure_recreated_opt2 ],final_energy_per_atom
         except:
             return [structure_recreated_std, structure_recreated_opt],0
@@ -1752,7 +1837,7 @@ class InvCryRep:
 
     @function_timeout(seconds=60)
     def m3gnet_relax(self,struc):
-        """Cell optimization using M3GNet IAPs (time limit is set to XX seconds 
+        """Cell optimization using M3GNet IAPs (time limit is set to 60 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
@@ -1767,6 +1852,40 @@ class InvCryRep:
         final_energy_per_atom = float(relax_results['trajectory'].energies[-1] / len(struc))
         return final_structure,final_energy_per_atom
 
+    @function_timeout(seconds=360)
+    def m3gnet_relax_large_cell1(self,struc):
+        """Cell optimization using M3GNet IAPs (time limit is set to 360 seconds 
+        to prevent buggy cell optimization that takes fovever to finish).
+
+        Args:
+            struc (Structure): A pymatgen Structure object.
+
+        Returns:
+            Structure: Optimized pymatgen Structure object with M3GNet IAP.
+            float: Energy per atom predicted with M3GNet.
+        """
+        relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
+        final_structure = relax_results['final_structure']
+        final_energy_per_atom = float(relax_results['trajectory'].energies[-1] / len(struc))
+        return final_structure,final_energy_per_atom
+
+    @function_timeout(seconds=1000)
+    def m3gnet_relax_large_cell2(self,struc):
+        """Cell optimization using M3GNet IAPs (time limit is set to 1000 seconds 
+        to prevent buggy cell optimization that takes fovever to finish).
+
+        Args:
+            struc (Structure): A pymatgen Structure object.
+
+        Returns:
+            Structure: Optimized pymatgen Structure object with M3GNet IAP.
+
+            float: Energy per atom predicted with M3GNet.
+        """
+        relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
+        final_structure = relax_results['final_structure']
+        final_energy_per_atom = float(relax_results['trajectory'].energies[-1] / len(struc))
+        return final_structure,final_energy_per_atom
 
     def match_check(self,ori,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
         """ (1) Calculate match rates of structure (2) and (1) with respect to the 
