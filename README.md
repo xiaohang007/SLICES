@@ -84,39 +84,39 @@ print(len(slices_list),len(set(cannon_slices_list)))
 ### 3. Benchmark:
 Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
 ```bash
-cd /crystal/benchmark/0_get_mp20_json
+cd /crystal/benchmark/Match_rate_MP-20/get_json/0_get_mp20_json
 python 0_mp20.py
 ```
 
 Rule out unsupported elements
 ```bash
-cd /crystal/benchmark/1_element_filter
+cd /crystal/benchmark/Match_rate_MP-20/get_json/1_element_filter
 python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect.py
 ```
 
 Convert to primitive cell
 ```bash
-cd /crystal/benchmark/2_primitive_cell_conversion
+cd /crystal/benchmark/Match_rate_MP-20/get_json/2_primitive_cell_conversion
 python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect.py
 ```
 
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
 ```bash
-cd /crystal/benchmark/3_3d_filter
+cd /crystal/benchmark/Match_rate_MP-20/get_json/3_3d_filter
 python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect.py
 ```
 Calculate reconstruction rate of IAP-refined structures, L-optimized structures, rescaled structures under strict or coarse setting. 
 ```bash
-cd /crystal/benchmark/matchcheck3
+cd /crystal/benchmark/Match_rate_MP-20/matchcheck3
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py
 ```
 Calculate reconstruction rate of IAP-refined structures, L-optimized structures, IAP-refined rescaled structures, rescaled structures under strict or coarse setting. 
 ```bash
-cd /crystal/benchmark/matchcheck4
+cd /crystal/benchmark/Match_rate_MP-20/matchcheck4
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py
 ```
