@@ -32,7 +32,8 @@ for i, col_name in enumerate(data.columns):
     # Generate the probability density function for the normal distribution
     p = norm.pdf(x, mu, std)
     # Plot the PDF
-    axs[i].plot(x, p, 'k', linewidth=2)
+    if i < num_cols - 1:
+        axs[i].plot(x, p, 'k', linewidth=2)
     # Place a text box in the subplot
     axs[i].text(0.37, 0.95, col_name, transform=axs[i].transAxes, fontsize=10, fontweight='bold', va='top')
 
