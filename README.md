@@ -126,7 +126,7 @@ cd /crystal/benchmark/Match_rate_MP-20/matchcheck4
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py # Get "results_collection_matchcheck4.csv"
 ```
-**Reproduction of Table 1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck4.csv" and the match rates of SLI2Cry for the filtered MP-20 dataset (40,330 crystals) presented in Table 1.
+<span style="color:blue; font-weight:bold;">Reproduction of Table 1:</span> the table below illustrates the correspondence between the data in "results_collection_matchcheck4.csv" and the match rates of SLI2Cry for the filtered MP-20 dataset (40,330 crystals) presented in Table 1.
 <font size="2">
 | Setting         | Rescaled Structure | 𝑍𝐿∗-Optimized Structure | IAP-Refined Structure | IAP-Refined Rescaled Structure |
 |-----------------|-----------------|-----------------------|---------------------|---------------------------|
@@ -134,7 +134,7 @@ python 2_collect_grid_new.py # Get "results_collection_matchcheck4.csv"
 | Loose   | std_match2_sum     | opt_match2_sum        | opt2_match2_sum     | std2_match2_sum           |
 </font>
 
-**Reproduction of Table 2:** the match rate of SLI2Cry for the MP-20 dataset (45,229 crystals) = opt2_match2_sum\*40330/45229. 
+<span style="color:blue; font-weight:bold;">Reproduction of Table 2:</span> the match rate of SLI2Cry for the MP-20 dataset (45,229 crystals) = opt2_match2_sum\*40330/45229. 
 #### 3.2 Benchmark on crystal structure reconstruction for the filtered MP-21-40 dataset (23,560 crystals)
 Download entries to build the filtered MP-21-40 dataset
 ```bash
@@ -155,7 +155,7 @@ cd /crystal/benchmark/Match_rate_MP-21-40/matchcheck3
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py
 ```
-**Reproduction of Table S1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered MP-21-40 dataset (23,560 crystals) presented in Table S1.
+<span style="color:blue; font-weight:bold;">Reproduction of Table S1:</span> the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered MP-21-40 dataset (23,560 crystals) presented in Table S1.
 <font size="2">
 | Setting         | Filtered MP-21-40 |
 |-----------------|-----------------|
@@ -196,7 +196,7 @@ cd /crystal/benchmark/Match_rate_QMOF-21-40/matchcheck3
 python 1_ini.py # wait for jobs to finish (using qstat to check)
 python 2_collect_grid_new.py
 ```
-**Reproduction of Table S1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered QMOF-21-40 dataset (339 MOFs) presented in Table S1.
+<span style="color:blue; font-weight:bold;">Reproduction of Table S1:</span> the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered QMOF-21-40 dataset (339 MOFs) presented in Table S1.
 <font size="2">
 | Setting         | Filtered QMOF-21-40  |
 |-----------------|-----------------|
@@ -349,7 +349,7 @@ python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect_clean_glob_details.py
 python count.py # calculate the number of compositionally valid reconstructed crystals (num_struc_valid)
 ```
-**Reproduction of Table 3:** 
+<span style="color:blue; font-weight:bold;">Reproduction of Table 3:</span>
 Structural validity (%) = num_struc_valid/num_reconstructed\*100
 Compositional validity (%) = num_comp_valid/num_reconstructed\*100
 
@@ -404,13 +404,13 @@ python 2_collect_clean_glob_details.py
 python 3_normal_distri_plot.py # plot the formation energy distribution (PBE) of the reconstructed crystals 
 ```
 
-(8) **Reproduction of Table 3:**  Calculate SR5, SR10, SR15 in Table S1 using formation energies (at PBE level) of crystals generated with a target of -4.5 eV/atom
+(8) <span style="color:blue; font-weight:bold;">Reproduction of Table 3:</span>   Calculate SR5, SR10, SR15 in Table S1 using formation energies (at PBE level) of crystals generated with a target of -4.5 eV/atom
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
 python calculate_SR5-10-15_TableS1.py # SR5, SR10, SR15 are printed in the terminal
 ```
 
-(9) **Reproduction of Fig. S2c:** Repeat step (3-6) with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom. Extract formation energy distributions from "results_5_eform_m3gnet.csv" in step (6) and transfer the data to "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c/energy_formation_m3gnet_lists.csv". Then:
+(9) <span style="color:blue; font-weight:bold;">Reproduction of Fig. S2c:</span> Repeat step (3-6) with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom. Extract formation energy distributions from "results_5_eform_m3gnet.csv" in step (6) and transfer the data to "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c/energy_formation_m3gnet_lists.csv". Then:
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
 python plot_FigureS1c.py # get Fig. S2c as test3.svg
