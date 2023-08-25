@@ -1,27 +1,96 @@
-# Text2Crystal. Simplified line-input crystal-encoding system (SLICES): An Invertible, Invariant, and String-based Crystal Representation
+# Simplified Line-Input Crystal-Encoding System
 
-Developed by Hang Xiao 2023.04 xiaohang007@gmail.com https://github.com/xiaohang007
+This software implementes Simplified Line-Input Crystal-Encoding System (SLICES), the first invertible and invariant crystal representation.
 
-Training datasets and results of the inverse design study are available in https://doi.org/10.6084/m9.figshare.22707472.
+It has several main functionalities:
+- Encode crystal structures into SLICES strings
+- **Reconstruct original crystal structures from their SLICES strings (Text2Crystal)**
+- Generate crystals with desired properties using conditional RNN (Inverse Design)
 
-The source code of SLICES is in ./invcryrep/invcryrep/invcryrep.py and ./invcryrep/invcryrep/tobascco_net.py.  
+Developed by Hang Xiao 2023.04 xiaohang007@gmail.com
+[[Paper]](https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
+[[Source code]](invcryrep/invcryrep) 
 
-!!! We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. https://codeocean.com/capsule/8643173/tree/v1
+We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./figure_intro.png)
 
-## Documentation
-The `SLICES` documentation is hosted at [read-the-docs](https://xiaohang007.github.io/SLICES/).
+## Table of Contents
 
-## How to install invcryrep (SLICES) python package:
+- [Installation](#installation)
+- [Examples](#examples)
+  - [Crystal <-> SLICES](#crystal-<->-slices)
+  - [Augment/Canonicalize SLICES](#augment/canonicalize-slices)
+- [Documentation](#documentation)
+- [Reproduction of benchmarks and inverse design case study](#reproduction-of-benchmarks-and-inverse-design-case-study)
+  - [General setup](#general-setup)
+  - [Reconstruction benchmark for MP-20](#reconstruction-benchmark-for-MP-20)
+  - [Reconstruction benchmark for MP-21-40](#reconstruction-benchmark-for-MP-21-40)
+  - [Reconstruction benchmark for QMOF-21-40](#reconstruction-benchmark-for-QMOF-21-40)
+  - [Inverse design case study](#inverse-design-case-study)
+  - [Material generation benchmark](#material-generation-benchmark)
+  - [Property optimization benchmark](#property-optimization-benchmark)   
+- [Citation](#citation)
+- [Contact](#contact)
+
+## Installation
 Prerequisites: m3gnet, pygraphviz, graphviz. Tip: using pip or conda or apt install/yum install to install these packages.
 ```bash
 cd invcryrep
 python setup.py install
 ```
 
-## How to reproduce results of benchmarks and the inverse design case study in https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0
+## Examples
+### Crystal <-> SLICES
+Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
+Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
+```python
+import os
+from invcryrep.invcryrep import InvCryRep
+from pymatgen.core.structure import Structure
+# setup modified XTB's path
+os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
+# obtaining the pymatgen Structure instance of NdSiRu
+original_structure = Structure.from_file(filename='NdSiRu.cif')
+# creating an instance of the InvCryRep Class (initialization)
+backend=InvCryRep()
+# converting a crystal structure to its SLICES string
+slices_NdSiRu=backend.structure2SLICES(original_structure) 
+# converting a SLICES string back to its original crystal structure and obtaining its M3GNet_IAP-predicted energy_per_atom
+reconstructed_structure,final_energy_per_atom_IAP = backend.SLICES2structure(slices_NdSiRu)
+print('SLICES string of NdSiRu is: ',slices_NdSiRu)
+print('\nReconstructed_structure is: ',reconstructed_structure)
+print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
+# if final_energy_per_atom_IAP is 0, it means the M3GNet_IAP refinement failed, and the reconstructed_structure is the ZL*-optimized structure.
+```
+### Augment/Canonicalize SLICES
+Converting a crystal structure to its SLICES string and perform data augmentation (2000x), then reduce these 2000 SLICES to 1 canonical SLICES with get_canonical_SLICES.
+```python
+import os
+from invcryrep.invcryrep import InvCryRep
+from pymatgen.core.structure import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
+# obtaining the pymatgen Structure instance of Sr3Ru2O7
+original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
+# creating an instance of the InvCryRep Class (initialization)
+backend=InvCryRep(graph_method='econnn')
+# converting a crystal structure to its SLICES string and perform data augmentation (2000x)
+slices_list=backend.structure2SLICESAug(structure=original_structure,num=2000) 
+slices_list_unique=list(set(slices_list))
+cannon_slices_list=[]
+for i in slices_list_unique:
+    cannon_slices_list.append(backend.get_canonical_SLICES(i))
+# test get_canonical_SLICES
+print(len(slices_list),len(set(cannon_slices_list)))
+# 2000 SLICES generated by data augmentation has been reduced to 1 canonical SLICES
+```
 
-### 1. General_setup:
+## Documentation
+The `SLICES` documentation is hosted at [read-the-docs](https://xiaohang007.github.io/SLICES/).
+
+
+## Reproduction of benchmarks and inverse design case study
+### General setup
 Download this repo and unzipped it.
 
 Put Materials Project's new API key in "APIKEY.ini". 
@@ -43,51 +112,9 @@ docker load -i SLICES_docker_image.tar.gz #  Install the docker image
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
 docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
 ```
-### 2. Introductory examples (./examples/*.py)
-#### 2.1 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
-Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
-```python
-import os
-from invcryrep.invcryrep import InvCryRep
-from pymatgen.core.structure import Structure
-# setup modified XTB's path
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
-# obtaining the pymatgen Structure instance of NdSiRu
-original_structure = Structure.from_file(filename='NdSiRu.cif')
-# creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep()
-# converting a crystal structure to its SLICES string
-slices_NdSiRu=backend.structure2SLICES(original_structure) 
-# converting a SLICES string back to its original crystal structure and obtaining its M3GNet_IAP-predicted energy_per_atom
-reconstructed_structure,final_energy_per_atom_IAP = backend.SLICES2structure(slices_NdSiRu)
-print('SLICES string of NdSiRu is: ',slices_NdSiRu)
-print('\nReconstructed_structure is: ',reconstructed_structure)
-print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
-# if final_energy_per_atom_IAP is 0, it means the M3GNet_IAP refinement failed, and the reconstructed_structure is the ZL*-optimized structure.
-```
-#### 2.2 Converting a crystal structure to its SLICES string and perform data augmentation (2000x), then reduce these 2000 SLICES to 1 canonical SLICES with get_canonical_SLICES.
-```python
-import os
-from invcryrep.invcryrep import InvCryRep
-from pymatgen.core.structure import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
-# obtaining the pymatgen Structure instance of Sr3Ru2O7
-original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
-# creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep(graph_method='econnn')
-# converting a crystal structure to its SLICES string and perform data augmentation (2000x)
-slices_list=backend.structure2SLICESAug(structure=original_structure,num=2000) 
-slices_list_unique=list(set(slices_list))
-cannon_slices_list=[]
-for i in slices_list_unique:
-    cannon_slices_list.append(backend.get_canonical_SLICES(i))
-# test get_canonical_SLICES
-print(len(slices_list),len(set(cannon_slices_list)))
-# 2000 SLICES generated by data augmentation has been reduced to 1 canonical SLICES
-```
-### 3. Benchmarks:
-#### 3.1 Benchmark on crystal structure reconstruction (MP-20)
+
+
+### Reconstruction benchmark for MP-20
 Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/get_json/0_get_mp20_json
@@ -135,7 +162,7 @@ python 2_collect_grid_new.py # Get "results_collection_matchcheck4.csv"
 </font>
 
 **Reproduction of Table 2:** the match rate of SLI2Cry for the MP-20 dataset (45,229 crystals) = opt2_match2_sum\*40330/45229. 
-#### 3.2 Benchmark on crystal structure reconstruction for the filtered MP-21-40 dataset (23,560 crystals)
+### Reconstruction benchmark for MP-21-40
 Download entries to build the filtered MP-21-40 dataset
 ```bash
 cd /crystal/benchmark/Match_rate_MP-21-40/0_get_json_mp_api
@@ -163,7 +190,7 @@ python 2_collect_grid_new.py
 | Loose   | opt2_match2_sum     | 
 </font>
 
-#### 3.3 Benchmark on crystal structure reconstruction for the filtered QMOF-21-40 dataset (339 MOFs)
+#### Reconstruction benchmark for QMOF-21-40
 Extract MOFs with 21-40 atoms per unit cells in QMOF database to build the QMOF-21-40 dataset ( Figshare: https://figshare.com/articles/dataset/QMOF_Database/13147324 Version 14)
 ```bash
 cd /crystal/benchmark/Match_rate_QMOF-21-40/get_json/0_get_mof_json
@@ -204,7 +231,7 @@ python 2_collect_grid_new.py
 | Loose   | opt2_match2_sum     | 
 </font>
 
-### 4. Inverse design of direct narrow-gap semiconductors for optical applications
+### Inverse design case study
 Download entries to build general and transfer datasets
 ```bash
 cd /crystal/HTS/0_get_json_mp_api
@@ -290,7 +317,7 @@ cd /crystal/HTS/8_band_gap_prescreen
 python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect_clean_glob_details.py
 ```
-#### !!! Note that VASP should be installed and POTCAR should be set up for pymatgen using "pmg config -p <EXTRACTED_VASP_POTCAR> <MY_PSP>" before performing this task. Because VASP is a commercial software, it is not installed in the docker image provided.
+#### Note that VASP should be installed and POTCAR should be set up for pymatgen using "pmg config -p <EXTRACTED_VASP_POTCAR> <MY_PSP>" before performing this task. Because VASP is a commercial software, it is not installed in the docker image provided.
 Perform geometry relaxation and band structure calculation at PBE level using VASP
 ```bash
 cd /crystal/HTS/9_EAH_Band_gap_PBE
@@ -299,8 +326,7 @@ python 1_splitRun.py # wait for jobs to finish (using qstat to check)
 python 2_collect_clean_glob_details.py
 python 3_filter.py # check results_7_EAH_prescreenfiltered_0.05eV.csv for details of promising candidates; check ./candidates for band structures
 ```
-### 5. Benchmark on material generation and property optimization
-#### 5.1 Benchmark on material generation (unconditional RNN)
+### Material generation benchmark
 Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/1_augmentation
@@ -353,7 +379,7 @@ python count.py # calculate the number of compositionally valid reconstructed cr
 Structural validity (%) = num_struc_valid/num_reconstructed\*100
 Compositional validity (%) = num_comp_valid/num_reconstructed\*100
 
-#### 5.2 Benchmark on property optimization (conditional RNN)
+### Property optimization benchmark
 (1) Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/1_augmentation
@@ -416,9 +442,13 @@ cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7
 python plot_FigureS1c.py # get Fig. S2c as test3.svg
 ```
 The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom can be accessed from "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/Other_targets/3_eform_\*".
+
 ## Citation
 @article{xiao2023invertible,
   title={An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
   author={Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Wang, Lei and Chen, Xi},
   year={2023}
 }
+
+## Contact
+Please leave an issue or reach out to Hang Xiao (xiaohang07@live.cn) if you have any questions.
