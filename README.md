@@ -404,14 +404,18 @@ python 2_collect_clean_glob_details.py
 python 3_normal_distri_plot.py # plot the formation energy distribution (PBE) of the reconstructed crystals 
 ```
 
-(8) Calculate SR5, SR10, SR15 using formation energies (at PBE level) of crystals generated with a target of -4.5 eV/atom
+(8) **Reproduction of Table 3:**  Calculate SR5, SR10, SR15 in Table S1 using formation energies (at PBE level) of crystals generated with a target of -4.5 eV/atom
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
-python 2_collect_clean_glob_details.py
-python 3_normal_distri_plot.py # plot the formation energy distribution (PBE) of the reconstructed crystals 
+python calculate_SR5-10-15_TableS1.py # SR5, SR10, SR15 are printed in the terminal
 ```
 
+(9) **Reproduction of Fig. S2c:** Repeat step (3-6) with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom. Extract formation energy distributions from "results_5_eform_m3gnet.csv" in step (6) and transfer the data to "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c/energy_formation_m3gnet_lists.csv". Then:
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
+python plot_FigureS1c.py # get Fig. S2c as test3.svg
+```
+The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom can be accessed from "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/Other_targets/3_eform_\*".
 ## Citation
 @article{xiao2023invertible,
   title={An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
