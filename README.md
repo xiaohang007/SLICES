@@ -452,6 +452,5 @@ The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6
 }
 
 ## Contact
-Join the Discord (forum) of SLICES (https://discord.gg/RYqnkPuD).
-Or leave an issue or reach out to Hang Xiao (xiaohang007@gmail.com) if you have any questions.
+Leave an issue or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) if you have any questions.
 
