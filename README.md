@@ -19,7 +19,7 @@ We also provide a codeocean capsule (a modular container for the software enviro
 
 - [Installation](#installation)
 - [Examples](#examples)
-  - [Crystal to SLICES and SLICES to cystal](#crystal-to-slices-and-slices-to-crystal)
+  - [Crystal to SLICES and SLICES to crystal](#crystal-to-slices-and-slices-to-crystal)
   - [Augment SLICES and canonicalize SLICES](#augment-slices-and-canonicalize-slices)
 - [Documentation](#documentation)
 - [Reproduction of benchmarks and inverse design case study](#reproduction-of-benchmarks-and-inverse-design-case-study)
@@ -41,7 +41,7 @@ python setup.py install
 ```
 
 ## Examples
-### Crystal to SLICES and SLICES to cystal
+### Crystal to SLICES and SLICES to crystal
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
 Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
 ```python
