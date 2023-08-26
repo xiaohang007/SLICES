@@ -8,6 +8,7 @@ It has several main functionalities:
 - Generate crystals with desired properties using conditional RNN (Inverse Design)
 
 Developed by Hang Xiao 2023.04 xiaohang007@gmail.com
+
 [[Paper]](https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
 [[Source code]](invcryrep/invcryrep) 
 
@@ -18,8 +19,8 @@ We also provide a codeocean capsule (a modular container for the software enviro
 
 - [Installation](#installation)
 - [Examples](#examples)
-  - [Crystal <-> SLICES](#crystal-<->-slices)
-  - [Augment/Canonicalize SLICES](#augment/canonicalize-slices)
+  - [Crystal to SLICES and SLICES to cystal](#crystal-to-slices-and-slices-to-crystal)
+  - [Augment SLICES and canonicalize SLICES](#augment-slices-and-canonicalize-slices)
 - [Documentation](#documentation)
 - [Reproduction of benchmarks and inverse design case study](#reproduction-of-benchmarks-and-inverse-design-case-study)
   - [General setup](#general-setup)
@@ -40,7 +41,7 @@ python setup.py install
 ```
 
 ## Examples
-### Crystal <-> SLICES
+### Crystal to SLICES and SLICES to cystal
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
 Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
 ```python
@@ -62,7 +63,7 @@ print('\nReconstructed_structure is: ',reconstructed_structure)
 print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
 # if final_energy_per_atom_IAP is 0, it means the M3GNet_IAP refinement failed, and the reconstructed_structure is the ZL*-optimized structure.
 ```
-### Augment/Canonicalize SLICES
+### Augment SLICES and canonicalize SLICES
 Converting a crystal structure to its SLICES string and perform data augmentation (2000x), then reduce these 2000 SLICES to 1 canonical SLICES with get_canonical_SLICES.
 ```python
 import os
@@ -451,4 +452,6 @@ The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6
 }
 
 ## Contact
-Please leave an issue or reach out to Hang Xiao (xiaohang07@live.cn) if you have any questions.
+Join the Discord (forum) of SLICES (https://discord.gg/RYqnkPuD).
+Or leave an issue or reach out to Hang Xiao (xiaohang007@gmail.com) if you have any questions.
+
