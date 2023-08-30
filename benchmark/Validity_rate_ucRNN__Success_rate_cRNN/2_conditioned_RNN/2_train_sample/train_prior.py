@@ -25,7 +25,7 @@ def pretrain(restore_from=None):
     voc = Vocabulary(init_from_file="Voc_prior")
 
     # Create a Dataset from a SMILES file
-    moldata = MolData("../1_augmentation/prior_aug_50x.sci", voc)
+    moldata = MolData("../1_augmentation/prior_aug.sli", voc)
     data = DataLoader(moldata, batch_size=batch_size_now, shuffle=True, drop_last=True,
                      collate_fn=MolData.collate_fn)
     #print(moldata.smiles)
