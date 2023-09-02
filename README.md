@@ -393,7 +393,7 @@ cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/2
 sh 0_train_prior_model.sh
 ```
 (3) Sample 1000 SLICES strings with $E_{form}$ target = -4.5 eV/atom
-Modify ./workflow/2_sample_HTL_model_100x.py to define the $E_{form}$ target and the number of SLICES to be sampled 
+Modify ./settings.ini to define the $E_{form}$ target and the number of SLICES to be sampled 
 ```bash
 sh 1_sample_in_parallel.sh # wait for jobs to finish (using qstat to check)
 python 2_collect_clean_glob_details.py
