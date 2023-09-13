@@ -11,7 +11,7 @@ if __name__ == "__main__":
     setup(
         name = 'invcryrep',
         version = '1.0.0',
-        setup_requires=['setuptools>=18.0','m3gnet','scikit-learn','graphviz','pygraphviz'],
+        setup_requires=['setuptools>=18.0','m3gnet','scikit-learn','graphviz','pygraphviz', 'smact'],
         python_requires='>=3.6',
         install_requires=["numpy>=1.14.3"],
         description=(
