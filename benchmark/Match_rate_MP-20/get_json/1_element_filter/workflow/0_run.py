@@ -20,15 +20,12 @@ print(delta_theta,lattice_expand)
 with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
+check=False
+CG=InvCryRep(graph_method=graph_method, check_results=check)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
-    if len(sys.argv)==2:
-        if sys.argv[1]=="test":
-            check=True
-    else:
-        check=False
+
     if check:
-        CG=InvCryRep(graph_method=graph_method, check_results=check)
         CG.from_cif(cif_string)
         if CG.check_element():
             cifs_filtered.append(cifs[i])
@@ -36,7 +33,7 @@ for i  in range(len(cifs)):
             f.write(cifs[i]["material_id"]+'\n')  
     else:
         try:
-            CG=InvCryRep(graph_method=graph_method, check_results=check)
+
             CG.from_cif(cif_string)
             if CG.check_element():
                 cifs_filtered.append(cifs[i])

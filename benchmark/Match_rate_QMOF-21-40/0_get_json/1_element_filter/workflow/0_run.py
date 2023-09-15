@@ -20,10 +20,10 @@ print(delta_theta,lattice_expand)
 with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
+CG=InvCryRep(graph_method=graph_method)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:
-        CG=InvCryRep(graph_method=graph_method)
         CG.from_cif(cif_string)
         if CG.check_element():
             cifs_filtered.append(cifs[i])

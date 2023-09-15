@@ -23,11 +23,11 @@ with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
 sli_text=''
+CG=InvCryRep(graph_method=graph_method)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:
         ori = Structure.from_str(cif_string,"cif")
-        CG=InvCryRep(graph_method=graph_method)
         sli_list=CG.structure2SLICESAug(ori,3,40)
 
         with open("result.csv",'a') as f:
