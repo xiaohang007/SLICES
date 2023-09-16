@@ -103,20 +103,15 @@ It is recommemded to run this docker image under Linux. Running on docker on win
 ```bash
 docker pull xiaohang07/slices:v3   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v3 /crystal/entrypoint_set_cpus.sh  
+docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v3 /crystal/entrypoint_set_cpus.sh
+# If you encounter permission issues, consider setting 'entrypoint_set_cpus.sh' as 'executable' in Linux by allowing it to be executed as a program
 ```
 
-!!! In case "docker pull xiaohang07/slices:v3" is not working, one can download SLICES_docker.tar.gz.* from https://doi.org/10.6084/m9.figshare.22707946 with pre-installed SLICES and other relevant packages.  
-```bash
-cat SLICES_docker_image.tar.gz.* | tar xzvf -  # Uncompress SLICES_docker.tar.gz.*
-docker load -i SLICES_docker_image.tar.gz #  Install the docker image
-# Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
-```
-
+**It is advisable to launch a new Docker container for result reproduction to mitigate the risk of encountering a 'Bus error' when utilizing PBS (Portable Batch System) within the Docker environment. Notably, this issue has been observed in Docker containers running for an extended duration on the Ubuntu platform but not in CentOS, for your reference.**
 
 ### Reconstruction benchmark for MP-20
 Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
+
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/get_json/0_get_mp20_json
 python 0_mp20.py
