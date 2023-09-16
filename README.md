@@ -34,7 +34,7 @@ We also provide a codeocean capsule (a modular container for the software enviro
 - [Contact](#contact)
 
 ## Installation
-Prerequisites: m3gnet, pygraphviz, graphviz. Tip: using pip or conda or apt install/yum install to install these packages.
+Prerequisites: m3gnet, pygraphviz, graphviz, smact. Tip: using pip or conda or apt install/yum install to install these packages.
 ```bash
 cd invcryrep
 python setup.py install
