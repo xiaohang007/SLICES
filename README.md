@@ -446,6 +446,5 @@ The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6
   year={2023}
 }
 
-## Contact
-Leave an issue or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) if you have any questions.
-
+## Contact and Support
+Start a new discussion thread in [[Discussion]](https://github.com/xiaohang007/SLICES/discussions/categories/general), or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) xiaohang07@live.cn if you have any questions.
