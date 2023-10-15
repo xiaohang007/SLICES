@@ -7,7 +7,7 @@ It has several main functionalities:
 - **Reconstruct original crystal structures from their SLICES strings (Text2Crystal)**
 - Generate crystals with desired properties using conditional RNN (Inverse Design)
 
-Developed by Hang Xiao 2023.04 xiaohang007@gmail.com
+Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
 [[Paper]](https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
 [[Source code]](invcryrep/) 
@@ -86,7 +86,8 @@ print(len(slices_list),len(set(cannon_slices_list)))
 The `SLICES` documentation is hosted at [read-the-docs](https://xiaohang007.github.io/SLICES/).
 
 
-## Reproduction of benchmarks and inverse design case study using a docker image [as an example]. One can run these calculaitons without the docker environment but one need to edit the *.pbs files to make sure the job management system on your PC/HPC work.
+## Reproduction of benchmarks and inverse design case study
+Reproduction of benchmarks and inverse design case study using a docker image [as an example]. One can run these calculaitons without the docker environment but one need to edit the *.pbs files to make sure the job management system on your PC/HPC work.
 ### General setup
 Download this repo and unzipped it.
 
