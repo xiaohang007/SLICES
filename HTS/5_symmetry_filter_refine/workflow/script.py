@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import os,csv,glob
 from jarvis.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.core.structure import Structure

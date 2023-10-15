@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 from jarvis.tasks.vasp.vasp import (
     JobFactory,
     VaspJob,

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import os,subprocess,random,warnings
 warnings.filterwarnings("ignore")
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ["XTB_MOD_PATH"] = "/usr/local/bin/xtb_noring_nooutput_nostdout_noCN"
+os.environ["XTB_MOD_PATH"] = os.path.abspath(os.path.dirname(__file__))+"/xtb_noring_nooutput_nostdout_noCN"
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
@@ -35,6 +35,7 @@ from contextlib import contextmanager
 from functools import wraps
 import itertools
 import copy
+import m3gnet.models
 logging.captureWarnings(False)
 tf.get_logger().setLevel(logging.ERROR)
 tf.config.threading.set_inter_op_parallelism_threads(1)
@@ -99,9 +100,17 @@ class InvCryRep:
         self.atom_symbols = None
         self.SLICES = None
         self.unstable_graph = False  # unstable graph flag
-        self.relaxer = Relaxer(optimizer=optimizer)
         self.fmax=fmax
         self.steps=steps
+        model_path=m3gnet.models.__path__[0]+'/MP-2021.2.8-EFS/'
+        # copy m3gnet model file?
+        if not os.path.isdir(model_path):
+            data_path=os.path.dirname(__file__)+'/MP-2021.2.8-EFS'
+            subprocess.call(['mkdir','-p', model_path])
+            subprocess.call(['cp',data_path+'/checkpoint',data_path+'/m3gnet.data-00000-of-00001',\
+            data_path+'/m3gnet.index',data_path+'/m3gnet.json',model_path])
+        self.relaxer = Relaxer(optimizer=optimizer)
+
 
     def check_element(self):
         """Make sure no atoms with atomic numbers higher than 86 (due to GFN-FF's limitation).

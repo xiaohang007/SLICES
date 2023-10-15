@@ -8,7 +8,7 @@ __version__ = "1.0"
 __date__ = "Jan 13, 2019"
 # -*- coding: utf-8 -*-
 # modified Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import argparse
 import sys,re
 from pymatgen.apps.borg.hive import VaspToComputedEntryDrone

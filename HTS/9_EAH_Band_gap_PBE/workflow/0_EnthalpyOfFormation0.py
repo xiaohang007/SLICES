@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 """
 Created on Wed Dec 19 18:47:34 2018
 读取构型文件，自动计算生成焓

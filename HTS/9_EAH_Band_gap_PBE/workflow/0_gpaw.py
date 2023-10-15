@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import numpy as np
 from ase.build import bulk
 from ase.optimize.bfgs import BFGS

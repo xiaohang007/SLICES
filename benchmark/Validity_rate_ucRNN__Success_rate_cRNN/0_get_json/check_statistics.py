@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import os,sys,json
 
 with open('cifs_filtered.json', 'r') as f:

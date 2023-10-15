@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # created by dagleaves https://github.com/dagleaves/ehull-calculator
 # modified by Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import os
 import re
 import csv

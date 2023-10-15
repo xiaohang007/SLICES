@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # created by Boyd, P. G.; K. Woo, T. A Generalized Method for Constructing Hypothetical Nanoporous Materials of Any Net Topology from Graph Theory. CrystEngComm 2016, 18 (21), 3777–3792. https://github.com/peteboyd/tobascco
 # modified by Hang Xiao; fixed self-loop bug
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 import distutils.util as du
 import math
 import sys

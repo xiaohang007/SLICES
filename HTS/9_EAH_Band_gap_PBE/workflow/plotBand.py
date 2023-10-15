@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
-# xiaohang007@gmail.com
+# xiaohang07@live.cn
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.electronic_structure.plotter import BSPlotter
 

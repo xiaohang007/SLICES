@@ -15,33 +15,10 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
 
-VERSION = '1.4.3'
+VERSION = '1.4.4'
 DESCRIPTION = "Invertible crystal representation (SLICES)"
 
 
-class PostDevelopCommand(develop):
-    """Post-installation for development mode."""
-    def run(self):
-        #check_call("apt-get install this-package".split())
-        develop.run(self)
-        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
-        exec_path = os.path.join(os.path.dirname(__file__), 'invcryrep', 'xtb_noring_nooutput_nostdout_noCN')
-        bin_path = '/usr/local/bin/xtb_noring_nooutput_nostdout_noCN'
-        if not os.path.exists(bin_path):
-            subprocess.call(['cp', exec_path, bin_path])
-        subprocess.call(['python', os.path.dirname(__file__)+'/invcryrep/set_path.py'])
-
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        #check_call("apt-get install this-package".split())
-        install.run(self)
-        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
-        exec_path = os.path.join(os.path.dirname(__file__), 'invcryrep', 'xtb_noring_nooutput_nostdout_noCN')
-        bin_path = '/usr/local/bin/xtb_noring_nooutput_nostdout_noCN'
-        if not os.path.exists(bin_path):
-            subprocess.call(['cp', exec_path, bin_path])
-        subprocess.call(['python', os.path.dirname(__file__)+'/invcryrep/set_path.py'])
 
 
 
@@ -63,9 +40,5 @@ if __name__ == "__main__":
         "./MP-2021.2.8-EFS/m3gnet.data-00000-of-00001","./MP-2021.2.8-EFS/m3gnet.index","./MP-2021.2.8-EFS/m3gnet.json"]},
         platforms = 'any',
         license="GPL 2.1",
-        cmdclass={
-            'develop': PostDevelopCommand,
-            'install': PostInstallCommand,
-        },
     )
 
