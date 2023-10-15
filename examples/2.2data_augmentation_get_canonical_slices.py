@@ -2,7 +2,6 @@ import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
 # obtaining the pymatgen Structure instance of Sr3Ru2O7
 original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)

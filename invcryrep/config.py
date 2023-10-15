@@ -5,6 +5,7 @@ import numpy as np
 from io import StringIO
 import pandas as pd
 
+
 # 3*3*3 supercell: 27 cells in -1, 0, 1 offsets in the x, y, z dimensions
 OFFSET = np.array([
     [-1, -1, -1],

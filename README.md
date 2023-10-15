@@ -10,7 +10,7 @@ It has several main functionalities:
 Developed by Hang Xiao 2023.04 xiaohang007@gmail.com
 
 [[Paper]](https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
-[[Source code]](invcryrep/invcryrep) 
+[[Source code]](invcryrep/) 
 
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./figure_intro.png)
@@ -34,10 +34,9 @@ We also provide a codeocean capsule (a modular container for the software enviro
 - [Contact](#contact)
 
 ## Installation
-Prerequisites: m3gnet, pygraphviz, graphviz, smact. Tip: using pip or conda or apt install/yum install to install these packages.
 ```bash
-cd invcryrep
-python setup.py install
+pip install slices
+# If installing within China, to improve download speed, you can add [-i https://pypi.tuna.tsinghua.edu.cn/simple ] at the end of the pip install command 
 ```
 
 ## Examples
@@ -48,8 +47,6 @@ Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next
 import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
-# setup modified XTB's path
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
 # obtaining the pymatgen Structure instance of NdSiRu
 original_structure = Structure.from_file(filename='NdSiRu.cif')
 # creating an instance of the InvCryRep Class (initialization)
@@ -70,7 +67,6 @@ import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
 # obtaining the pymatgen Structure instance of Sr3Ru2O7
 original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
@@ -90,7 +86,7 @@ print(len(slices_list),len(set(cannon_slices_list)))
 The `SLICES` documentation is hosted at [read-the-docs](https://xiaohang007.github.io/SLICES/).
 
 
-## Reproduction of benchmarks and inverse design case study
+## Reproduction of benchmarks and inverse design case study using a docker image [as an example]. One can run these calculaitons without the docker environment but one need to edit the *.pbs files to make sure the job management system on your PC/HPC work.
 ### General setup
 Download this repo and unzipped it.
 
@@ -103,9 +99,9 @@ Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for th
 **It is recommemded to run this docker image under Centos. Under Ubuntu, it is possible to encounter a 'Bus error' when utilizing PBS (Portable Batch System) within the Docker environment. Notably, this issue has been observed in Docker containers running for an extended duration on the Ubuntu platform but not in CentOS, for your reference.**
 
 ```bash
-docker pull xiaohang07/slices:v3   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
+docker pull xiaohang07/slices:v5   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v3 /crystal/entrypoint_set_cpus.sh
+docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v5 /crystal/entrypoint_set_cpus.sh
 # If you encounter permission issues, consider setting 'entrypoint_set_cpus.sh' as 'executable' in Linux by allowing it to be executed as a program
 ```
 

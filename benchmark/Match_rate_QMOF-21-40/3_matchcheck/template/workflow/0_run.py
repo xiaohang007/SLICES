@@ -10,7 +10,7 @@ import time
 os.environ["OMP_NUM_THREADS"] = "1"
 
 
-os.environ["XTB_MOD_PATH"] = "/crystal/xtb_noring_nooutput_nostdout_noCN"
+
 config = configparser.ConfigParser()
 config.read('../settings.ini') #path of your .ini file
 bond_scaling = config.getfloat("Settings","bond_scaling") 

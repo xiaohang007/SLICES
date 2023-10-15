@@ -16,7 +16,7 @@ os.system('rm -rf job_* structures_ori_opt ./result.csv')
 threads=30
 
 
-with open('/crystal/benchmark/get_json/cifs_filtered.json', 'r') as f:
+with open('/crystal/benchmark/Match_rate_MP-20/get_json/cifs_filtered.json', 'r') as f:
     cifs=json.load(f)
 cifs_split=list(split_list(cifs,threads))
 
