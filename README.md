@@ -36,8 +36,9 @@ We also provide a codeocean capsule (a modular container for the software enviro
 ## Installation
 ```bash
 pip install slices
-# If installing within China, to improve download speed, you can add [-i https://pypi.tuna.tsinghua.edu.cn/simple ] at the end of the pip install command 
+#If you're in China and want to speed up the download, you can use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
+Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not compatible with Windows due to the modified XTB binary was compiled on Linux. 
 
 ## Examples
 ### Crystal to SLICES and SLICES to crystal
