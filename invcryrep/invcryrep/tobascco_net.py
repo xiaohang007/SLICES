@@ -522,7 +522,7 @@ class Net:
             kk = np.vstack((e, cycle_rep))
             j = sy.Matrix(kk.T)
             null = np.array(
-                [np.array(k).flatten() for k in j.nullspace()], dtype=np.float
+                [np.array(k).flatten() for k in j.nullspace()], dtype=float
             )
             found_vector = False
             for nulv in null:
@@ -829,7 +829,7 @@ class Net:
             return self._kernel
         self._kernel = None
         j = sy.Matrix(self.cycle_rep.T)
-        null = np.array([np.array(k).flatten() for k in j.nullspace()], dtype=np.float)
+        null = np.array([np.array(k).flatten() for k in j.nullspace()], dtype=float)
         for null_vector in null:
             nz = np.nonzero(null_vector)
             cv_comb = np.sum(self.cycle[nz] * null_vector[nz][:, None], axis=0)

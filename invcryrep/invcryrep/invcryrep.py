@@ -5,6 +5,7 @@ import os,subprocess,random,warnings
 warnings.filterwarnings("ignore")
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["XTB_MOD_PATH"] = "/usr/local/bin/xtb_noring_nooutput_nostdout_noCN"
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
@@ -1202,7 +1203,8 @@ class InvCryRep:
                 with open('inner_p_target.json', 'w') as  f:
                     json.dump(inner_p_target_dict,f)
             return inner_p_target, colattice_inds, colattice_weights
-        except:
+        except Exception as e:
+            print(e)
             temp_dir.cleanup()
 
     def convert_graph(self):
@@ -1784,7 +1786,8 @@ class InvCryRep:
             else:
                 structure_recreated_opt2, final_energy_per_atom=self.m3gnet_relax_large_cell2(structure_recreated_opt)                                
             return [structure_recreated_std, structure_recreated_opt,  structure_recreated_opt2 ],final_energy_per_atom
-        except:
+        except Exception as e:
+            print(e)
             return [structure_recreated_std, structure_recreated_opt],0
 
     def SLICES2structure(self,SLICES):
@@ -1832,7 +1835,8 @@ class InvCryRep:
         try:
             std2, final_energy_per_atom=self.m3gnet_relax(structures[0])
             return [structures[0], std2,  structures[1],structures[2] ],final_energy_per_atom
-        except:
+        except Exception as e:
+            print(e)
             return structures,final_energy_per_atom
 
     @function_timeout(seconds=60)
