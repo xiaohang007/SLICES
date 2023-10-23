@@ -439,10 +439,14 @@ python plot_FigureS1c.py # get Fig. S2c as test3.svg
 The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom can be accessed from "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/Other_targets/3_eform_\*".
 
 ## Citation
-@article{xiao2023invertible,
-  title={An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
-  author={Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Wang, Lei and Chen, Xi},
-  year={2023}
+@article{xiao_invertible_2023,
+	title = {An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
+	url = {https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0},
+	doi = {10.26434/chemrxiv-2023-h4426},
+	publisher = {ChemRxiv},
+	author = {Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Wang, Lei and Chen, Xi},
+	month = may,
+	year = {2023},
 }
 
 ## Contact and Support
