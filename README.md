@@ -40,6 +40,16 @@ pip install slices
 ```
 Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not compatible with Windows due to the modified XTB binary was compiled on Linux. 
 
+If "TypeError: bases must be types" occurs when you use SLICES library, then do this:
+```bash
+pip install protobuf==3.20.0
+```
+If errors still occur, then you can create a Python 3.9 environment and install slices in this environment: 
+```bash
+conda create --name slices python=3.9
+conda activate slices
+pip install slices
+```
 ## Examples
 ### Crystal to SLICES and SLICES to crystal
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
