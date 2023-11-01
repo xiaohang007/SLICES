@@ -200,7 +200,7 @@ class InvCryRep:
             print("ERROR - graph_method not implemented") 
         return structure_graph
 
-    def from_SLICES(self,SLICES,fix_duplicate_edge=False):
+    def from_SLICES(self,SLICES,strategy=3,fix_duplicate_edge=False):
         """Extract edge_indices, to_jimages and atom_types from decoding a SLICES string.
 
         Args:
@@ -216,29 +216,62 @@ class InvCryRep:
         self.edge_indices = None
         self.to_jimages = None
         tokens=SLICES.split(" ")
-        for i in range(len(tokens)):
-            if tokens[i].isnumeric():
-                num_atoms=i
-                break
-        self.atom_symbols=tokens[:num_atoms]
-        num_edges=int((len(tokens)-len(self.atom_symbols))/5)
-        edge_indices=np.zeros([num_edges,2],dtype=int)
-        to_jimages=np.zeros([num_edges,3],dtype=int)
-        for i in range(num_edges):
-            edge=tokens[num_atoms+i*5:num_atoms+(i+1)*5]
-            edge_indices[i,0]=int(edge[0])
-            edge_indices[i,1]=int(edge[1])
-            if edge_indices[i,0] > num_atoms-1 or edge_indices[i,1] > num_atoms-1:
-                raise Exception("Error: wrong edge indices")
-            for j in range(3):
-                if edge[j+2]=='-':
-                    to_jimages[i,j]=-1
-                elif edge[j+2]=='o':
-                    to_jimages[i,j]=0
-                elif edge[j+2]=='+':
-                    to_jimages[i,j]=1
-                else:
-                    raise Exception("Error: wrong edge label")
+        if strategy==3:
+            for i in range(len(tokens)):
+                if tokens[i].isnumeric():
+                    num_atoms=i
+                    break
+            self.atom_symbols=tokens[:num_atoms]
+            num_edges=int((len(tokens)-len(self.atom_symbols))/5)
+            edge_indices=np.zeros([num_edges,2],dtype=int)
+            to_jimages=np.zeros([num_edges,3],dtype=int)
+            for i in range(num_edges):
+                edge=tokens[num_atoms+i*5:num_atoms+(i+1)*5]
+                edge_indices[i,0]=int(edge[0])
+                edge_indices[i,1]=int(edge[1])
+                if edge_indices[i,0] > num_atoms-1 or edge_indices[i,1] > num_atoms-1:
+                    raise Exception("Error: wrong edge indices")
+                for j in range(3):
+                    if edge[j+2]=='-':
+                        to_jimages[i,j]=-1
+                    elif edge[j+2]=='o':
+                        to_jimages[i,j]=0
+                    elif edge[j+2]=='+':
+                        to_jimages[i,j]=1
+                    else:
+                        raise Exception("Error: wrong edge label")
+
+        if strategy==1:
+            temp_list=[]
+            for i in range(len(tokens)):
+                if tokens[i].isnumeric():
+                    temp_list.append(int(tokens[i]))
+            num_atoms=max(temp_list)+1
+            num_edges=int(len(tokens)/7)
+            edge_indices=np.zeros([num_edges,2],dtype=int)
+            to_jimages=np.zeros([num_edges,3],dtype=int)
+            self.atom_symbols=['NaN'] * num_atoms
+            for i in range(num_edges):
+                edge=tokens[i*7:(i+1)*7]
+                edge_indices[i,0]=int(edge[2])
+                edge_indices[i,1]=int(edge[3])
+                self.atom_symbols[edge_indices[i,0]]=edge[0]
+                self.atom_symbols[edge_indices[i,1]]=edge[1]
+                if edge_indices[i,0] > num_atoms-1 or edge_indices[i,1] > num_atoms-1:
+                    raise Exception("Error: wrong edge indices")
+                for j in range(3):
+                    if edge[j+4]=='-':
+                        to_jimages[i,j]=-1
+                    elif edge[j+4]=='o':
+                        to_jimages[i,j]=0
+                    elif edge[j+4]=='+':
+                        to_jimages[i,j]=1
+                    else:
+                        raise Exception("Error: wrong edge label")
+            if 'NaN' in self.atom_symbols:
+                raise Exception("Error: wrong atom symbols")
+            
+
         if fix_duplicate_edge:
             edge_data_ascending=[]
             for i in range(len(edge_indices)):
@@ -250,31 +283,69 @@ class InvCryRep:
             edge_data_ascending_unique=np.unique(edge_data_ascending,axis=0)
             edge_indices=edge_data_ascending_unique[:,:2]
             to_jimages=edge_data_ascending_unique[:,2:]
+
         self.edge_indices=edge_indices
         self.to_jimages=to_jimages
-        self.atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in self.atom_symbols])        
+        self.atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in self.atom_symbols])    
 
-    def to_SLICES(self):
+    @staticmethod
+    def get_slices1(atom_symbols,edge_indices,to_jimages):
+        SLICES=""
+        for i in range(len(edge_indices)):
+            SLICES+=atom_symbols[edge_indices[i][0]]+' '+atom_symbols[edge_indices[i][1]]+' '+str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
+            for j in to_jimages[i]:
+                if j==-1:
+                    SLICES+='- '
+                if j==0:
+                    SLICES+='o '
+                if j==1:
+                    SLICES+='+ '
+        return SLICES
+    @staticmethod
+    def get_slices2(atom_symbols,edge_indices,to_jimages):
+        atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
+        SLICES=""
+        for i in atom_symbols_mod:
+            SLICES+=i
+        for i in range(len(edge_indices)):
+            SLICES+=('0'+str(edge_indices[i][0]))[-2:]+('0'+str(edge_indices[i][1]))[-2:]
+            for j in to_jimages[i]:
+                if j==-1:
+                    SLICES+='-'
+                if j==0:
+                    SLICES+='o'
+                if j==1:
+                    SLICES+='+'
+        return SLICES
+    @staticmethod
+    def get_slices3(atom_symbols,edge_indices,to_jimages):
+        SLICES=''
+        for i in atom_symbols:
+            SLICES+=i+' '
+        for i in range(len(edge_indices)):
+            SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
+            for j in to_jimages[i]:
+                if j==-1:
+                    SLICES+='- '
+                if j==0:
+                    SLICES+='o '
+                if j==1:
+                    SLICES+='+ '
+        return SLICES
+
+    def to_SLICES(self,strategy=3):
         """Output a SLICES string based on self.atom_types & self.edge_indices & self.to_jimages.
         Returns:
             str: SLICES string.
         """
-        def get_slices3(atom_symbols,edge_indices,to_jimages):
-            SLICES=''
-            for i in atom_symbols:
-                SLICES+=i+' '
-            for i in range(len(edge_indices)):
-                SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='- '
-                    if j==0:
-                        SLICES+='o '
-                    if j==1:
-                        SLICES+='+ '
-            return SLICES
+
         atom_symbols = [str(ElementBase.from_Z(i)) for i in self.atom_types]
-        return get_slices3(atom_symbols,self.edge_indices,self.to_jimages)
+        if strategy==1:
+            return self.get_slices1(atom_symbols,self.edge_indices,self.to_jimages)
+        if strategy==2:
+            return self.get_slices2(atom_symbols,self.edge_indices,self.to_jimages)
+        if strategy==3:
+            return self.get_slices3(atom_symbols,self.edge_indices,self.to_jimages)
 
     @staticmethod
     def check_structural_validity(str1):
@@ -299,87 +370,7 @@ class InvCryRep:
         else:
             return True
 
-    def check_SLICES_debug(self,SLICES,dupli_check=True):
-        """Check if a slices string conforms to the proper syntax.
-
-        Args:
-
-            SLICES (str): A SLICES string.
-            dupli_check (bool, optional): Flag to indicate whether to check if a SLICES has duplicate
-                edges. Defaults to True.
-
-        Returns:
-            bool: Return True if a SLICES is syntaxlly valid.
-        """
-        try:
-            self.from_SLICES(SLICES)
-        except:
-            return "from_SLICES error"
-        # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 
-        G = nx.MultiGraph()
-        G.add_nodes_from([i for i in range(len(self.atom_types))])
-        G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            return "b<3"
-        # check if all nodes has been covered by edges
-        nodes_covered=[]
-        for i in self.edge_indices:
-            nodes_covered.append(i[0])
-            nodes_covered.append(i[1])
-        if len(set(nodes_covered))!=len(self.atom_types):
-            return "nodes not covered by edges"
-        # check if edge labels covers 3 dimension in at least 3 edges, in order to get 3D embedding
-        edge_index_covered=[[],[],[]]
-        for i in range(len(self.to_jimages)):
-            for j in range(3):
-                if self.to_jimages[i][j]!=0:
-                    edge_index_covered[j].append(i)
-        for i in edge_index_covered:
-            if len(i)==0:
-                return "edge labels not covers 3 dimension in at least 3 edges"
-        # check dumplicates(flip)
-        if dupli_check:
-            edge_data_ascending=[]
-            for i in range(len(self.edge_indices)):
-                if self.edge_indices[i][0]<=self.edge_indices[i][1]:
-                    edge_data_ascending.append(list(self.edge_indices[i])+list(self.to_jimages[i]))
-                else:
-                    edge_data_ascending.append([self.edge_indices[i][1],self.edge_indices[i][0]]+list(np.array(self.to_jimages[i])*-1))
-            def remove_duplicate_arrays(arrays):
-                unique_arrays = []
-                for array in arrays:
-                    if array not in unique_arrays:
-                        unique_arrays.append(array)
-                return unique_arrays
-            if len(edge_data_ascending)>len(remove_duplicate_arrays(edge_data_ascending)):
-                return "duplicate edges"
-        # strict case: (still not covering all cases)
-        if len(edge_index_covered[1])>=len(edge_index_covered[0]):
-            b_sub_a = [i for i in edge_index_covered[1] if i not in edge_index_covered[0]]
-        else:
-            b_sub_a = [i for i in edge_index_covered[0] if i not in edge_index_covered[1]]
-        a_add_b = edge_index_covered[0]+edge_index_covered[1]
-        if len(a_add_b)>=len(edge_index_covered[2]):
-            c_sub_ab = [i for i in a_add_b if i not in edge_index_covered[2]]
-        else:    
-            c_sub_ab = [i for i in edge_index_covered[2] if i not in a_add_b]
-        if len(b_sub_a)==0 or len(c_sub_ab)==0:
-            return "edge label logic check"
-        try:
-            x_dat, net_voltage = self.convert_graph()
-            net = Net(x_dat,dim=3)
-            net.voltage = net_voltage
-            # check the graph first (super fast)
-            net.simple_cycle_basis()
-            net.get_lattice_basis()
-            net.get_cocycle_basis()
-        except:
-            return "simple_cycle_basis,get_lattice_basis,get_cocycle_basis error"
-        return True
-
-    def check_SLICES(self,SLICES,dupli_check=True):
+    def check_SLICES(self,SLICES,strategy=3,dupli_check=True):
         """Check if a slices string conforms to the proper syntax.
 
         Args:
@@ -391,7 +382,7 @@ class InvCryRep:
             bool: Return True if a SLICES is syntaxlly valid.
         """
         try:
-            self.from_SLICES(SLICES)
+            self.from_SLICES(SLICES,strategy)
         except:
             return False
         # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 
@@ -458,7 +449,9 @@ class InvCryRep:
             return False
         return True
 
-    def get_canonical_SLICES(self,SLICES):
+
+
+    def get_canonical_SLICES(self,SLICES,strategy=3):
         """Convert a SLICES to its canonical form.
 
         Args:
@@ -473,21 +466,8 @@ class InvCryRep:
                 indexes[x].append(i)
             ids = [indexes[x].popleft() for x in ori]
             return ids
-        def get_slices3(atom_symbols,edge_indices,to_jimages):
-            SLICES=''
-            for i in atom_symbols:
-                SLICES+=i+' '
-            for i in range(len(edge_indices)):
-                SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='- '
-                    if j==0:
-                        SLICES+='o '
-                    if j==1:
-                        SLICES+='+ '
-            return SLICES
-        self.from_SLICES(SLICES)
+
+        self.from_SLICES(SLICES,strategy)
         # sort elements
         atom_types_sorted=copy.deepcopy(self.atom_types)
         atom_types_sorted=np.sort(atom_types_sorted)
@@ -526,8 +506,13 @@ class InvCryRep:
         c =np.concatenate((edge_indices, to_jimages_column_sorted), axis=1) 
         sorted_data = np.array(sorted(c, key=lambda x: (x[0], x[1],x[2],x[3],x[4])))
         edge_indices = sorted_data[:, :2]
-        to_jimages = sorted_data[:, 2:]        
-        return get_slices3(atom_symbols,edge_indices,to_jimages)
+        to_jimages = sorted_data[:, 2:]
+        if strategy==1:
+            return self.get_slices1(atom_symbols,edge_indices,to_jimages)
+        if strategy==2:
+            return self.get_slices2(atom_symbols,edge_indices,to_jimages)
+        if strategy==3:
+            return self.get_slices3(atom_symbols,edge_indices,to_jimages)
 
     def SLICES2formula(self,SLICES):
         """Convert a SLICES string to its chemical formula (to facilitate composition screening 
@@ -573,54 +558,12 @@ class InvCryRep:
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
             to_jimages.append(to_jimage)
-        def get_slices1(atom_symbols,edge_indices,to_jimages):
-            atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
-            SLICES=""
-            for i in range(len(edge_indices)):
-                SLICES+=atom_symbols_mod[edge_indices[i][0]]+('0'+str(edge_indices[i][0]))[-2:]+atom_symbols_mod[edge_indices[i][1]]+('0'+str(edge_indices[i][1]))[-2:]
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='-'
-                    if j==0:
-                        SLICES+='o'
-                    if j==1:
-                        SLICES+='+'
-            return SLICES
-        def get_slices2(atom_symbols,edge_indices,to_jimages):
-            atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
-            SLICES=""
-            for i in atom_symbols_mod:
-                SLICES+=i
-            for i in range(len(edge_indices)):
-                SLICES+=('0'+str(edge_indices[i][0]))[-2:]+('0'+str(edge_indices[i][1]))[-2:]
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='-'
-                    if j==0:
-                        SLICES+='o'
-                    if j==1:
-                        SLICES+='+'
-            return SLICES
-        def get_slices3(atom_symbols,edge_indices,to_jimages):
-            SLICES=''
-            for i in atom_symbols:
-                SLICES+=i+' '
-            for i in range(len(edge_indices)):
-                SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='- '
-                    if j==0:
-                        SLICES+='o '
-                    if j==1:
-                        SLICES+='+ '
-            return SLICES
         if strategy==1:
-            return get_slices1(atom_symbols,edge_indices,to_jimages)
+            return self.get_slices1(atom_symbols,edge_indices,to_jimages)
         if strategy==2:
-            return get_slices2(atom_symbols,edge_indices,to_jimages)
+            return self.get_slices2(atom_symbols,edge_indices,to_jimages)
         if strategy==3:
-            return get_slices3(atom_symbols,edge_indices,to_jimages)
+            return self.get_slices3(atom_symbols,edge_indices,to_jimages)
 
     def structure2SLICESAug(self,structure,strategy=3,num=200):
         """ Convert Structure to SLICES and conduct data augmentation.
@@ -637,48 +580,6 @@ class InvCryRep:
         Returns:
             list: A list of num SLICES strings.
         """
-        def get_slices1(atom_symbols,edge_indices,to_jimages):
-            atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
-            SLICES=""
-            for i in range(len(edge_indices)):
-                SLICES+=atom_symbols_mod[edge_indices[i][0]]+('0'+str(edge_indices[i][0]))[-2:]+atom_symbols_mod[edge_indices[i][1]]+('0'+str(edge_indices[i][1]))[-2:]
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='-'
-                    if j==0:
-                        SLICES+='o'
-                    if j==1:
-                        SLICES+='+'
-            return SLICES
-        def get_slices2(atom_symbols,edge_indices,to_jimages):
-            atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
-            SLICES=""
-            for i in atom_symbols_mod:
-                SLICES+=i
-            for i in range(len(edge_indices)):
-                SLICES+=('0'+str(edge_indices[i][0]))[-2:]+('0'+str(edge_indices[i][1]))[-2:]
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='-'
-                    if j==0:
-                        SLICES+='o'
-                    if j==1:
-                        SLICES+='+'
-            return SLICES
-        def get_slices3(atom_symbols,edge_indices,to_jimages):
-            SLICES=''
-            for i in atom_symbols:
-                SLICES+=i+' '
-            for i in range(len(edge_indices)):
-                SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
-                for j in to_jimages[i]:
-                    if j==-1:
-                        SLICES+='- '
-                    if j==0:
-                        SLICES+='o '
-                    if j==1:
-                        SLICES+='+ '
-            return SLICES
         structure_graph=self.structure2structure_graph(structure)
         atom_types = np.array(structure.atomic_numbers)
         atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
@@ -696,11 +597,11 @@ class InvCryRep:
         num_edges=len(edge_indices)
         SLICES_list=[]
         if strategy==1:
-            SLICES_list.append(get_slices1(atom_symbols,edge_indices,to_jimages))
+            SLICES_list.append(self.get_slices1(atom_symbols,edge_indices,to_jimages))
         if strategy==2:
-            SLICES_list.append(get_slices2(atom_symbols,edge_indices,to_jimages))
+            SLICES_list.append(self.get_slices2(atom_symbols,edge_indices,to_jimages))
         if strategy==3:
-            SLICES_list.append(get_slices3(atom_symbols,edge_indices,to_jimages))
+            SLICES_list.append(self.get_slices3(atom_symbols,edge_indices,to_jimages))
         #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
         num_permutation=int(math.ceil((num/6)**(1/3)))
         # shuffle to get permu
@@ -770,13 +671,114 @@ class InvCryRep:
                                 edge_indices_new_final_flip.append(edge_indices_new_final[m])
                                 to_jimages_shu_trans_per_trans_final_flip.append(to_jimages_shu_trans_per_trans_final[m])
                         if strategy==1:
-                            SLICES_list.append(get_slices1(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                            SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
                         if strategy==2:
-                            SLICES_list.append(get_slices2(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                            SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
                         if strategy==3:
-                            SLICES_list.append(get_slices3(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                            SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
+
+    def structure2SLICESAug_atom_order(self,structure,strategy=3,num=10):
+        """ Convert Structure to SLICES and conduct data augmentation.
+        
+        (1) extract edge_indices, to_jimages and atom_types from a pymatgen structure object
+        (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
+            with a data augmentation scheme
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+            strategy (int, optional): Strategy number. Defaults to 3.
+            num (int, optional): Increase the dataset size by a magnitude of num. Defaults to 200.
+
+        Returns:
+            list: A list of num SLICES strings.
+        """
+        structure_graph=self.structure2structure_graph(structure)
+        atom_types = np.array(structure.atomic_numbers)
+        atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
+        G = nx.MultiGraph()
+        G.add_nodes_from(structure_graph.graph.nodes)
+        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
+        if b < 3:
+            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
+        edge_indices, to_jimages = [], []
+        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
+            edge_indices.append([i, j])
+            to_jimages.append(to_jimage)
+        num_edges=len(edge_indices)
+        SLICES_list=[]
+        if strategy==1:
+            SLICES_list.append(self.get_slices1(atom_symbols,edge_indices,to_jimages))
+        if strategy==2:
+            SLICES_list.append(self.get_slices2(atom_symbols,edge_indices,to_jimages))
+        if strategy==3:
+            SLICES_list.append(self.get_slices3(atom_symbols,edge_indices,to_jimages))
+        #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
+        num_permutation=num
+        # shuffle to get permu
+        permu=[]
+        for i in range(num):
+            permu.append(tuple(random.sample(atom_symbols, k=len(atom_symbols))))
+        permu_unique=list(set(permu))
+        # For duplicates, we take the smallest index that has not been taken.
+        def get_index_list_allow_duplicates(ori,mod):
+            indexes = defaultdict(deque)
+            for i, x in enumerate(mod):
+                indexes[x].append(i)
+            ids = [indexes[x].popleft() for x in ori]
+            return ids
+        index_mapping=[]
+        for i in permu_unique[:num_permutation]:
+            index_mapping.append(get_index_list_allow_duplicates(atom_symbols,i))
+        def shuffle_dual_list(a,b):
+            c = list(zip(a, b))
+            random.shuffle(c)
+            a2, b2 = zip(*c)
+            return a2,b2
+        def remove_duplicate_arrays(arrays):
+            unique_arrays = []
+            for array in arrays:
+                if array not in unique_arrays:
+                    unique_arrays.append(array)
+            return unique_arrays
+        # calculate filp list
+        flip_list=[]
+        flip_list_unique=[]
+        for i in range(num):
+            flip_list.append(list(np.random.randint(2, size=num_edges)))
+        flip_list_unique=remove_duplicate_arrays(flip_list)
+        if len(flip_list_unique)>=num_permutation:
+            flip_list_unique=flip_list_unique[:num_permutation]
+        # shuffle atom list
+        for i in range(len(index_mapping)):
+            atom_symbols_new=permu_unique[i]
+            edge_indices_new=copy.deepcopy(edge_indices)
+            for j in range(num_edges):
+                edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
+                edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
+            edge_indices_new_shuffled_list=[]
+            to_jimages_shuffled_list=[]
+            for j in range(num):
+                edge_indices_new_shuffled,to_jimages_shuffled=shuffle_dual_list(edge_indices_new,to_jimages)
+                edge_indices_new_shuffled_list.append(edge_indices_new_shuffled)
+                to_jimages_shuffled_list.append(to_jimages_shuffled)
+            edge_indices_new_shuffled_list_unique = remove_duplicate_arrays(edge_indices_new_shuffled_list)
+            to_jimages_shuffled_list_unique = remove_duplicate_arrays(to_jimages_shuffled_list)
+            for j in range(min(num_permutation,len(edge_indices_new_shuffled_list_unique))):
+                edge_indices_new_final=edge_indices_new_shuffled_list_unique[j]
+                to_jimages_final=to_jimages_shuffled_list_unique[j]
+                if strategy==1:
+                    SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new_final,to_jimages_final))
+                if strategy==2:
+                    SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new_final,to_jimages_final))
+                if strategy==3:
+                    SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new_final,to_jimages_final))
+        random.shuffle(SLICES_list)
+        return SLICES_list[:num]
+
 
     def get_dim(self,structure):
         """Get the dimension of a Structure.
@@ -1799,7 +1801,7 @@ class InvCryRep:
             print(e)
             return [structure_recreated_std, structure_recreated_opt],0
 
-    def SLICES2structure(self,SLICES):
+    def SLICES2structure(self,SLICES,strategy=3):
         """Convert a SLICES string back to its original crystal structure.
 
         Args:
@@ -1809,7 +1811,7 @@ class InvCryRep:
             Structure: A pymatgen Structure object.
             float: Energy per atom predicted with M3GNet.
         """
-        self.from_SLICES(SLICES)
+        self.from_SLICES(SLICES,strategy)
         structures,final_energy_per_atom = self.to_structures()
         return structures[-1],final_energy_per_atom
 
