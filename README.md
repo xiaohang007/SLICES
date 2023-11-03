@@ -9,7 +9,7 @@ It has several main functionalities:
 
 Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
-[[Paper]](https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
+[[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
 [[Source code]](invcryrep/) 
 
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
@@ -447,15 +447,21 @@ python plot_FigureS1c.py # get Fig. S2c as test3.svg
 The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom can be accessed from "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/Other_targets/3_eform_\*".
 
 ## Citation
-@article{xiao_invertible_2023,
-	title = {An invertible, invariant crystallographic representation for inverse design of solid-state materials using generative deep learning},
-	url = {https://chemrxiv.org/engage/chemrxiv/article-details/64697e40a32ceeff2df995c0},
-	doi = {10.26434/chemrxiv-2023-h4426},
-	publisher = {ChemRxiv},
-	author = {Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Wang, Lei and Chen, Xi},
-	month = may,
+
+Please consider citing the following paper if you find our code & data useful.
+
+```
+@article{xiao2023invertible,
+	title = {An invertible, invariant crystal representation for inverse design of solid-state materials using generative deep learning},
+	author = {Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Chen, Xi and Wang, Lei},
+	journal = {Nature Communications},
+	volume = {14},
+	number = {1},
+	pages = {7027},
 	year = {2023},
+	publisher={Nature Publishing Group UK London}
 }
+```
 
 ## Contact and Support
 Start a new discussion thread in [[Discussion]](https://github.com/xiaohang007/SLICES/discussions/categories/general), or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) xiaohang07@live.cn if you have any questions.
