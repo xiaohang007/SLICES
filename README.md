@@ -55,7 +55,6 @@ pip install slices
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
 Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
 ```python
-import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 # obtaining the pymatgen Structure instance of NdSiRu
@@ -74,7 +73,6 @@ print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
 ### Augment SLICES and canonicalize SLICES
 Converting a crystal structure to its SLICES string and perform data augmentation (2000x), then reduce these 2000 SLICES to 1 canonical SLICES with get_canonical_SLICES.
 ```python
-import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
