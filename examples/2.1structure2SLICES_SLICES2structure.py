@@ -1,4 +1,3 @@
-import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 # obtaining the pymatgen Structure instance of NdSiRu

@@ -1,4 +1,3 @@
-import os
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
