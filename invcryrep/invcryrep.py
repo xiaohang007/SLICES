@@ -111,7 +111,6 @@ class InvCryRep:
             data_path+'/m3gnet.index',data_path+'/m3gnet.json',model_path])
         self.relaxer = Relaxer(optimizer=optimizer)
 
-
     def check_element(self):
         """Make sure no atoms with atomic numbers higher than 86 (due to GFN-FF's limitation).
 
@@ -122,32 +121,6 @@ class InvCryRep:
             return True
         else:
             return False
-
-    def file2structure_graph(self,filename):
-        """Convert a file to a pymatgen structure_graph object.
-
-        Args:
-            filename (str): Filename.
-
-        Returns:
-            StructureGraph: Pymatgen structure_graph object.
-        """
-        structure = Structure.from_file(filename)
-        if self.graph_method == 'brunnernn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, BrunnerNN_reciprocal())
-        elif self.graph_method == 'econnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, EconNN())
-        elif self.graph_method == 'mininn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, MinimumDistanceNN())
-        elif self.graph_method == 'crystalnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, CrystalNN())
-        else:
-            print("ERROR - graph_method not implemented") 
-        return structure_graph,structure
 
     def cif2structure_graph(self,string):
         """Convert a cif string to a structure_graph.
@@ -449,8 +422,6 @@ class InvCryRep:
             return False
         return True
 
-
-
     def get_canonical_SLICES(self,SLICES,strategy=3):
         """Convert a SLICES to its canonical form.
 
@@ -684,7 +655,7 @@ class InvCryRep:
         
         (1) extract edge_indices, to_jimages and atom_types from a pymatgen structure object
         (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
-            with a data augmentation scheme
+            with a data augmentation scheme (only atom_order is randomized)
 
         Args:
             structure (Structure): A pymatgen Structure.
@@ -779,7 +750,6 @@ class InvCryRep:
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
-
     def get_dim(self,structure):
         """Get the dimension of a Structure.
 
@@ -811,54 +781,6 @@ class InvCryRep:
         structure_graph,structure = self.cif2structure_graph(string)
         if self.check_results:
             structure_graph.draw_graph_to_file('sg.png',hide_image_edges = False,node_labels=True)
-        self.atom_types = np.array(structure.atomic_numbers)
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
-        edge_indices, to_jimages = [], []
-        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
-            edge_indices.append([i, j])
-            to_jimages.append(to_jimage)    
-        self.edge_indices = np.array(edge_indices)
-        self.to_jimages = np.array(to_jimages)
-
-    def from_file(self, filename):
-        """Extract edge_indices, to_jimages and atom_types from a file.
-
-        Args:
-            filename (str): Filename.
-        """
-        structure_graph,structure = self.file2structure_graph(filename)
-        if self.check_results:
-            structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
-        self.atom_types = np.array(structure.atomic_numbers)
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
-        edge_indices, to_jimages = [], []
-        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
-            edge_indices.append([i, j])
-            to_jimages.append(to_jimage)    
-        self.edge_indices = np.array(edge_indices)
-        self.to_jimages = np.array(to_jimages)
-
-    def from_structure(self, structure):
-        """Extract edge_indices, to_jimages and atom_types from a pymatgen structure object.
-
-        Args:
-            structure (Structure): A pymatgen Structure.
-        """
-        structure_graph = self.structure2structure_graph(structure)
-        if self.check_results:
-            structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
         self.atom_types = np.array(structure.atomic_numbers)
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
@@ -1535,7 +1457,6 @@ class InvCryRep:
         z = (c1[:, None, :] - c2[None, :, :]) ** 2
         return np.sum(z, axis=-1) ** 0.5
 
-
     def func(self,x,ndim,order,mat_target,colattice_inds,colattice_weights, \
         cycle_rep,cycle_cocycle_I,num_nodes,shortest_path,spanning,uncovered_pair, \
         uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
@@ -1815,16 +1736,6 @@ class InvCryRep:
         structures,final_energy_per_atom = self.to_structures()
         return structures[-1],final_energy_per_atom
 
-    def to_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
-        """
-        Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
-        a pymatgen structure object: non-barycentric net embedding undergone cell optimization 
-        using M3GNet IAPs. If cell optimization failed, then output non-barycentric net embedding 
-        that matches bond lengths and bond angles predicted with modified GFN-FF.
-        """
-        structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
-        return structures[-1]
-
     def to_relaxed_structure(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.000,vbond_param_ave=0.01,repul=True):
         """
         Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
@@ -1917,16 +1828,6 @@ class InvCryRep:
         sm = StructureMatcher(ltol, stol, angle_tol, primitive_cell=True, scale=True, attempt_supercell=False, comparator=ElementComparator())
         return str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std_checked))),str(sg_ori.diff(sg_opt,strict=False)["dist"]),str(sg_ori.diff(sg_std,strict=False)["dist"])
 
-    def match_check2(self,ori,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
-        """ Calculate match rates of structure (2) and (1) with respect to the 
-                original structure.
-        """
-        ori_checked=Structure.from_str(ori.to(fmt="poscar"),"poscar") 
-        opt_checked=Structure.from_str(opt.to(fmt="poscar"),"poscar")
-        std_checked=Structure.from_str(std.to(fmt="poscar"),"poscar")
-        sm = StructureMatcher(ltol, stol, angle_tol, primitive_cell=True, scale=True, attempt_supercell=False, comparator=ElementComparator())
-        return str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std_checked)))
-
     def match_check3(self,ori,opt2,opt,std,ltol=0.2, stol=0.3, angle_tol=5):
         """ (1) Calculate match rates of structure (3), (2) and (1) with 
                 respect to the original structure.
@@ -1983,3 +1884,4 @@ class InvCryRep:
         sg_std2=self.structure2structure_graph(std2_checked)
         sm = StructureMatcher(ltol, stol, angle_tol, primitive_cell=True, scale=True, attempt_supercell=False, comparator=ElementComparator())
         return str(int(sm.fit(ori_checked, opt2_checked))),str(int(sm.fit(ori_checked, opt_checked))),str(int(sm.fit(ori_checked, std2_checked))),str(int(sm.fit(ori_checked, std_checked))),str(sg_ori.diff(sg_opt2,strict=False)["dist"]),str(sg_ori.diff(sg_opt,strict=False)["dist"]),str(sg_ori.diff(sg_std2,strict=False)["dist"]),str(sg_ori.diff(sg_std,strict=False)["dist"])
+        
