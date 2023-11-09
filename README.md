@@ -452,14 +452,14 @@ Please consider citing the following paper if you find our code & data useful.
 
 ```
 @article{xiao2023invertible,
-	title = {An invertible, invariant crystal representation for inverse design of solid-state materials using generative deep learning},
-	author = {Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Chen, Xi and Wang, Lei},
-	journal = {Nature Communications},
-	volume = {14},
-	number = {1},
-	pages = {7027},
-	year = {2023},
-	publisher={Nature Publishing Group UK London}
+  title={An invertible, invariant crystal representation for inverse design of solid-state materials using generative deep learning},
+  author={Xiao, Hang and Li, Rong and Shi, Xiaoyang and Chen, Yan and Zhu, Liangliang and Chen, Xi and Wang, Lei},
+  journal={Nature Communications},
+  volume={14},
+  number={1},
+  pages={7027},
+  year={2023},
+  publisher={Nature Publishing Group UK London}
 }
 ```
 
