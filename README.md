@@ -38,7 +38,7 @@ We also provide a codeocean capsule (a modular container for the software enviro
 pip install slices
 #If you're in China and want to speed up the download, you can use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
-Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not compatible with Windows due to the modified XTB binary was compiled on Linux. 
+Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not directly compatible with Windows or MacOS due to the modified XTB binary was compiled on Linux. To run SLICES on Windows or MacOS, one can run SLICES with docker, referring to [Reproduction of benchmarks and inverse design case study](#reproduction-of-benchmarks-and-inverse-design-case-study).
 
 If "TypeError: bases must be types" occurs when you use SLICES library, then do this:
 ```bash
