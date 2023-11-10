@@ -104,7 +104,7 @@ Put Materials Project's new API key in "APIKEY.ini".
 
 Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for the docker container.
 
-**It is recommemded to run this docker image under Linux. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible sleep (D) state due to a weird bug of running m3gnet in docker container using WSL2.**
+**It is recommemded to run this docker image under Linux or MacOS. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible sleep (D) state due to a weird bug of running m3gnet in docker container using WSL2.**
 
 **It is recommemded to run this docker image under Centos. Under Ubuntu, it is possible to encounter a 'Bus error' when utilizing PBS (Portable Batch System) within the Docker environment. Notably, this issue has been observed in Docker containers running for an extended duration on the Ubuntu platform but not in CentOS, for your reference.**
 
