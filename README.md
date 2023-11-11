@@ -105,16 +105,16 @@ Put Materials Project's new API key in "APIKEY.ini".
 
 Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for the docker container.
 
-**It is recommemded to run this docker image under Linux or MacOS. Running on docker on windows using WSL2.0 is possible, but the inverse transform could be stuck in an uninterruptible sleep (D) state due to a weird bug of running m3gnet in docker container using WSL2.**
+**It is recommended to run this Docker image on Linux or MacOS (with Apple silicon or Intel cpus). While running it on Docker on Windows for testing is OK, using Docker on Windows for production runs with a queue system like PBS might lead to issues. This is because there can be problems with the inverse transform getting stuck in an uninterruptible sleep (D) state due to a peculiar bug when running m3gnet within a Docker container using Windows Subsystem for Linux 2 (WSL2). To avoid such issues during production runs, it's advisable to use Linux or MacOS environments.**
 
 **It is recommemded to run this docker image under Centos. Under Ubuntu, it is possible to encounter a 'Bus error' when utilizing PBS (Portable Batch System) within the Docker environment. Notably, this issue has been observed in Docker containers running for an extended duration on the Ubuntu platform but not in CentOS, for your reference.**
 
 ```bash
-docker pull xiaohang07/slices:v5   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
+docker pull xiaohang07/slices:v6   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 # Make entrypoint_set_cpus.sh executable 
 sudo chmod +x entrypoint_set_cpus.sh
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v5 /crystal/entrypoint_set_cpus.sh
+docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v6 /crystal/entrypoint_set_cpus.sh
 ```
 
 ### Reconstruction benchmark for MP-20
