@@ -1761,7 +1761,7 @@ class InvCryRep:
             print(e)
             return structures,final_energy_per_atom
 
-    @function_timeout(seconds=60)
+    @function_timeout(seconds=180)
     def m3gnet_relax(self,struc):
         """Cell optimization using M3GNet IAPs (time limit is set to 60 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
