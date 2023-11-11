@@ -112,7 +112,7 @@ Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for th
 ```bash
 docker pull xiaohang07/slices:v5   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 # Make entrypoint_set_cpus.sh executable 
-chmod +x entrypoint_set_cpus.sh
+sudo chmod +x entrypoint_set_cpus.sh
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
 docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v5 /crystal/entrypoint_set_cpus.sh
 ```
