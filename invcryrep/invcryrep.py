@@ -357,7 +357,7 @@ class InvCryRep:
             string to the original structure using SLI2Cry. This limitation stems from Eon's method's inability 
             to generate a 3D embedding for a graph with a rank of H1(X,Z) less than 3. For example, if H1(X,Z)=2, 
             then Eon's method can only create a 2D embedding for this graph. However, for property prediction AI 
-            models, this limitation is acceptable since reversibility is not required.
+            models, this limitation is irrelevant since invertibility is not required.
 
         Returns:
             bool: Return True if a SLICES is syntaxlly valid.
