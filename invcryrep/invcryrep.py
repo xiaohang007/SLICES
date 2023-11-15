@@ -343,13 +343,21 @@ class InvCryRep:
         else:
             return True
 
-    def check_SLICES(self,SLICES,strategy=3,dupli_check=True):
+    def check_SLICES(self,SLICES,strategy=3,dupli_check=True,graph_rank_check=True):
         """Check if a slices string conforms to the proper syntax.
 
         Args:
             SLICES (str): A SLICES string.
             dupli_check (bool, optional): Flag to indicate whether to check if a SLICES has duplicate
                 edges. Defaults to True.
+            graph_rank_check (bool, optional): A flag that indicates whether to verify if a SLICES corresponds 
+            to a crystal graph with a rank H1(X,Z) < 3. The default value is True. It is advisable to set it to
+            True for generative AI models and to False for property prediction AI models. In cases where the 
+            rank of H1(X,Z) in the graph is less than 3, it may not be possible to reconstruct this SLICES 
+            string to the original structure using SLI2Cry. This limitation stems from Eon's method's inability 
+            to generate a 3D embedding for a graph with a rank of H1(X,Z) less than 3. For example, if H1(X,Z)=2, 
+            then Eon's method can only create a 2D embedding for this graph. However, for property prediction AI 
+            models, this limitation is acceptable since reversibility is not required.
 
         Returns:
             bool: Return True if a SLICES is syntaxlly valid.
@@ -364,7 +372,7 @@ class InvCryRep:
         G.add_edges_from(self.edge_indices)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
         mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
         b=G.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
+        if b < 3 and graph_rank_check:
             return False
         # check if all nodes has been covered by edges
         nodes_covered=[]
@@ -521,10 +529,6 @@ class InvCryRep:
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
         G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
@@ -557,10 +561,6 @@ class InvCryRep:
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
         G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
@@ -671,10 +671,6 @@ class InvCryRep:
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
         G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
@@ -785,10 +781,6 @@ class InvCryRep:
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
         G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
@@ -814,10 +806,6 @@ class InvCryRep:
         G = nx.MultiGraph()
         G.add_nodes_from(structure_graph.graph.nodes)
         G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        mst = tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
-        b=structure_graph.graph.size()-len(list(mst))  # rank of first homology group of graph X(V,E); rank H1(X,Z) = |E| − |E1|
-        if b < 3:
-            print("ERROR - could not deal with graph with rank H1(X,Z) < 3") # cannot generate 3D embedding
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
