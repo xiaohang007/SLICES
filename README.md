@@ -9,7 +9,7 @@ It has several main functionalities:
 
 Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
-[[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
+**Nature Communications** [[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
 [[Source code]](invcryrep/) 
 
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
