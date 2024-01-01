@@ -430,6 +430,28 @@ class InvCryRep:
             return False
         return True
 
+    def check_SLICES_basic(self,SLICES,strategy=3):
+        """Check if a slices string conforms to the proper syntax (for encoding only).
+
+        Args:
+            SLICES (str): A SLICES string.
+
+        Returns:
+            bool: Return True if a SLICES is syntaxlly valid.
+        """
+        try:
+            self.from_SLICES(SLICES,strategy)
+        except:
+            return False
+        # check if all nodes has been covered by edges
+        nodes_covered=[]
+        for i in self.edge_indices:
+            nodes_covered.append(i[0])
+            nodes_covered.append(i[1])
+        if len(set(nodes_covered))!=len(self.atom_types):
+            return False
+        return True
+
     def get_canonical_SLICES(self,SLICES,strategy=3):
         """Convert a SLICES to its canonical form.
 
@@ -687,9 +709,13 @@ class InvCryRep:
         num_permutation=num
         # shuffle to get permu
         permu=[]
-        for i in range(num):
-            permu.append(tuple(random.sample(atom_symbols, k=len(atom_symbols))))
+        for i in range(num*10):
+            temp=tuple(random.sample(atom_symbols, k=len(atom_symbols)))
+            if temp != tuple(atom_symbols):
+                permu.append(temp)
         permu_unique=list(set(permu))
+
+
         # For duplicates, we take the smallest index that has not been taken.
         def get_index_list_allow_duplicates(ori,mod):
             indexes = defaultdict(deque)
@@ -700,6 +726,7 @@ class InvCryRep:
         index_mapping=[]
         for i in permu_unique[:num_permutation]:
             index_mapping.append(get_index_list_allow_duplicates(atom_symbols,i))
+        
         def shuffle_dual_list(a,b):
             c = list(zip(a, b))
             random.shuffle(c)
@@ -711,14 +738,6 @@ class InvCryRep:
                 if array not in unique_arrays:
                     unique_arrays.append(array)
             return unique_arrays
-        # calculate filp list
-        flip_list=[]
-        flip_list_unique=[]
-        for i in range(num):
-            flip_list.append(list(np.random.randint(2, size=num_edges)))
-        flip_list_unique=remove_duplicate_arrays(flip_list)
-        if len(flip_list_unique)>=num_permutation:
-            flip_list_unique=flip_list_unique[:num_permutation]
         # shuffle atom list
         for i in range(len(index_mapping)):
             atom_symbols_new=permu_unique[i]
@@ -726,23 +745,12 @@ class InvCryRep:
             for j in range(num_edges):
                 edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
                 edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
-            edge_indices_new_shuffled_list=[]
-            to_jimages_shuffled_list=[]
-            for j in range(num):
-                edge_indices_new_shuffled,to_jimages_shuffled=shuffle_dual_list(edge_indices_new,to_jimages)
-                edge_indices_new_shuffled_list.append(edge_indices_new_shuffled)
-                to_jimages_shuffled_list.append(to_jimages_shuffled)
-            edge_indices_new_shuffled_list_unique = remove_duplicate_arrays(edge_indices_new_shuffled_list)
-            to_jimages_shuffled_list_unique = remove_duplicate_arrays(to_jimages_shuffled_list)
-            for j in range(min(num_permutation,len(edge_indices_new_shuffled_list_unique))):
-                edge_indices_new_final=edge_indices_new_shuffled_list_unique[j]
-                to_jimages_final=to_jimages_shuffled_list_unique[j]
-                if strategy==1:
-                    SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new_final,to_jimages_final))
-                if strategy==2:
-                    SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new_final,to_jimages_final))
-                if strategy==3:
-                    SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new_final,to_jimages_final))
+            if strategy==1:
+                SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new,to_jimages))
+            if strategy==2:
+                SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new,to_jimages))
+            if strategy==3:
+                SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new,to_jimages))
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
