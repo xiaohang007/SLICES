@@ -9,14 +9,12 @@ from itertools import zip_longest
 from tqdm import tqdm
 from mp_api.client import MPRester
 import configparser
+
 config = configparser.ConfigParser()
 config.read('/crystal/APIKEY.ini') #path of your .ini file
 apikey = config.get("Settings","API_KEY")
 with MPRester(apikey) as mpr:
-    docs = mpr.summary.search(exclude_elements=['Fr' , 'Ra','Ac','Th','Pa','U','Np',\
-          'Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf',\
-          'Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc',\
-          'Lv','Ts','Og'],band_gap=(0.10, 0.55),num_sites=(1,10),formation_energy=(-10000,0),is_gap_direct=True,fields=["material_id"])
+    docs = mpr.summary.search(band_gap=(0.10, 0.55),num_sites=(1,10),formation_energy=(-10000,0),is_gap_direct=True,fields=["material_id"])
     #mpid_bgap_dict = [{"material_id":doc.material_id,"cif": doc.structure.to("cif")}  for doc in docs] formation_energy=(-10000,0) energy_above_hull=(0,0.05), 
 
 
@@ -44,8 +42,28 @@ for group in tqdm(mpid_groups):
     data.extend(docs)
 
 dict_json = [{"material_id":str(e.material_id),"cif":e.structure.to(fmt="cif")} for e in data]
+
+# exclude elements
+from pymatgen.core.structure import Structure
+exclude_elements=['Fr' , 'Ra','Ac','Th','Pa','U','Np',\
+          'Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf',\
+          'Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc',\
+          'Lv','Ts','Og']
+flitered_json = []
+for i in dict_json:
+    ori = Structure.from_str(i['cif'],fmt="cif")
+    species=[str(j) for j in ori.species]
+    flag=0
+    for j in species:
+        if j in exclude_elements:
+            flag+=1
+            break
+    if flag==0 and i["material_id"] != None:
+        flitered_json.append(i)
+print(len(flitered_json))
+
 with open('transfer_learning_dataset.json', 'w') as f:
-    json.dump(dict_json, f)
+    json.dump(flitered_json, f)
 
 """
 for d in tqdm(data):
