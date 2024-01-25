@@ -6,6 +6,6 @@
 echo "begin time"; date
 #PBS -l walltime=48:00:00
 
-export XTB_MOD_PATH=/opt/xtb
+
 python 0_run.py
 echo "End time"; date
