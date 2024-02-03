@@ -237,14 +237,14 @@ python 2_collect_grid_new.py
 
 ### Inverse design case study
 Download entries to build general and transfer datasets
-```bash
+<code>
 cd /crystal/HTS/0_get_json_mp_api
 python 0_prior_model_dataset.py
 python 1_transfer_learning_dataset.py
 !!! If “mp_api.client.core.client.MPRestError: REST query returned with error status code” occurs. The solution is:
 pip install -U mp-api
 !!! If "requests.exceptions.SSLError: HTTPSConnectionPool(host='api.materialsproject.org', port=443): Max retries exceeded with url: /heartbeat (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1129)')))" occurs, one probably need to use a VPN to gain access to the MP database server. 
-```
+</code>
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals) in general dataset
 ```bash
 cd /crystal/HTS/0_get_json_mp_api/2_filter_prior_3d
