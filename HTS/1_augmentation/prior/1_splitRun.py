@@ -37,4 +37,4 @@ for i in range(len(cifs_split)):
         os.system('qsub 0_run.pbs')
     os.chdir('..')
     #os.system('cp -rf GWP_Serial/.reholu_template Z'+i)
-os.system("rm temp.json")
+#os.system("rm temp.json")

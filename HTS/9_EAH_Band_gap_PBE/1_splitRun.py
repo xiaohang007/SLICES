@@ -25,7 +25,7 @@ for i in range(len(cifs_split)):
     os.system('cp -r ./workflow/. job_'+str(i))
     with open('temp.csv', 'w') as f:
         f.writelines(cifs_split[i])
-    os.system('cp temp.csv job_'+str(i))
+    os.system('mv temp.csv job_'+str(i))
 
     os.chdir('job_'+str(i))
     if len(sys.argv)==2:
@@ -34,5 +34,5 @@ for i in range(len(cifs_split)):
     else:
         os.system('qsub 0_run.pbs')
     os.chdir('..')
-os.system('rm temp.csv')
+
 
