@@ -336,6 +336,34 @@ python 2_collect_clean_glob_details.py
 python 3_filter.py # check results_7_EAH_prescreenfiltered_0.05eV.csv for details of promising candidates; check ./candidates for band structures
 ```
 ### Material generation benchmark
+Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
+
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/0_get_mp20_json
+python 0_mp20.py
+```
+
+Rule out unsupported elements
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/1_element_filter
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
+Convert to primitive cell
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/2_primitive_cell_conversion
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
+Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/3_3d_filter
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
 Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/1_augmentation
@@ -389,6 +417,34 @@ Structural validity (%) = num_struc_valid/num_reconstructed\*100
 Compositional validity (%) = num_comp_valid/num_reconstructed\*100
 
 ### Property optimization benchmark
+Convert MP-20 dataset to json (cdvae/data/mp_20 at main · txie-93/cdvae. GitHub. https://github.com/txie-93/cdvae (accessed 2023-03-12))
+
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/0_get_mp20_json
+python 0_mp20.py
+```
+
+Rule out unsupported elements
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/1_element_filter
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
+Convert to primitive cell
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/2_primitive_cell_conversion
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
+Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/3_3d_filter
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+
 (1) Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/1_augmentation
