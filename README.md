@@ -273,7 +273,8 @@ python 2_collect.py
 Train general and specialized RNN; sample SLICES
 ```bash
 cd /crystal/HTS/2_train_sample
-sh 0_train_prior_model.sh
+# To accelerate the training process, consider increasing the batch size ("batch_size_now" in train_prior.py).
+sh 0_train_prior_model.sh 
 sh 1_transfer_learning.sh
 ```
 Modify /crystal/HTS/2_train_sample/workflow/2_sample_HTL_model_100x.py to define the number of SLICES to be sampled 
