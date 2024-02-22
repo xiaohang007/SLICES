@@ -128,34 +128,54 @@ python 0_mp20.py
 Rule out unsupported elements
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/get_json/1_element_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Convert to primitive cell
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/get_json/2_primitive_cell_conversion
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/get_json/3_3d_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Calculate reconstruction rate of IAP-refined structures, ZL*-optimized structures, rescaled structures under strict and coarse setting. 
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/matchcheck3
-python 1_ini.py # wait for jobs to finish (using qstat to check)
+python 1_ini.py
+#After running python 1_ini.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_grid_new.py
+#After the computation are finished, running python 2_collect_grid_new.py to get "results_collection_matchcheck3.csv"
 ```
 Calculate reconstruction rate of IAP-refined structures, ZL*-optimized structures, IAP-refined rescaled structures, rescaled structures under strict and coarse setting. 
 ```bash
 cd /crystal/benchmark/Match_rate_MP-20/matchcheck4
-python 1_ini.py # wait for jobs to finish (using qstat to check)
-python 2_collect_grid_new.py # Get "results_collection_matchcheck4.csv"
+python 1_ini.py
+#After running python 1_ini.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
+python 2_collect_grid_new.py
+#After the computation are finished, running python 2_collect_grid_new.py to get "results_collection_matchcheck4.csv"
 ```
 **Reproduction of Table 1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck4.csv" and the match rates of SLI2Cry for the filtered MP-20 dataset (40,330 crystals) presented in Table 1.
 <font size="2">
@@ -177,14 +197,22 @@ pip install -U mp-api
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals) in general dataset
 ```bash
 cd /crystal/benchmark/Match_rate_MP-21-40/0_get_json_mp_api/1_filter_prior_3d
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Calculate reconstruction rate of IAP-refined structures, ZL*-optimized structures, rescaled structures under strict and coarse setting.
 ```bash
 cd /crystal/benchmark/Match_rate_MP-21-40/matchcheck3
-python 1_ini.py # wait for jobs to finish (using qstat to check)
+python 1_ini.py
+#After running python 1_ini.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_grid_new.py
+#After the computation are finished, running python 2_collect_grid_new.py to get results.
 ```
 **Reproduction of Table S1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered MP-21-40 dataset (23,560 crystals) presented in Table S1.
 <font size="2">
@@ -204,28 +232,44 @@ python get_json.py
 Rule out unsupported elements
 ```bash
 cd /crystal/benchmark/Match_rate_QMOF-21-40/get_json/1_element_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Convert to primitive cell
 ```bash
 cd /crystal/benchmark/Match_rate_QMOF-21-40/get_json/2_primitive_cell_conversion
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
 ```bash
 cd /crystal/benchmark/Match_rate_QMOF-21-40/get_json/3_3d_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Calculate reconstruction rate of IAP-refined structures, ZL*-optimized structures, rescaled structures under strict and coarse setting. 
 ```bash
 cd /crystal/benchmark/Match_rate_QMOF-21-40/matchcheck3
-python 1_ini.py # wait for jobs to finish (using qstat to check)
+python 1_ini.py
+#After running python 1_ini.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_grid_new.py
+#After the computation are finished, running python 2_collect_grid_new.py to get results.
 ```
 **Reproduction of Table S1:** the table below illustrates the correspondence between the data in "results_collection_matchcheck3.csv" and the match rates of SLI2Cry for the filtered QMOF-21-40 dataset (339 MOFs) presented in Table S1.
 <font size="2">
@@ -252,23 +296,39 @@ one probably need to use a VPN to gain access to the MP database server.
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals) in general dataset
 ```bash
 cd /crystal/HTS/0_get_json_mp_api/2_filter_prior_3d
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals) in transfer dataset
 ```bash
 cd /crystal/HTS/0_get_json_mp_api/2_filter_transfer_3d
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/HTS/1_augmentation/prior
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 cd /crystal/HTS/1_augmentation/transfer
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Train general and specialized RNN; sample SLICES
 ```bash
@@ -279,61 +339,97 @@ sh 1_transfer_learning.sh
 ```
 Modify /crystal/HTS/2_train_sample/workflow/2_sample_HTL_model_100x.py to define the number of SLICES to be sampled 
 ```bash
-sh 2_sample_in_parallel.sh # wait for jobs to finish (using qstat to check)
+sh 2_sample_in_parallel.sh
+#After running sh 2_sample_in_parallel.sh, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 3_collect_clean_glob_details.py
+#After the computation are finished, running python 3_collect_clean_glob_details.py to get results.
 ```
 Reconstruct crystal structures from SLICES strings
 ```bash
 cd /crystal/HTS/3_inverse
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 !!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of 
 restarting the Python script at regular intervals, with a batch size of 30.
 ```
 Filter out crystals with compositions that exist in the Materials Project database
 ```bash
 cd /crystal/HTS/4_composition_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 Find high-symmetry structures in candidates with duplicate compositions
 ```bash
 cd /crystal/HTS/5_symmetry_filter_refine
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 Rule out crystals displaying minimum structural dissimilarity value < 0.75 (a dissimilarity threshold used in the Materials Project) with respect to the structures in the training dataset
 ```bash
 cd /crystal/HTS/6_structure_dissimilarity_filter
 cd ./0_save_structure_fingerprint
 cp /crystal/HTS/0_get_json_mp_api/prior_model_dataset_filtered.json ./
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 cd ../
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 Rule out candidates with IAP-predicted energy above hull >= 50 meV/atom
 ```bash
 cd /crystal/HTS/7_EAH_prescreen 
 sh 0_setup.sh # download relevant entries for high-throughput energy above hull calculation
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python 3_filter.py
 ```
 Rule out candidates with ALIGNN predicted band gap E_g < 0.1 eV (less likely to be a semiconductor) 
 ```bash
 cd /crystal/HTS/8_band_gap_prescreen
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 #### Note that VASP should be installed and POTCAR should be set up for pymatgen using "pmg config -p <EXTRACTED_VASP_POTCAR> <MY_PSP>" before performing this task. Because VASP is a commercial software, it is not installed in the docker image provided.
 Perform geometry relaxation and band structure calculation at PBE level using VASP
 ```bash
 cd /crystal/HTS/9_EAH_Band_gap_PBE
 cp /crystal/HTS/7_EAH_prescreen/competitive_compositions.json.gz ./
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python 3_filter.py # check results_7_EAH_prescreenfiltered_0.05eV.csv for details of promising candidates; check ./candidates for band structures
 ```
 ### Material generation benchmark
@@ -347,29 +443,45 @@ python 0_mp20.py
 Rule out unsupported elements
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/1_element_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Convert to primitive cell
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/2_primitive_cell_conversion
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/3_3d_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/1_augmentation
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 Train unconditional RNN; sample 10000 SLICES strings
 ```bash
@@ -378,21 +490,33 @@ sh 0_train_prior_model.sh
 ```
 Modify ./workflow/2_sample_HTL_model_100x.py to define the number of SLICES to be sampled 
 ```bash
-sh 1_sample_in_parallel.sh # wait for jobs to finish (using qstat to check)
+sh 1_sample_in_parallel.sh
+#After running sh 1_sample_in_parallel.sh, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 Removing duplicate edges in SLICES strings to fix the syntax error
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/3_fix_syntax_check
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 
 Reconstruct crystal structures from SLICES strings and calculate the number of reconstructed crystals (num_reconstructed)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/4_inverse
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 !!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of 
 restarting the Python script at regular intervals, with a batch size of 30.
 python count.py #calculate the number of reconstructed crystals (num_reconstructed)
@@ -401,16 +525,24 @@ python count.py #calculate the number of reconstructed crystals (num_reconstruct
 Evaluate the compositional validity of the reconstructed crystals and calculate the number of compositionally valid reconstructed crystals (num_comp_valid)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/5_check_comp_valid
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python count.py # calculate the number of compositionally valid reconstructed crystals (num_comp_valid)
 ```
 
 Evaluate the structural validity of the reconstructed crystals and calculate the number of structurally valid reconstructed crystals (num_struc_valid)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/1_unconditioned_RNN/6_check_struc_validity
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python count.py # calculate the number of compositionally valid reconstructed crystals (num_struc_valid)
 ```
 **Reproduction of Table 3:** 
@@ -428,29 +560,45 @@ python 0_mp20.py
 Rule out unsupported elements
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/1_element_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Convert to primitive cell
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/2_primitive_cell_conversion
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 Rule out crystals with low-dimensional units (e.g. molecular crystals or layered crystals)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/0_get_json/3_3d_filter
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 
 (1) Convert crystal structures in datasets to SLICES strings and conduct data augmentation
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/1_augmentation
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect.py
+#After the computation are finished, running python 2_collect.py to get results.
 ```
 (2) Train conditional RNN
 ```bash
@@ -460,21 +608,33 @@ sh 0_train_prior_model.sh
 (3) Sample 1000 SLICES strings with $E_{form}$ target = -4.5 eV/atom
 Modify ./settings.ini to define the $E_{form}$ target and the number of SLICES to be sampled 
 ```bash
-sh 1_sample_in_parallel.sh # wait for jobs to finish (using qstat to check)
+sh 1_sample_in_parallel.sh
+#After running sh 1_sample_in_parallel.sh, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 (4) Removing duplicate edges in SLICES strings to fix the syntax error
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/3_fix_syntax_check
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 ```
 
 (5) Reconstruct crystal structures from SLICES strings and calculate the number of reconstructed crystals (num_reconstructed)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/4_inverse
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 !!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of 
 restarting the Python script at regular intervals, with a batch size of 30.
 python count.py #calculate the number of reconstructed crystals (num_reconstructed)
@@ -483,16 +643,24 @@ python count.py #calculate the number of reconstructed crystals (num_reconstruct
 (6) Evaluate the formation energy distribution of the reconstructed crystals with the M3GNet model
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/5_eform_m3gnet
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python 3_normal_distri_plot.py # plot the formation energy distribution (M3GNet) of the reconstructed crystals 
 ```
 
 (7) Evaluate the formation energy distribution of the reconstructed crystals at PBE level (took less than 1 day to finish with 36*26 cores HPC; need to tweak the ./workflow/0_EnthalpyOfFormation\*.py to deal with some tricky cases of VASP cell optimization)
 ```bash
 cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/6_eform_PBE
-python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 1_splitRun.py
+#After running python 1_splitRun.py, the computation is only submitted to the queue, 
+# not completed. To monitor the progress of the computation, use the qstat command. 
+#If all tasks are marked with a status of "C", it indicates that the computation has finished.
 python 2_collect_clean_glob_details.py
+#After the computation are finished, running python 2_collect_clean_glob_details.py to get results.
 python 3_normal_distri_plot.py # plot the formation energy distribution (PBE) of the reconstructed crystals 
 ```
 
