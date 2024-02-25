@@ -243,7 +243,31 @@ class InvCryRep:
                         raise Exception("Error: wrong edge label")
             if 'NaN' in self.atom_symbols:
                 raise Exception("Error: wrong atom symbols")
-            
+
+        if strategy==4:
+            for i in range(len(tokens)):
+                if tokens[i].isnumeric():
+                    num_atoms=i
+                    break
+            self.atom_symbols=tokens[:num_atoms]
+            num_edges=int((len(tokens)-len(self.atom_symbols))/3)
+            edge_indices=np.zeros([num_edges,2],dtype=int)
+            to_jimages=np.zeros([num_edges,3],dtype=int)
+            for i in range(num_edges):
+                edge=tokens[num_atoms+i*3:num_atoms+(i+1)*3]
+                edge_indices[i,0]=int(edge[0])
+                edge_indices[i,1]=int(edge[1])
+                if edge_indices[i,0] > num_atoms-1 or edge_indices[i,1] > num_atoms-1:
+                    raise Exception("Error: wrong edge indices")
+                for j in range(3):
+                    if edge[2][j]=='-':
+                        to_jimages[i,j]=-1
+                    elif edge[2][j]=='o':
+                        to_jimages[i,j]=0
+                    elif edge[2][j]=='+':
+                        to_jimages[i,j]=1
+                    else:
+                        raise Exception("Error: wrong edge label")            
 
         if fix_duplicate_edge:
             edge_data_ascending=[]
@@ -260,6 +284,19 @@ class InvCryRep:
         self.edge_indices=edge_indices
         self.to_jimages=to_jimages
         self.atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in self.atom_symbols])    
+
+    def get_slices_by_strategy(self, strategy, atom_symbols, edge_indices, to_jimages):
+        strategy_method_map = {
+            1: self.get_slices1,
+            2: self.get_slices2,
+            3: self.get_slices3,
+            4: self.get_slices4
+        }
+        method = strategy_method_map.get(strategy)
+        if method:
+            return method(atom_symbols, edge_indices, to_jimages)
+        else:
+            raise ValueError(f"Unknown strategy {strategy}")
 
     @staticmethod
     def get_slices1(atom_symbols,edge_indices,to_jimages):
@@ -305,6 +342,22 @@ class InvCryRep:
                 if j==1:
                     SLICES+='+ '
         return SLICES
+    @staticmethod
+    def get_slices4(atom_symbols,edge_indices,to_jimages):
+        SLICES=''
+        for i in atom_symbols:
+            SLICES+=i+' '
+        for i in range(len(edge_indices)):
+            SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
+            for j in to_jimages[i]:
+                if j==-1:
+                    SLICES+='-'
+                if j==0:
+                    SLICES+='o'
+                if j==1:
+                    SLICES+='+'
+            SLICES+=' '
+        return SLICES
 
     def to_SLICES(self,strategy=3):
         """Output a SLICES string based on self.atom_types & self.edge_indices & self.to_jimages.
@@ -313,12 +366,7 @@ class InvCryRep:
         """
 
         atom_symbols = [str(ElementBase.from_Z(i)) for i in self.atom_types]
-        if strategy==1:
-            return self.get_slices1(atom_symbols,self.edge_indices,self.to_jimages)
-        if strategy==2:
-            return self.get_slices2(atom_symbols,self.edge_indices,self.to_jimages)
-        if strategy==3:
-            return self.get_slices3(atom_symbols,self.edge_indices,self.to_jimages)
+        return self.get_slices_by_strategy(strategy,atom_symbols,self.edge_indices,self.to_jimages)
 
     @staticmethod
     def check_structural_validity(str1):
@@ -508,12 +556,7 @@ class InvCryRep:
         sorted_data = np.array(sorted(c, key=lambda x: (x[0], x[1],x[2],x[3],x[4])))
         edge_indices = sorted_data[:, :2]
         to_jimages = sorted_data[:, 2:]
-        if strategy==1:
-            return self.get_slices1(atom_symbols,edge_indices,to_jimages)
-        if strategy==2:
-            return self.get_slices2(atom_symbols,edge_indices,to_jimages)
-        if strategy==3:
-            return self.get_slices3(atom_symbols,edge_indices,to_jimages)
+        return self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages)
 
     def SLICES2formula(self,SLICES):
         """Convert a SLICES string to its chemical formula (to facilitate composition screening 
@@ -555,12 +598,7 @@ class InvCryRep:
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
             to_jimages.append(to_jimage)
-        if strategy==1:
-            return self.get_slices1(atom_symbols,edge_indices,to_jimages)
-        if strategy==2:
-            return self.get_slices2(atom_symbols,edge_indices,to_jimages)
-        if strategy==3:
-            return self.get_slices3(atom_symbols,edge_indices,to_jimages)
+        return self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages)
 
     def structure2SLICESAug(self,structure,strategy=3,num=200):
         """ Convert Structure to SLICES and conduct data augmentation.
@@ -589,12 +627,7 @@ class InvCryRep:
             to_jimages.append(to_jimage)
         num_edges=len(edge_indices)
         SLICES_list=[]
-        if strategy==1:
-            SLICES_list.append(self.get_slices1(atom_symbols,edge_indices,to_jimages))
-        if strategy==2:
-            SLICES_list.append(self.get_slices2(atom_symbols,edge_indices,to_jimages))
-        if strategy==3:
-            SLICES_list.append(self.get_slices3(atom_symbols,edge_indices,to_jimages))
+        SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages))
         #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
         num_permutation=int(math.ceil((num/6)**(1/3)))
         # shuffle to get permu
@@ -663,12 +696,7 @@ class InvCryRep:
                             else:
                                 edge_indices_new_final_flip.append(edge_indices_new_final[m])
                                 to_jimages_shu_trans_per_trans_final_flip.append(to_jimages_shu_trans_per_trans_final[m])
-                        if strategy==1:
-                            SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
-                        if strategy==2:
-                            SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
-                        if strategy==3:
-                            SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
+                        SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols_new,edge_indices_new_final_flip,to_jimages_shu_trans_per_trans_final_flip))
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
@@ -699,12 +727,7 @@ class InvCryRep:
             to_jimages.append(to_jimage)
         num_edges=len(edge_indices)
         SLICES_list=[]
-        if strategy==1:
-            SLICES_list.append(self.get_slices1(atom_symbols,edge_indices,to_jimages))
-        if strategy==2:
-            SLICES_list.append(self.get_slices2(atom_symbols,edge_indices,to_jimages))
-        if strategy==3:
-            SLICES_list.append(self.get_slices3(atom_symbols,edge_indices,to_jimages))
+        SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages))
         #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
         num_permutation=num
         # shuffle to get permu
@@ -745,12 +768,7 @@ class InvCryRep:
             for j in range(num_edges):
                 edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
                 edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
-            if strategy==1:
-                SLICES_list.append(self.get_slices1(atom_symbols_new,edge_indices_new,to_jimages))
-            if strategy==2:
-                SLICES_list.append(self.get_slices2(atom_symbols_new,edge_indices_new,to_jimages))
-            if strategy==3:
-                SLICES_list.append(self.get_slices3(atom_symbols_new,edge_indices_new,to_jimages))
+            SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages))
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
