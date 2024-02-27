@@ -304,11 +304,11 @@ class InvCryRep:
         for i in range(len(edge_indices)):
             SLICES+=atom_symbols[edge_indices[i][0]]+' '+atom_symbols[edge_indices[i][1]]+' '+str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
             for j in to_jimages[i]:
-                if j==-1:
+                if j<=-1:
                     SLICES+='- '
                 if j==0:
                     SLICES+='o '
-                if j==1:
+                if j>=1:
                     SLICES+='+ '
         return SLICES
     @staticmethod
@@ -320,11 +320,11 @@ class InvCryRep:
         for i in range(len(edge_indices)):
             SLICES+=('0'+str(edge_indices[i][0]))[-2:]+('0'+str(edge_indices[i][1]))[-2:]
             for j in to_jimages[i]:
-                if j==-1:
+                if j<=-1:
                     SLICES+='-'
                 if j==0:
                     SLICES+='o'
-                if j==1:
+                if j>=1:
                     SLICES+='+'
         return SLICES
     @staticmethod
@@ -335,11 +335,11 @@ class InvCryRep:
         for i in range(len(edge_indices)):
             SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
             for j in to_jimages[i]:
-                if j==-1:
+                if j<=-1:
                     SLICES+='- '
                 if j==0:
                     SLICES+='o '
-                if j==1:
+                if j>=1:
                     SLICES+='+ '
         return SLICES
     @staticmethod
@@ -350,11 +350,11 @@ class InvCryRep:
         for i in range(len(edge_indices)):
             SLICES+=str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
             for j in to_jimages[i]:
-                if j==-1:
+                if j<=-1:   # deal with -2, -3, etc (just in case)
                     SLICES+='-'
                 if j==0:
                     SLICES+='o'
-                if j==1:
+                if j>=1:    # deal with 2, 3, etc (just in case)
                     SLICES+='+'
             SLICES+=' '
         return SLICES
