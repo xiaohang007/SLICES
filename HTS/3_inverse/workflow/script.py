@@ -31,7 +31,7 @@ for i  in range(len(slices_list)):
     slices=slices_list[i].strip()
     check=False
     try:
-        CG.from_SLICES(slices)
+        CG.from_SLICES(slices,fix_duplicate_edge=True)
         #print(bond_scaling, delta_theta, delta_x,lattice_shrink,lattice_expand,angle_weight,epsilon,repul)
         structure,energy_per_atom=CG.to_relaxed_structure(bond_scaling, delta_theta, delta_x, \
         lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)

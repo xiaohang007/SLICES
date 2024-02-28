@@ -25,6 +25,7 @@ with open("results_"+pwd.split("/")[-1]+".csv",'a') as result:
 
 
 
-with open("results_"+pwd.split("/")[-1]+"filtered_"+str(limit)+".csv",'a') as result:
+with open("results_"+pwd.split("/")[-1]+"filtered_"+str(limit)+".csv",'w') as result:
+    result.write("index,SLICES,POSCAR,formula,energy_per_atom,energy_per_atom_sym,space_group_number,dissimilarity\n")
     result.write(result_filtered_csv)
 

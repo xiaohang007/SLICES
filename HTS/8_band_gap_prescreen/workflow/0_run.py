@@ -498,7 +498,7 @@ atoms_array=[]
 input_array=[]
 with open("temp.csv") as f:
     reader = csv.reader(f)
-    next(reader)
+    #next(reader)
     for row in reader:
         try:
             temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")

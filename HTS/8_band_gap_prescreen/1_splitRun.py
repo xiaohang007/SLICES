@@ -18,7 +18,7 @@ threads=6
 
 with open('../7_EAH_prescreen/results_7_EAH_prescreenfiltered_0.05eV.csv', 'r') as f:
     cifs=f.readlines()
-cifs_split=list(split_list(cifs,threads))
+cifs_split=list(split_list(cifs[1:],threads))
 
 for i in range(len(cifs_split)):
     os.mkdir('job_'+str(i))
