@@ -66,7 +66,7 @@ def pretrain(restore_from=None):
                 #seqs, likelihood, _ = Prior.sample(batch_size_now)        #这句的问题
                 torch.save(Prior.rnn.state_dict(), 'Prior_local.ckpt')
         # Save the prior
-        torch.save(Prior.rnn.state_dict(), 'Prior_local_'+str(epoch)+'.ckpt')
+        torch.save(Prior.rnn.state_dict(), 'Prior_local.ckpt')
 
 
 if __name__ == '__main__':
