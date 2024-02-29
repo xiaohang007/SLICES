@@ -3,6 +3,7 @@
 # xiaohang07@live.cn
 import os, sys
 import configparser
+os.environ["CUDA_VISIBLE_DEVICES"]="" # use CPU only to fast enough
 os.system("rm 100x.sci; touch 100x.sci")
 config = configparser.ConfigParser()
 config.read('../settings.ini') #path of your .ini file
