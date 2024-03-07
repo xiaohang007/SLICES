@@ -1,6 +1,5 @@
 #!usr/bin/env python
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import torch
 from torch.utils.data import DataLoader
 import pickle
@@ -11,14 +10,15 @@ from model import RNN
 from utils import Variable, decrease_learning_rate
 from torch.nn.parallel import DataParallel
 import gc,re,subprocess
+import argparse
 gc.collect()
 
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
-batch_size_now=128 # 38*8
 
-def pretrain(restore_from=None):
+
+def pretrain(restore_from=None,batch_size=128,epochs=10):
     "Train the Prior RNN"
 
     # Reads vocabulary from a file
@@ -26,7 +26,7 @@ def pretrain(restore_from=None):
 
     # Create a Dataset from a SMILES file
     moldata = MolData("../1_augmentation/prior_aug.sli", voc)
-    data = DataLoader(moldata, batch_size=batch_size_now, shuffle=True, drop_last=True,
+    data = DataLoader(moldata, batch_size=batch_size, shuffle=True, drop_last=True,
                      collate_fn=MolData.collate_fn)
     #print(moldata.smiles)
 
@@ -39,7 +39,7 @@ def pretrain(restore_from=None):
 
     optimizer = torch.optim.Adam(Prior.rnn.parameters(), lr=0.001)
 
-    for epoch in range(1, 10):
+    for epoch in range(0, epochs):
         # When training on a few million compounds, this model converges
         # in a few of epochs or even faster. If model sized is increased
         # its probably a good idea to check loss against an external set of
@@ -70,7 +70,12 @@ def pretrain(restore_from=None):
 
 
 if __name__ == '__main__':
-    pretrain()
+    parser = argparse.ArgumentParser(description="Pretrain for SLICES generation")
+    parser.add_argument('--batch_size', action='store', dest='nums', default='128')
+    parser.add_argument('--epochs', action='store', dest='epochs', default='10')
+    arg_dict = vars(parser.parse_args())
+    nums_,epochs_= arg_dict.values()
+    pretrain(batch_size=int(nums_),epochs=int(epochs_))
 
 
 

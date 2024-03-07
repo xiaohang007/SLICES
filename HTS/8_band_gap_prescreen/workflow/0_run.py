@@ -22,7 +22,7 @@ from jarvis.db.jsonutils import dumpjson
 import pandas as pd
 from io import StringIO
 tqdm.pandas()
-
+os.environ["CUDA_VISIBLE_DEVICES"]="" # use CPU only to fast enough
 """
 Name of the model, figshare link, number of outputs,
 extra config params (optional)

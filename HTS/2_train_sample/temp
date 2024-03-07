@@ -1,0 +1,500 @@
+N O C 0 2 + o o 1 0 - o - 1 0 - - o 2 1 o o + 1 2 o o - 1 0 - - o 2 0 o o - 2 0 - o o 1 2 o o o
+Ag Ce Er 0 1 - o - 2 1 o o - 1 0 o + o 2 0 o + + 2 0 o + + 1 2 o - o 0 2 o - o 0 1 o - o 2 1 - - o 1 0 + o + 2 0 o + + 1 2 o + o 2 0 o o + 2 0 + o o 0 2 o - o
+Cr Li 0 1 - o - 0 1 o o - 0 1 - - o 0 1 - o - 0 1 o - o 1 0 + o + 1 0 o o +
+Ag Ir 1 0 o o - 1 0 - o - 1 0 o - o 1 1 o o - 1 0 - - o 0 1 + + + 1 0 - o o 1 0 - o - 0 0 o o - 0 1 o + o 0 0 o - o 1 0 - o o 1 1 o + o 0 0 o o o
+Cu Dy Au 2 0 + o + 0 2 - - - 1 0 + o o 2 1 o o o 1 2 + - - 0 2 o o - 0 1 - o o 1 0 + o o 0 2 o - o 1 2 o o o 1 2 + o o 2 1 o o - 2 1 o - - 0 1 - - o 1 0 o + +
+Y Au Sn 0 1 o o - 2 0 o + + 2 1 + + o 0 1 + o o 2 0 o + o 1 2 o o - 1 2 - o o 2 1 o o + 2 0 + o + 1 2 o o - 2 0 + o + 1 2 o - o 2 1 + + +
+Cr C As 2 0 o o - 2 0 o o o 2 0 - - o 2 1 o o - 1 2 + + o 2 0 - - o 0 1 + o + 1 2 + o + 2 0 o o - 1 0 - - - 0 2 + + o 2 0 - - o
+S Si Si 1 0 - o o 0 1 o o o 2 1 + + o 2 1 + + + 2 1 o o + 0 1 o + o 2 0 o + o 2 0 o - o 1 2 o o o 2 0 o - o 2 0 o + o 1 2 - - -
+Tm In 1 0 o - o 1 0 - - - 1 0 o - - 0 0 - o o 1 1 o + o 0 0 - o + 0 1 o + + 1 1 o o + 1 1 - o o 0 1 + + o 0 0 o + o 1 0 - - o 0 1 + + + 0 0 o o -
+Rb S 1 0 - - o 1 0 o o o 0 1 o + o 0 1 + o + 0 1 + o + 0 1 + + + 0 1 + o +
+Ru Se 1 0 o o + 1 1 o o + 0 1 - - o 1 1 - o - 1 0 o + o 0 0 - o + 0 0 o - o 1 1 o - o 0 1 - - - 0 1 o - o 0 1 o - -
+Ho Au Zn 2 1 o + + 1 0 o - - 2 1 + + o 1 2 - o o 1 0 - - o 1 2 - o - 2 0 o o o 1 2 o o - 0 1 + o o 0 2 + o o 2 1 o o + 0 2 o + o 2 0 o o + 0 1 + o o 0 1 o o +
+Ho Tl 1 1 - o o 0 1 - o - 0 1 - o - 1 1 o o + 0 1 - - o 0 0 o + o 1 1 o o + 0 0 o - o 1 0 o + + 1 0 o o o 0 0 o - o 0 0 o o o 1 1 + o o 1 0 + + o
+Gd Ce 1 0 o - - 1 0 - - - 0 0 - o o 0 0 - o o 1 0 - - o 1 0 o - o 1 0 o o - 1 0 - - - 1 1 o o - 1 1 o o + 1 1 o o - 0 1 o + o 0 0 + o o
+Ta Tb 1 0 + o - 0 0 o o - 1 1 - - o 0 0 o o + 1 1 o + + 1 1 + o o 1 1 o - o 0 1 + o - 1 1 - o o 0 0 o - o 0 0 o o + 0 1 + o + 0 0 - o o 0 1 - o o 1 1 o - o 1 0 - o o
+Cu Fe Ru 0 1 - + - 2 1 o o o 2 1 + o - 2 1 + + o 1 0 - - - 0 0 - o o 1 1 o o - 1 2 o o o 1 1 o o + 0 2 o o + 0 1 o + o 0 1 o + o 2 2 + + o 0 0 o - - 2 2 - o o 2 2 o o + 1 0 - - o 1 2 - - - 2 0 o o o
+S Mg 0 1 - - o 1 0 o o + 0 1 o - o 0 1 o - o 1 0 + + + 0 1 o - -
+Ga Hf Sn 0 2 o + o 1 2 o - o 1 2 - - - 2 1 + + o 0 2 - - o 1 0 o - - 1 0 o - o 0 2 o - - 0 2 o - o 0 2 o o o 2 1 o + + 0 2 o - o 2 1 o + o
+Pb Cu Pb 0 0 o + - 1 0 - - + 0 2 - o o 2 1 o o - 2 0 o o o 1 1 o + o 0 1 - o o 0 1 - - - 2 0 o o o 0 2 o o - 0 2 o - o 0 1 - - - 1 2 o o + 2 2 + o o 2 1 - o - 0 1 - o o 1 2 o + +
+Pr Pd Cu 2 2 o + o 0 0 + o o 2 1 o - - 1 2 + + o 2 0 o o - 0 1 - + o 2 0 - - o 2 1 o o - 0 1 o o o 0 0 o - - 0 2 o + o 1 2 + o o 2 2 - - o 2 0 - - - 1 2 o + o 1 0 o o o 1 2 + + + 0 0 o + +
+Sb Pr Zn 1 2 - o - 1 2 o - - 0 1 + + o 1 0 o o o 1 2 - o o 0 2 o + + 2 1 + o o 1 2 + o o 1 2 o + + 1 2 o - - 0 2 + o o 2 1 o + o 2 0 o + o 1 0 o - o
+Te In 1 0 - o o 1 0 - o o 1 0 o - - 0 1 o + + 1 0 o - o 0 1 + o o 0 1 o o + 1 0 o - -
+Li Pt Bi 1 2 o o - 2 0 - o o 2 1 o o + 2 0 o - o 1 0 - o o 2 1 o o o 2 1 + o o 0 1 + o o 0 2 o o + 1 2 o - o 2 1 + o o
+Tl Mn 0 1 - - - 0 1 - - o 1 1 o o + 1 1 - o - 1 0 + o o 1 0 o + o 1 0 o o o 1 1 o + o 0 0 o + o 0 1 - - - 0 0 o + o 0 0 o o -
+Ce Nd 0 1 + + o 1 0 - o o 1 1 o - o 0 0 o - o 1 1 o + o 0 0 - o o 0 1 o + o 1 0 o o o 0 1 + o + 0 1 + + + 0 1 + + + 1 0 o - o 1 0 o o o 0 1 + o + 1 0 - - o
+F V N 1 0 - o - 0 0 + o o 1 0 - - - 0 2 o o o 1 2 - - o 0 1 o o + 1 2 - - - 0 2 - o o 0 1 o + o 2 0 - o o 2 0 o o - 1 0 - o o 1 2 o o - 2 1 o + o 1 2 - o o 1 2 o - -
+Al N Se 2 1 + o o 1 0 o - o 0 1 o o + 2 0 o - - 0 2 o + o 1 2 + o o 2 1 - o - 2 1 - o - 0 2 + + + 1 0 - o o 2 0 - - - 2 0 o - - 1 0 o o o 0 2 + o +
+Ni N Cu 2 0 - o - 0 2 + + + 2 1 - - o 2 0 o - o 1 2 o + o 0 1 o o - 0 2 + o + 2 0 o o - 2 1 - o o 2 0 o - - 1 0 - - - 2 1 o o - 2 0 o - o
+Eu As Pb 0 1 - o o 1 2 o o + 0 2 - - + 1 2 o + o 2 0 o + o 1 2 o o o 2 0 + o o 0 1 - - o 1 2 - o o 1 2 o o o 1 2 o o o 2 0 o o o 0 1 - - o 0 2 - o -
+Hg In 0 1 o - - 1 0 + o + 1 1 o + o 0 0 o - o 0 1 o - - 0 1 - o o 0 1 o o o 1 0 o + o 1 0 + + o 1 1 o o - 1 0 + o o 0 0 o + o 0 1 - o o 1 1 o - o
+Ho K 0 1 o - o 0 0 o - - 0 1 - - - 1 0 + + + 0 1 - - o 1 0 o + + 0 0 o - o 0 1 o - - 1 1 o o - 1 0 + + o 1 0 o o + 0 1 o o - 0 1 o - o
+H Dy Si 2 0 o - - 0 1 - o + 1 0 o o - 0 1 - o o 1 0 - o o 2 1 o + + 2 1 + o o 2 1 + + + 2 2 o - o 1 2 - - o 2 1 o o + 0 1 + o o 0 2 + o o 0 1 o + + 0 0 - o o 2 1 + o o 0 2 - o + 1 1 - - o 1 1 o + o
+Hf Mg 1 0 - - - 1 0 o - - 0 1 + + o 1 1 o + o 1 1 o - o 1 0 - - o 0 0 o o + 1 0 o - o 1 1 o o - 0 0 o + o 0 0 o + - 1 1 - o o 0 0 o o - 1 0 o o o
+Cr Nd 0 0 - o o 1 1 o o + 1 1 o + o 1 0 - o - 0 0 - - o 0 0 + o o 1 1 o o + 1 1 - o o 1 0 + o - 0 1 + o + 0 1 o o o 1 0 o o o 1 0 - o o
+Pd B V 2 0 o + o 0 0 + o o 2 0 - o - 2 2 o - o 2 1 - o - 2 0 o o o 1 2 + o - 1 0 + o o 1 0 - - - 0 1 - o - 0 2 o o + 1 1 + o o 2 1 - o - 2 1 - o - 2 2 - - - 2 1 - - o 2 0 o - - 0 2 + o o 2 1 o - o
+Mg Sm S 2 1 + + o 0 2 + o - 1 0 o - o 2 1 o o o 2 0 o - o 2 1 + + + 2 0 - o - 1 0 - - o 2 2 o - o 1 1 + o o 1 0 - - o 2 0 o o o 2 0 o o - 2 0 o o o 2 1 o + o 0 2 o o o 0 2 - o - 1 2 o + -
+Sb C C 0 2 - o - 2 0 o o + 1 2 - o o 0 2 o - o 1 - o o 0 1 - - o 0 1 - o o 0 1 o - - 2 1 - o o 2 0 o + o 0 2 o - - 2 1 o + o
+Ca Hg Fe 1 0 - - - 1 2 - o - 2 2 + - + 0 0 o - - 0 1 o + o 1 2 - - o 0 1 o o + 2 0 o - + 2 2 o + o 2 2 - o o 2 1 o o o 2 0 - - - 1 0 - - - 1 0 - - o 0 2 o + + 0 2 + o o 0 0 o - o 2 0 o - o
+La Pd Sb 1 2 o o o 2 0 - + + 2 0 o o + 0 2 - - o 0 1 o o - 1 2 + o o 1 0 o + o 1 2 o + + 2 0 + o o 0 2 - o o 2 1 o + o 2 0 + o + 1 0 + + o
+N Hf 1 0 - o o 1 0 - o o 0 1 o o + 1 0 - - o 1 0 - o - 1 0 o - o 1 0 o - o
+Ga Mg 0 1 + o + 0 1 o o o 1 1 o - o 1 1 - o o 1 1 o - o 0 1 + + o 1 1 o - o 0 1 o - + 0 0 o + - 1 1 + o o 0 0 o o + 0 0 o + o 0 0 + o o
+Ti Ga 0 1 o - - 1 0 o o - 1 0 o + o 0 0 o o - 1 1 o - o 1 0 o o o 0 1 - - - 0 0 + o o 0 1 o - - 1 0 + + + 1 1 o - o 1 1 o + o 0 1 o - - 0 1 - o o
+Al Ge Zn 1 2 - o o 1 2 o - o 0 2 o - - 1 0 - o - 0 1 o o o 1 0 o o - 0 2 o - + 1 2 o o o 0 2 o - o 1 2 - - o 0 2 - o o 0 2 + o - 0 2 o o + 0 2 + + + 1 2 - o o 2 1 + o o
+Ga Pr H 0 2 o o - 2 1 o o o 0 2 o o - 0 2 o o - 2 0 + + o 0 1 o o - 2 1 o + o 1 2 - o o 1 0 o o + 0 1 - - o 0 1 o - - 2 0 o o o
+Ta Sb 0 1 - o - 1 0 + o o 1 0 o + o 0 1 - - o 0 1 o - -
+Lu F 0 1 o + o 1 1 o o - 1 1 o + o 1 0 - o o 1 0 - - - 0 1 + + o 0 0 o o + 0 0 o - o 1 0 o - - 0 1 o o + 1 1 o o - 0 0 o - + 0 0 - o o 0 1 o o +
+Ce Pt N 0 2 - o - 1 2 - - o 1 0 o o o 1 0 + o + 2 0 o o o 0 2 o o - 1 2 - - - 0 2 o - o 0 0 - o o 2 1 o + - 2 0 o o + 1 2 - - o 2 2 o + o 2 1 o + o 2 0 o o + 0 0 o + o
+Se Cd 0 0 o + o 0 1 - - - 0 1 o - o 0 0 + o o 1 0 + + o 0 0 o o - 1 1 - o o 1 0 + o + 0 1 o - o 1 1 o o + 0 1 o o o 1 0 + - o 1 1 + o +
+Si Lu Pt 1 2 + + + 1 0 + + o 0 1 - o - 0 2 o - - 0 1 - o o 0 2 o o - 0 2 - - - 2 0 + + o 2 0 o + + 0 1 - - - 2 1 o - - 1 0 + o o 0 2 o - - 2 1 + o o 1 2 o + o
+Au Ca 0 0 o o + 0 0 o o - 0 1 + + - 0 1 + o o 0 0 o - o 1 1 o o - 0 1 o + + 0 1 o + o 1 0 - - o 1 1 o + o 1 0 - - - 1 1 o - o 0 0 - o o 0 1 + + o 1 0 o o o
+Ag Ba Si 2 1 o - o 1 0 o o o 1 2 + o + 0 2 o + + 2 0 o - - 0 1 - - o 1 2 + + o 1 0 o - o 2 1 - o o 1 0 o - + 2 1 - o - 0 1 - o o 2 0 o - -
+In Ir 1 1 o - + 1 0 o - o 0 1 o + o 0 1 + o + 0 1 o o + 1 0 - - o 1 0 - o - 1 0 o o - 0 0 o + o 0 0 o - o 1 0 - - - 1 1 o o - 1 1 o o + 0 0 o o +
+Be Sc 1 1 o - o 0 0 + o + 1 0 o o + 0 0 + o o 1 0 o o + 0 1 o - o 0 1 - - - 0 1 - - - 1 1 - o o 0 0 o o - 1 1 - o o 0 0 o - o 1 0 + o o 1 0 o + + 0 1 - - o 0 0 o - -
+Li Fe 1 1 - o o 0 0 + o o 1 1 o o + 1 1 - o o 1 0 o + + 0 0 - o - 0 0 o o - 1 1 o - o 1 0 o o o 1 0 o o + 0 1 - o - 1 1 o + o 1 0 + + o 0 0 o - o 1 1 - o o
+Se B S 0 2 - o o 0 1 - + - 0 2 - o - 0 1 o o o 1 0 o o o 1 0 o o - 1 2 o o - 1 2 + + o 2 1 o o - 2 0 o o o 2 1 - o - 1 0 + o o 1 2 + o o 0 2 - - -
+Ca Ru 1 0 - - o 0 1 o - - 1 0 o + o 1 1 o o + 1 1 o - o 0 1 - - - 0 0 - o o 1 1 - o o 0 0 o o o 0 0 - o o
+Pt Sm 0 1 + + + 0 1 + o + 0 1 + o o 0 1 o o + 0 0 o o + 0 0 o o + 0 1 o + o 0 0 o - o 1 0 - o o 0 1 o + + 0 1 o + o 1 0 - o - 0 0 o - o 1 0 o o o 1 1 - + o
+Er Zr 1 0 - - o 1 1 - o - 0 0 o + o 1 0 o o - 0 1 + + + 0 1 o + o 1 1 o - o 0 1 o o + 0 1 + + o 1 1 o o + 0 0 o - o 1 0 o o - 1 0 - o o 0 1 + o o
+Sb Fe Cs 0 2 - - o 0 2 o o - 0 1 o o o 0 1 o o o 0 1 o - o 1 0 + o o 2 1 o - - 1 2 + o o 2 0 o - o 0 2 o o o 0 2 - o o 2 1 - - o 1 2 + o o 1 2 o o o 0 2 o + +
+Te N 1 1 - o o 0 0 o o - 0 1 - o o 1 0 + o + 0 1 - - - 1 0 + o + 1 1 o - o 1 1 - o + 0 1 - - -
+P Hg Hf 1 2 o o - 0 1 + - o 0 1 o + o 1 2 - - - 0 2 o - o 0 2 o o + 0 2 + + o 0 2 + - o 0 1 o o + 0 2 o o + 1 0 o o - 1 2 o - o 1 2 o o o
+Ag Bi As 1 0 - - - 0 1 + o o 2 1 + + o 2 0 o o + 2 1 - o o 1 0 o - - 1 2 - + - 1 2 - o o 2 0 o - o 1 2 o + o 0 2 o o + 2 0 o - o 1 2 o + o 0 2 o o +
+Pr Al Sn 1 0 o o + 0 1 + - - 1 0 + + - 2 1 + o o 2 0 o o o 2 1 + o o 0 1 - o o 0 2 - o o 2 1 o o o 0 2 o + o 0 1 - o o 1 2 o o + 2 1 o o + 2 0 + o o 1 0 + o o
+F Sn 1 0 - - o 0 0 - - o 0 1 + o + 1 1 - o o 0 0 o - o 0 1 o + o 1 0 - - - 1 0 o o o 1 0 - o - 0 0 o - o 0 1 + o o 0 0 o + o 1 1 o - + 0 1 o + o 0 1 o o +
+Tl Gd 0 1 + + + 0 0 - o o 1 1 o o - 0 0 - o o 1 0 - o - 1 1 + o o 1 1 - o o 0 0 + o o 0 1 + o o 1 0 o - o 1 0 o - o 1 0 - - - 0 0 o o - 1 0 - - -
+Ca H H 0 1 o - + 2 1 o o - 0 1 - o - 0 2 o o o 1 2 o o + 0 2 - + + 2 1 o - + 1 0 - - - 2 0 + - - 2 0 o - o 2 1 + + o 0 2 + o - 0 2 - - - 2 1 + o o 1 2 o o -
+Li Cu Ge 2 1 + o + 0 1 + o o 1 2 o o - 2 0 - + o 0 2 - o o 1 0 - o o 2 1 o o + 0 2 o o - 0 2 - o o 0 1 o o + 2 1 + o o 1 2 - - - 0 1 o + + 1 2 - - o
+Cd Al Lu 0 1 + + o 1 2 o o - 1 0 - o - 0 0 + o + 1 1 - o - 2 2 o + o 0 1 o + o 2 0 o o + 0 0 o + o 1 2 o - o 0 2 o + o 2 2 + + - 2 2 + o o 0 1 o + o 0 1 o + o 0 2 o o o 2 1 o + o 2 1 + o + 2 2 + o o 2 2 o - o
+Mo Pt Sb 0 2 - - - 0 2 o - - 2 0 o + o 2 0 + + o 0 1 - o o 0 2 o o - 2 0 o + o 2 1 - o o 1 0 + + o 2 1 o o - 1 0 + o + 2 1 - - o 2 1 o o o
+P Cd As 1 0 o o + 2 0 o - o 0 2 + + o 2 0 - - - 1 0 o + o 1 2 + o + 1 2 + + o 1 0 o o o 0 1 + o + 1 1 o o + 2 0 o o o 2 1 - o - 1 2 + o o 0 2 o o + 2 2 o o - 2 0 - o -
+Na Rh 1 1 o - o 0 1 o + o 0 0 o + o 0 1 - o o 1 0 + + + 1 0 o + o 1 1 - o o 0 1 o o - 0 1 - - o 1 0 o o + 1 0 o o o 0 1 - - - 0 0 + o o
+Ca Pr 1 0 o - + 0 1 + - - 1 0 + o + 1 0 o o + 1 1 + o o 1 0 + + o 0 0 - o o 1 0 + + o 0 0 - o o 0 1 o o - 1 1 o + o 1 0 o + + 0 0 o + o 1 1 - o o
+Pd Ru 1 0 - - o 1 0 o - o 1 0 o - - 0 1 + + + 1 0 o - - 0 1 o + + 0 0 o o + 0 1 o + o 0 1 + o o 1 1 - o o 0 0 o + o
+Sc Sm 0 0 o + o 1 1 o + o 0 0 - o + 1 1 - o o 0 1 - - - 0 1 o o o 0 1 o o - 1 0 + + o 1 1 + o o 0 1 - - o 1 0 o + + 0 1 - o - 0 0 + o - 1 1 - o o 0 1 o - o
+Te Sn Be 0 1 - o - 2 0 + - o 2 1 o o o 2 1 o o - 2 1 - o o 1 2 + o o 1 0 + o + 2 1 - o o 2 1 - o - 2 0 o o o 1 2 o o + 2 0 o o +
+Co Au 0 1 o - o 1 0 + o o 1 1 + o + 0 1 - - - 0 0 o o + 1 1 o - o 1 0 o o + 0 0 - o o - 1 1 o o - 0 1 - - o 1 1 o o o 1 0 + + +
+Pd Ca Pr 0 2 - - - 2 1 + o o 0 2 o o - 0 2 - - o 1 0 o + + 0 2 o o - 2 0 + o o 2 1 + o o 0 2 - - - 1 0 + o o 1 0 o + o 0 2 - - - 2 1 o o o 1 0 + o + 2 1 o o o 0 1 - - o
+Al Ge Ga 2 0 + o o 2 1 + + o 0 1 o o o 2 1 o + + 0 2 - - o 2 0 o + + 1 2 - o - 2 0 o o + 2 1 + o o 0 1 + - o 1 2 o o - 0 1 - - o 0 2 - o - 2 0 + o +
+Sr Cu Se 0 1 o - o 2 0 o + o 1 0 o + + 0 1 - - - 2 0 o o + 1 0 o + + 1 2 + o o 0 2 - o - 1 0 o o o 1 2 o - o 2 1 - - - 0 2 - o o 1 2 o + o 2 0 + + o
+Sn Pd Sn 1 0 - - - 1 2 - - - 1 0 - o - 0 2 o o o 1 0 o - o 1 0 - o o 2 1 o + + 2 0 o o - 0 1 o o o 1 2 - o o 1 2 o - o 0 2 o - o 1 2 - - - 1 2 - o - 2 0 + o o
+Pt Sn Bi 0 1 + + + 2 0 o o + 1 2 + - - 2 0 o o - 1 2 o - o 1 2 - o o 1 2 o - - 1 0 o - - 0 1 o + o 0 1 + o + 1 2 - - - 2 0 o o + 0 1 + + o 2 1 o + o 2 1 + o o
+Pb Cu Dy 2 2 o + o 1 0 - - o 1 2 o - o 1 0 - o - 0 1 o o o 2 1 + o + 1 0 - o - 1 2 o o o 0 1 + o + 0 2 o o + 0 1 o o + 0 2 o o + 2 0 o o o 0 1 + o + 2 0 o o - 1 2 o - o
+Mn Mg Ge 1 0 o - - 2 1 + + + 2 0 - o o 1 0 o o - 2 1 + + + 2 1 o + + 2 0 - - - 2 0 o o - 1 2 o - - 0 2 - o + 2 1 + o + 2 1 o + + 2 0 o - o 2 0 - o o 1 2 o - o
+Mg O Cd 2 1 o - - 0 2 + + o 1 2 o + + 1 0 + o o 2 0 o - - 1 2 + + + 1 0 o o + 2 1 o - - 0 1 o o o 2 0 o - o 1 2 o + o 2 0 - - - 1 0 o o - 1 2 + + o
+Br Pd Ga 2 1 o + o 0 1 o + o 0 2 o - o 0 2 o + + 2 1 + o + 2 0 + o o 0 1 o o o 0 2 - + o 1 0 - o - 0 1 o - o 0 2 o - o 2 0 o o + 1 2 - - - 0 2 - - o
+Cd Cs 1 0 + o + 1 0 o o + 1 1 o + o 0 1 - - o 0 0 o - o 1 1 o o + 1 0 + o + 1 0 + o + 1 0 + + o 1 0 o + + 1 0 + + o 0 0 + o o 0 0 o - o 0 0 o o -
+Mn Ir 1 1 + - o 1 0 o o o 1 0 o - - 1 0 - - - 1 1 + o o 0 0 o - o 1 0 - o o 1 0 - - o 1 1 o - o 0 0 o + o 0 0 o - o 0 1 o o o 0 0 o - o 1 0 - o - 1 1 o o -
+Br Tm 0 1 - o - 0 1 o o - 0 1 o - o 0 1 o - - 1 0 + o o
+Mg Tc 0 1 + o o 1 0 - - o 1 0 - o - 1 1 o o - 0 0 - o o 1 1 o + o 1 0 o - o 0 1 o o o 0 1 o o + 1 0 - o o 0 0 o o - 0 1 o + + 1 1 o + o 0 0 - o o
+N Ir 1 0 Cd - o 1 0 o - o 0 1 o + + 1 0 - o - 1 0 - o o 1 0 - o -
+Ag Ca Si 1 0 + o + 0 2 - - o 1 2 o - o 0 2 - o o 0 1 - - - 0 2 - o o 1 2 o o o 1 2 o o + 2 0 + + + 2 1 - o o 0 2 - o o 2 0 + o o 2 1 - o o
+Zn Ho 0 1 - - - 1 1 o - o 1 0 + o o 1 0 + + o 0 1 - - - 1 1 o + o 0 0 - o o 1 0 + o o 0 0 o - o 0 0 o + o 1 1 o + o 1 0 o o o
+Te As 1 1 - o o 1 0 - - - 1 1 + o o 0 1 + + + 0 1 o + + 0 1 o o + 0 0 o - o 1 0 o - o 0 0 o + o 0 1 + o o 1 0 - o o 1 0 o o - 1 1 + o o 0 0 o - o
+Cu H B 0 1 + + o 0 2 o o o 2 1 + o + 0 1 + o + 0 1 + + + 1 2 - o o 1 2 o - - 2 0 o o o 0 2 o o o 1 2 - o - 2 0 + + o 2 1 + + + 1 2 - - - 1 2 o o -
+Co C 1 1 o o + 0 1 - o - 1 0 + o o 1 1 - o o 0 0 o o - 1 0 + o o 0 1 - - - 0 0 - o o 0 0 o - o 0 1 - - o 1 0 + o + 0 1 o - - 1 0 o o +
+Os Bi Mn 2 1 o o + 0 1 o o + 1 0 - - - 2 0 - o - 1 2 - + - 2 1 o + o 2 0 o - o 2 0 - - o 2 0 o o - 2 1 o + + 2 0 o - o 2 1 o - o 2 0 - o o
+Au Si Tb 2 1 o + o 0 2 o - o 0 2 - - o 2 0 + o + 0 1 - o - 1 2 o o - 1 0 - + o 1 2 o o o 2 0 o - + 0 2 + o o 0 1 o - - 2 1 o - o 1 2 o o + 2 1 o o o
+Ti Sm 0 0 o o + 1 0 o o + 1 0 - o - 1 0 o - - 0 1 + o o 1 1 o o - 0 1 o + o 0 0 o + o 1 1 - o o 1 0 - - - 1 1 o o - 0 0 o - o 1 1 o + o 1 1 o + o 1 0 - - -
+Tc C 1 1 o + - 1 0 - o - 1 0 o - - 1 0 o - o 0 1 o + + 1 0 o - o 0 1 + + o 1 0 - - - 1 0 o - o 1 0 - o o
+Nb Cd Cd 2 1 o o o 0 1 o - o 1 0 o o + 1 0 o o o 2 2 o - o 0 2 - - - 2 1 + o o 0 1 + + o 1 2 - - - 0 0 o + + 2 0 o + - 1 0 - o - 1 2 o - - 1 0 o o - 2 1 o + o 2 0 o + o 2 1 o + o
+Ce Ba 1 0 - o + 0 0 o + o 0 0 o o o 1 1 + o o 1 1 + o o 0 0 - o o 1 0 - - - 0 1 + o o 1 0 - o - 0 0 o o - 1 1 + o o 0 1 + + + 0 1 + o o 0 1 + + o 1 1 o o - 1 0 - o o
+Sb Ho 0 1 + + + 1 0 - o o 1 0 - o o 1 0 - o o 1 0 - - o 1 0 o o - 0 1 o + +
+O Mg 0 1 - - - 0 1 - o o 0 1 o - o 0 1 o o - 0 1 o - - 1 0 o + o
+Ba Mn Pt 1 1 - - o 0 2 o o + 1 2 + + o 1 2 + o o 1 0 + + + 2 1 o - - 0 1 - o - 0 0 o + o 0 2 o o - 1 0 + + o 1 1 + o o 0 0 + o o 2 0 o o o 0 1 o o o 0 0 o o - 1 2 + o + 2 2 o - o
+Rh Re S 1 2 o o o 2 1 o o + 2 1 + + o 2 0 o o + 1 2 o - - 1 0 o - - 2 0 o + o 2 0 + o + 2 0 o o o 0 1 + o o 1 0 o - - 0 1 o + + 2 1 o + + 2 0 o o o 1 2 - o -
+Co Cd 1 0 - - - 1 1 - o o 1 1 o o - 0 1 o o + 0 1 + o o 0 0 o + o 0 1 o + o 1 0 o - - 1 0 o - o 1 1 - o o 0 1 o o + 0 0 o - o
+Pt Ta Ga 2 1 o o + 0 0 o o - 2 1 o - - 1 2 + o o 2 0 o o o 0 2 + + o 2 0 - - - 1 2 + + + 1 2 + + + 2 2 o + o 0 1 + - - 0 1 o o o 2 1 - o - 0 1 o o o 0 2 + + o 2 2 o - + 1 1 + o + 1 2 o o -
+Al Ga Al 1 2 o o o 1 2 + + o 2 0 - - - 1 0 o + o 2 0 - o - 0 1 - o o 1 - o o 0 1 o o - 0 1 o + o 0 2 + o + 1 2 + + o 1 0 o o o 0 2 + + o 1 0 o + o 2 0 - o o 0 2 o + +
+Sm P 1 0 o + + 0 1 - o o 1 0 + o +
+Na Na Cd 1 0 - o o 2 1 o o o 0 2 o + o 1 0 - - - 0 1 o o + 2 1 + o o 1 2 o - o 1 0 - o o 2 0 o - o 0 2 o o + 2 1 o - o 0 2 + o o 1 2 o + o 1 0 - o o 2 1 + + o
+O Cu O 1 0 - o o 1 0 o o - 0 2 - o o 0 2 + o o 0 1 o + o 1 2 - o - 0 2 + - o 1 2 o - - 2 1 + o + 2 1 o o + 0 2 + o o 1 0 - - o
+Mg Al 1 1 - o + 0 1 + o + 1 0 - - - 1 1 - o o 1 1 - o o 0 0 o o + 1 0 o o - 0 1 o o o 1 1 o - o 0 0 + o o 0 0 - o o 1 0 - o - 1 1 - - o 1 0 - - o 0 0 o o -
+K Ge Ca 0 2 o - - 1 2 o - o 1 2 - - o 0 1 o - o 0 2 o o - 2 0 o o o 0 1 o - - 1 0 - o + 2 0 o + o 0 1 o - - 2 1 o - o 1 0 + + + 2 0 + + o 2 0 + + + 0 2 - o o
+Au Mo 1 1 o o - 0 0 o o + 0 0 - o o 1 1 + o - 1 0 + + o 0 1 - o o 0 1 o o o 1 1 o - o 1 0 o + + 0 1 - - - 1 0 o + + 0 0 o - o 1 0 + o +
+Sn Ba Sn 2 0 o o o 0 1 + + + 2 0 o - o 1 0 o - - 1 0 o - - 1 2 - o o 1 2 - o o 2 1 + o o 1 0 o - - 0 1 o + o 0 1 + o o 2 1 + o o 1 2 o - - 1 2 o o - 0 2 o + o
+Cd Pr Ho 2 1 + o + 0 1 o + o 0 2 o - - 1 2 o o - 2 0 o o o 0 2 - o - 1 0 o o o 0 2 o - - 2 1 + + + 1 1 + o o 2 1 + o + 0 1 o - o 2 1 + o + 2 0 + + o 1 2 - o -
+Dy Mg 1 0 o o + 1 0 o + o 1 1 - + o 1 0 + o + 0 1 - - - 1 1 o o + 0 1 o - o 0 0 o - o 0 0 + o o 0 1 - o o 1 1 - o o 0 1 o + - 0 1 o o o 0 1 - - - 0 1 o o - 0 1 - o o
+Hg Kr O 1 0 o o o 1 2 - - - 2 0 o o - 2 0 o - + 0 1 + o + 2 0 - - - 0 1 o + o 0 2 + + o 2 1 + o o 1 2 - - o 2 1 + o + 0 2 + o o 1 0 - o - 2 1 o + +
+C Pt Pt 1 0 o - o 1 2 - o o 0 1 o + o 2 0 - o - 0 2 o + + 2 1 - o - 1 0 o - o 1 0 o - o 2 0 - o o 2 0 o o - 2 0 - - o 0 1 + + + 1 2 o o o
+Nd B Ru 2 1 - o o 1 2 o o o 2 1 o o + 1 0 o - o 1 2 - o o 2 0 o - o 2 1 o + o 0 2 o o o 1 2 o o o 2 1 o o + 2 0 o o + 0 2 o + + 0 1 - o o 0 1 - o - 0 1 + o o
+Ru S 1 0 - - - 1 0 - - o 1 0 o o - 0 1 + o + 1 0 o o o 1 0 o - - 0 1 + o o 0 1 o + o
+Sm Ni Mg 2 1 - + - 0 1 o o o 0 2 - - o 1 2 o o + 1 2 + o o 0 2 - o - 1 2 + + + 0 2 - o - 0 2 - o o 2 0 + o o 1 2 o o + 2 0 + o o 0 2 - o - 0 2 o - o 0 2 o - o
+Fe Gd 0 1 - o o 1 0 o o o 1 1 o o + 0 1 + o - 0 0 o + - 0 0 - - o 1 1 o + o 0 1 + o + 1 0 - o o 0 1 + + + 1 0 - o o 0 1 o + + 0 1 + + + 1 0 - o o
+Se Dy 0 1 - o o 1 0 o o + 1 0 + + + 1 0 o o o 1 1 o + o 0 1 - - - 1 1 + o - 1 0 + + o 1 0 + o o 0 0 o - o 0 0 + o o 1 0 + o o 0 0 o o - 1 0 + o o
+Au As Sm 2 0 o + o 0 2 - o - 0 1 - o o 1 0 o + o 1 0 o + o 1 2 + o o 1 2 - o o 2 0 o + + 1 2 o - o 2 1 o + + 0 1 - o o 2 0 o + + 2 0 + o o 0 1 o o o
+S F 0 1 - o - 0 1 o - o 0 1 o - - 1 0 + o o 1 0 o + + 0 1 - o - 1 0 o + o
+In Li 0 1 o + o 0 0 o - o 1 0 - - o 0 1 o o + 1 1 o + + 1 1 - - - 0 1 + o + 1 0 - o o 0 1 o + o 0 0 o + o 0 1 + + + 1 0 o - - 0 0 o - o
+In K 1 1 o o + 0 0 - - o 1 1 - o o 1 1 o + o 0 0 o - o 1 0 + o + 0 0 o + o 0 0 - o o 1 1 - o o 1 0 + + + 0 1 - o + 0 1 - - o 0 1 - o - 0 1 o - o 0 1 - o o 0 1 - o o
+Bi Ti V 0 2 - - o 0 2 - o - 0 2 - - - 1 2 - o o 1 0 o o o 2 0 o + + 0 1 - - o 0 2 - - - 0 1 o o - 0 2 - - o 1 2 o - o 2 1 + + o 2 1 o + o 1 2 o o o
+Hg Bi Cd 2 1 + o + 1 2 o - - 1 0 - o o 1 0 o o - 1 2 o - o 2 0 o - + 1 0 o - o 1 2 - - o 2 0 o o o 2 1 o + + 2 0 o + o 0 0 - o o 0 1 o + o 2 1 + o +
+Hf Pr Al 0 0 + - o 1 2 - o + 0 1 + o + 0 1 o + + 1 2 - - o 1 2 - o - 1 2 - o o 1 1 - o o 0 2 o + o 2 0 o o + 2 0 o + o 2 1 o o + 1 2 o + o 1 1 - - o 1 1 o - o 0 0 o o + 1 0 - - - 2 0 - o o
+Pr Lu 1 1 - o + 0 1 o o + 0 1 o + o 0 0 o + o 1 1 o - o 0 1 + + o 0 1 + o o 0 0 o + o 1 0 - - o 0 0 - o o 0 1 + o + 1 1 + o o 1 1 + o -
+W Be 1 0 - - - 0 1 + + o 1 0 o o - 1 0 - - o 1 0 - - - 0 1 o + + 0 1 + o o
+Gd Zr 1 1 - o o 0 0 o - o 0 0 o - o 1 0 o o + 1 0 + + o 1 1 o - + 0 1 o o o 1 1 - o o 1 1 o o + 0 0 o o - 1 1 o o - 0 1 - - o 1 1 + o o
+Tl Tc 0 1 - - o 0 1 o - - 0 1 - o o 0 1 - o o 0 1 o - - 0 1 - o - 1 1 o o + 1 1 - o o 0 0 o o o 0 0 + o o 0 1 o - - 0 0 - o +
+K Ga Hg 2 1 - - - 0 1 - - - 1 2 o + + 0 2 o o + 2 0 - - o 2 0 - o - 2 1 - o o 0 1 o - o 0 2 + o o 2 0 - - - 2 1 - o o 0 1 + o o 2 1 - - -
+Sn Au Zr 2 1 o o o 1 2 - o - 0 1 o + o 2 0 o o + 2 0 o o o 2 1 o o + 2 0 o - o 1 2 o o - 2 0 + o o 0 1 + o o 1 2 - o - 2 1 + o + 2 0 o o +
+Ga Mg Eu 2 1 - o o 0 1 - o - 2 0 o o + 1 2 o o + 0 1 - - - 1 0 + o o 2 1 o - o 0 1 o - - 1 2 + o o 2 0 o + + 2 0 + o + 1 2 o + o 2 0 + + o
+Te Bi 1 0 - o - 0 1 + + o 1 0 o - o 0 1 o o o 0 0 - o o 1 0 - - - 1 1 + o o 0 1 + + + 0 0 o o + 1 1 o o + 1 0 - o - 1 1 o + o 0 0 o + o 1 0 o o o 1 1 o o - 0 0 o + o 0 0 o + o
+Hg Br 0 1 - - o 1 0 + + o + 0 0 + + o 1 2 o o + 2 1 o + o 0 1 o - o 1 0 o o + 2 1 - o o 0 1 - - - 1 0 o + o 1 2 + o o 2 1 o o - 0 1 + o o
+Rh Co Mn 1 1 - o o 0 0 - o o 1 0 o o + 0 2 - - o 2 1 o + + 1 2 o o o 1 0 + + + 2 1 o o + 0 1 o o - 0 2 - - - 2 0 + + + 0 2 - o o 0 1 - - - 0 1 o o o 0 2 - o - 1 2 o + o
+Bi Au 1 1 - o o 0 0 o o - 1 0 o + o 0 0 - o o 1 1 o o + 0 1 o - o 1 0 o + + 0 1 o - - 0 1 o o o 0 0 - o o 1 1 o o + 0 1 - - + 0 1 o - o 1 0 o + o 0 1 o o o 1 0 o + o 0 0 o + o
+Li Rb Pd 0 2 - o o 0 2 o o - 0 2 - - - 0 2 - - - 2 0 o o o 2 0 o o + 1 2 o o + 2 1 o + o 0 1 o o - 2 1 - o o 0 2 - o - 1 0 + + o 1 0 o + +
+Pd Mg 1 1 + - o 0 0 + o o 0 1 o o o 1 0 o o o 1 1 + o o 0 0 o - o 0 1 + + o 0 1 + o + 0 1 o + + 1 1 o o + 0 1 + o + 0 1 + o o 0 1 + o + 1 0 o - - 0 0 o - o
+B O O 0 1 - - - 0 1 - - - 1 0 + o - 2 0 + o + 2 1 o + o 0 1 - o o 1 0 + o o 2 0 + + o 1 2 o o + 2 0 o + o 2 0 + o o 2 1 o - o 1 0 o + o 1 2 o o o 0 2 - - -
+P Au Si 2 1 o o o 1 0 o - - 1 2 o o + 2 1 o o o 1 2 - - + 0 1 o + o 1 0 - o o 1 2 - - o 0 2 o + o 0 2 + o o 1 2 o - o 2 0 o - - 2 1 o o o
+O V Na 1 2 - o o 1 2 - - - 0 1 o o o 1 0 - - - 2 1 o + + 1 2 o - o 1 0 - - o 1 2 - - o 0 2 - - - 2 0 + o o 0 2 o - o 0 2 o - - 2 0 + o o
+Gd V Tb 2 1 o + o 0 1 - o + 0 1 + o + 1 2 - o - 0 2 o o - 0 2 - - o 1 2 o - - 1 2 - - - 1 0 - o o 1 0 - o - 1 0 o - - 1 0 o o - 2 0 o + o 2 0 o + o 2 0 o o +
+C Sb 1 0 + o o 0 1 o - - 0 1 - o o 1 0 + + o 0 1 o - - 0 1 - o - 1 0 + + o
+Li F Mg 2 0 + o o 2 0 o o + 1 0 o o o 1 2 o - - 1 2 - o - 0 2 - - o 0 1 o - + 2 0 o o - 2 1 - o o 1 2 + o o 1 2 o + o 2 0 - - - 0 2 o o +
+Nb Ru 0 1 + o o 0 0 - o o 0 1 o - o 0 0 + o o 0 0 o + o 0 1 o - - 1 1 o - o 0 1 - o o 0 1 - o o 1 1 + o o 1 1 - o o 0 0 - o - 1 0 o + o 0 1 - o - 0 1 - - o
+N La 1 0 o o + 0 1 - o o 0 1 o - - 1 0 + o + 0 1 - - o 0 1 - o o 1 0 - o o
+Ca Y Ga 0 1 - - o 0 1 o - - 2 0 o + o 1 2 o + o 1 0 + + o 2 0 + o o 1 0 o o + 2 0 o + o 0 2 - - o 1 0 + + o 2 0 + o + 2 1 o o o 2 1 o o o 2 1 + o -
+Ho Sb V 1 2 o o o 0 2 o - - 1 0 o + + 0 1 - - o 2 0 o o + 1 2 o o + 2 1 o o - 2 0 o + o 0 1 - o - 2 0 o + + 1 0 + + o 2 1 o o -
+Sb C Li 1 2 - o o 2 0 + o o 1 2 - o - 1 2 - - - 0 2 - o o 2 0 o o o 2 0 o o + 2 0 + + o 0 1 o o o 2 0 + o o 2 1 + + + 0 2 - o o
+La Pd Ge 1 0 - o o 1 2 - - o 2 1 + o o 2 0 o + + 2 0 o + + 2 1 o + + 0 2 - - o 0 1 o + o 2 0 o o + 1 0 - o - 1 2 - - - 2 1 o + o
+Cu Si H 2 1 o + o 0 2 - o o 2 0 o + o 1 0 o o - 0 2 - - - 2 1 o + o 1 0 - + - 0 1 o - o 0 2 o o o 2 1 o - + 2 0 o - o 1 2 o o + 2 1 - o o 0 2 - o +
+Sn Sb Pd 0 1 o o - 0 1 o - - 0 2 - o - 1 0 + + o 2 0 + o o 2 0 2 - o + 1 2 o - o 1 2 o o o 1 2 o + o 0 2 o - o 2 0 o o o 2 0 o + o 2 1 - o o
+Pb Gd La 0 1 - - o 2 1 + o + 1 2 - - o 0 2 o - o 0 1 - o o 0 2 o - o 1 2 o o o 1 0 - + + 0 1 - o o 1 2 - o o 1 2 - o - 0 0 o o - 1 2 - o - 1 2 - o o 0 2 - o - 1 0 o - o 1 2 o o -
+N Er 1 0 + o o 1 0 o o o 1 1 o o - 0 0 o + o 1 1 o - o 0 0 + o o 0 1 o o + 0 0 - o o 1 1 - - - 1 1 + o o 1 0 - o + 1 0 o + +
+S Mg 1 0 o + o 0 1 - o o 1 0 o o o 1 0 o o + 1 1 o + o 1 0 - - + 1 1 + o o 0 1 o - o 0 1 o - - 1 0 + + + 0 0 o + o 0 1 - - o
+Zn Sm 0 1 o - - 1 0 o o +
+I Er 0 1 o - o 0 1 o - - 0 1 - - o 1 0 + + o 1 0 + o o 1 1 o o + 1 0 + + o 0 1 o o - 1 0 o + o 0 0 o - - 0 0 - - o 0 0 o o + 1 1 o o + 0 1 o - -
+Rb P 1 1 - o o 0 1 + - - 0 0 o + o 1 0 o o o 0 1 - o - 1 0 + o o 1 1 - o o 0 1 o o - 1 1 + o o 0 1 - o o 0 0 + o o 0 1 - - - 0 0 o - o 0 1 - - - 0 0 o + o
+Hg Bi P 0 1 - - o 2 0 o o o 2 0 o o o 2 0 o + + 0 1 - - o 1 2 o + o 0 1 - - - 0 1 + - o 0 1 - - - 2 0 + o o 0 2 - o o 2 1 o o -
+Br Ag 0 1 - - o 1 0 o + o 1 0 o o + 1 0 + + o 0 1 o - - 0 1 o - -
+V Sb 0 1 - o - 0 1 - - o 0 1 - o o 1 0 o o o 0 1 - o - 0 1 o - -
+Li F 1 0 - - o 0 0 - + o 1 0 o o - 1 0 - o o 1 1 o + o 1 0 - - - 1 1 o + o 0 0 - o o 0 0 o + o 0 1 o + + 1 1 + o o 0 1 + o o 1 0 - o o 0 1 + o o 0 0 - o o
+Nb Mn Sb 0 1 o + o 1 0 - - o 2 0 o + o 0 2 o + + 0 1 o o o 0 2 - o o 1 2 - o o 2 0 o o - 1 0 o o o 1 0 o - - 1 0 o - o 2 1 o + + 2 1 + o o 1 2 - - -
+Pd Ga 0 1 o - + 1 0 - - o 0 1 + + + 0 1 o + o 1 0 - o - 1 1 o o - 1 0 - o o 0 1 - o o 0 0 o + o 1 1 - - o 1 1 o o + 0 0 o o - 0 1 + o +
+Sm V Mg 1 0 - o o 0 2 - o o 1 0 o o o 2 1 + - o 0 2 - - - 0 1 + o - 0 2 o o o 1 0 o + o 2 0 o o o 0 1 o o o 0 1 o - o 2 1 + - o 1 2 o - o 2 1 + o +
+Se Tb 0 1 o - o 0 1 o - o 1 1 o - - 0 0 o + o 1 1 o + o 0 0 o + o 0 1 o - o 0 1 - o o 0 0 o - o 0 1 o - - 1 1 - o o 0 0 + o o 0 1 + o - 1 1 o - o
+K Ga B B 0 1 o - - 0 1 o - - 1 2 o o o 2 1 - o o 0 2 - - - 2 0 o o + 1 2 o + o 2 1 o - - 1 2 + + o 2 0 o o + 2 0 + + o 2 1 o o o 2 1 - - - 1 0 o + o
+Cu Na 1 0 - o - 1 1 o o + 1 0 - o - 0 1 + + + 1 0 - - o 0 0 + o o 0 1 + + + 0 0 o o + 1 1 o o - 0 0 + o o 1 0 o - o 1 0 - o - 0 1 + + +
+Gd Mg 0 1 + o + 1 1 o - o 1 0 - - o 1 1 + o o 1 0 - o - 1 0 o - - 1 0 - - o 1 0 - o o 0 0 o o + 1 1 + o o 0 1 o o o 0 0 o o + 1 0 - o o 0 1 + o o
+Sb Hg Hg 1 0 - - - 1 2 - - - 0 2 o - o 1 2 o o o 2 0 + o o 2 0 o + o 2 2 + o o 1 1 o - o 0 1 o o - 1 0 o o - 2 2 + + o 1 0 o o o 0 1 o o + 0 2 - - o 0 2 o o - 2 0 + + + 0 1 - o o
+Tc Gd 1 0 + o + 1 0 + o o 1 1 o o + 0 1 o - o 0 1 - - - 1 1 - o o 0 0 o o - 1 1 + o o 0 0 o o - 1 0 + + o 1 0 + o + 0 0 o o - 1 0 + o o 1 0 o o + 1 0 o + o 1 0 o + o
+Cu W Nb 2 1 - o - 2 1 + - o 2 0 o o o 2 1 + o o 0 2 - - - 0 1 + o o 1 0 o o o 0 2 - - - 0 1 o - - 1 2 o + + 2 1 + - o 2 0 + + o 0 1 - o - 0 1 o o - 1 0 + o o
+Zn Fe 1 0 - - - 0 0 o o - 1 0 o - - 0 1 o o + 1 1 o o - 0 1 o + o 0 1 + o o 1 0 - o o 0 0 o o - 1 0 - - - 0 1 o o o 1 1 + o o 1 0 o - - 1 0 - o o
+As Eu 0 1 + + + 1 0 o o - 1 0 - - o 1 0 - - o 1 0 o o - 1 0 o o - 1 0 o - -
+Cu Pr Al 0 2 + o + 1 2 + + + 1 2 + o o 1 0 - o - 1 1 o + - 2 1 + o o 1 2 o - o 1 2 - - - 0 1 o o o 2 0 o o o 0 2 o o o 1 2 - - - 0 2 o o + 0 2 o o + 2 1 + o o 0 0 + - - 2 0 o - o 2 2 + + + 1 2 + - +
+Ce Tc 1 1 + o o 0 0 o + o 1 0 o + o 0 0 - o o 1 0 o + + 0 0 + o + 0 1 - - - 1 1 o - o 1 0 o o o 0 0 o o + 0 1 - - - 1 1 o o + 0 0 o o + + 1 1 + o o 1 0 o + +
+Al Sm As 0 1 o o o 0 1 - - - 0 1 o o o 0 2 o o - 1 0 o + o 2 0 - o o 2 0 + + + 0 1 - o o 1 2 o + +
+In Eu 1 1 - o o 1 1 o + - 0 0 + o + 1 0 + + + 0 1 - - o 0 1 - o o 1 0 o o + 0 1 o - - 1 0 + + o 0 1 - o o 0 1 o o - 0 0 - o o 0 0 o o - 0 1 - o o
+Sm Ag 1 1 o - o 0 1 - - - 0 1 - - o 1 1 o o - 0 0 o o + 0 0 o - o 0 0 o - o 1 0 o o o 1 1 o o - 1 0 o o - 1 0 - o o 1 0 o - o 1 1 - o + 0 0 - o o
+Sb Cd Er 0 1 o o o 2 1 o o + 0 2 - - o 2 1 + o + 1 0 - - o 1 2 - - - 2 0 o o + 0 2 o + o 1 2 - - - 2 1 o + o 0 1 + + o 2 0 o + o 2 1 o + o
+Sm H B 0 2 o - o 2 0 + o o 0 2 o o - 0 1 - - o 0 2 - o - 1 2 o o o 1 2 o - o 1 2 + o - 1 0 + o o 0 1 - - - 2 0 + o o 0 1 o - - 2 1 o o - 2 0 + o o
+Ir Os O 2 1 + o + 2 0 o - + 2 0 o - + 0 1 o - o 0 1 o - - 2 0 - - o 1 2 o + + 1 0 o - o 1 0 o - o 0 2 o o o 1 2 + o o 2 1 o o - 2 0 - o o 1 2 + - o
+Pd Sb Er 2 1 o + o 1 2 - o - 2 0 + o o 2 1 + + o 1 2 - o o 2 1 + o + 0 2 - o o 1 0 o - o 1 2 o o - 2 1 + o + 0 2 o o - 0 2 o - o 0 2 o - o 2 1 + o o 0 1 o o +
+In Hg 1 1 o - o 1 0 o - - 1 0 - - o 1 1 o + o 0 1 o o o 1 1 o - o 1 0 - - - 0 1 o o + 1 0 o o - 0 1 o + o 0 0 + o o 0 0 o + o 0 0 + o o
+Ni Mg Pd 2 1 o + o 1 0 o - - 1 2 o - - 1 2 o - - 2 1 o + o 0 1 o o + 2 0 + o o 2 0 + o o 2 1 o o + 0 1 o + o 0 2 o o - 2 1 o o + 1 0 - o - 2 0 + o o 2 1 + + o
+Ta Sb Hg 2 1 o o o 2 0 o + o 2 1 o o + 1 2 - - - 2 1 + o + 1 2 - - o 1 0 o - o 2 0 o - o 1 2 o - - 0 1 o o o 1 0 - o o 1 0 o - o 2 0 o o o
+Hg Pr 0 1 o - o 0 0 - o + 1 0 + + o 0 1 o - - 1 0 o + + 0 0 - o o 0 0 o - - 1 1 + o o 0 0 o + o 1 0 o o + 1 1 o o - 1 1 + o -
+Os Zr 0 1 - - - 1 0 o + o 1 1 o o o 0 0 o o + 1 0 + + o 0 0 + o - 1 0 + + + 1 1 o + o 1 0 o + o 0 1 o - - 0 1 o o - 0 0 + o o 1 0 o o +
+Mg Al 0 1 - - - 0 1 - - o 0 0 + o o 1 1 o - o 1 1 + o o 1 0 o + + 1 1 o - + 0 0 o o - 1 1 o + o 0 0 o + o 0 0 o - o 1 1 - o + 0 1 o o o 1 0 o o o
+S Zr 1 2 o o o 0 0 o o - 1 0 + + o 0 1 - - - 1 1 + o o 0 0 o + o 0 1 o o o 0 1 - - - 1 1 + o o 0 1 o - - 1 0 + + o 0 1 - o - 1 0 + o o
+Se Sm 1 0 + o + 1 0 o o o 1 0 o o + 1 0 o + o 0 1 - - o 0 1 - o o 0 1 - - -
+Ce Mo 0 1 + + + 1 0 o - - 0 0 o + o 0 1 o o + 0 0 + o o 1 1 - o o 0 0 + o o 1 0 - - - 1 0 - o o 1 0 - o o 0 1 + + o 1 1 - o o 1 1 o - o 1 1 o o + 1 1 + o o 1 0 - o - 0 0 o o +
+Ce Sc 1 0 o + + 0 1 o - o 1 0 + + + 1 0 o o o 1 1 - + o 1 0 + o + 1 0 o + o 1 0 o o + 1 1 - o o 0 0 + o - 1 1 o - + 1 0 + o +
+Hg Ga Cd 0 1 + + + 1 1 - + o 2 2 + + o 0 2 o o o 2 1 o o o 0 0 o - - 0 1 + + o 1 2 - o - 1 2 o - - 1 2 o - - 1 2 - o o 0 2 o o - 0 0 - o o 0 0 - o o 1 2 o o o 1 2 - o - 1 1 - o o 1 2 - - o
+Cs La 1 1 o - o 0 1 + + o 0 1 + o + 0 1 o + o 0 1 o + o 0 0 o + o 0 1 o + + 0 1 + o o 1 1 + o o 1 0 - o - 0 0 + o o 1 1 + o o 0 0 + o - 0 1 o o o 0 0 o o - 1 1 - o o
+Ta N 0 1 o o + 0 1 + + o 0 1 + + o 1 0 - o o 1 0 - - - 1 0 o o -
+Rh Gd 1 0 o - o 1 1 - - o 1 0 o - - 1 0 - - o 1 0 - o - 0 0 o o + 0 1 o + o 1 1 o o + 1 0 o o - 1 1 o - o 0 0 o + o 0 0 - - o 0 1 + o +
+Sc Sb P 2 1 o o - 2 0 - o - 1 2 + o o 2 1 o - - 1 2 o o + 0 1 - o o 2 1 o - - 1 0 o - o 2 1 o - o 1 2 + o + 0 2 - o o 2 0 o - - 0 2 o + o
+La H H 2 0 + + o 1 2 o - o 1 0 - o - 0 2 - o - 2 1 + + o 2 0 + o + 0 2 o - o 1 0 - o - 2 0 o o + 2 1 o + o 1 0 o - o 2 1 + + o 1 2 - o o
+Pt Co Nb 2 1 - o o 1 2 - o o 0 2 o - o 2 2 o o + 0 2 - - o 0 1 - - - 2 1 + o o 0 1 - o - 2 2 o + o 1 1 o o - 0 1 o - o 0 1 - - - 1 0 o o + 0 1 - o o 1 2 o o o 0 0 o o - 2 1 o o - 2 1 - o o 2 2 - o o
+Y Cl 1 0 + + o 1 1 o o - 1 0 + + + 0 1 o - o 1 0 + + + 0 1 o o o 0 0 o o o 1 0 + o + 0 0 o o - 1 0 o o o 1 1 o - o 0 0 o - o 0 1 - o - 0 1 - o o
+Sb Gd N 0 2 + + o 0 1 o o + 0 1 + o o 1 0 o - - 1 2 - - o 0 2 o o o 0 1 + + + 2 1 + o o 1 2 o - o 1 0 o - - 0 1 o + o 0 1 o + + 2 0 - - o
+Co In C 2 0 o - - 0 0 - o - 1 2 + o o 0 1 - o o 2 1 - - o 1 1 + o + 2 1 + o o 2 0 o + - 1 2 o o + 1 1 o + o 2 0 + o + 0 2 - o - 1 2 o + o 0 0 o - + 0 1 - o o
+Se Ca Sr 1 2 o - o 0 2 o + - 1 0 - - o 1 0 - - o 0 2 o o o 1 2 o - o 2 1 o o + 2 1 + o o 1 0 o - o 0 2 o o o 2 0 o - - 2 0 o - o 0 2 + o o 2 0 o o -
+Dy Ho Sb 2 0 o o + 2 1 - o - 1 0 o o o 1 2 o - o 1 0 o o - 0 2 o o + 0 2 o o + 0 2 o - o 1 2 o - - 2 1 o + o 2 0 + o o
+Pd I O 2 1 o - - 2 0 o o o 2 1 - - o 1 0 o + o 2 1 - - o 1 2 + + o 2 1 - - - 1 2 o o o 0 2 o + + 0 2 o + o 1 0 o o o 0 2 o + o
+Cu P P 1 0 + o o 0 1 - o o 2 0 o + o 1 2 + o o 2 0 - o o 1 0 + o o 0 2 + o o 0 1 o o - 2 0 - o o 0 1 o o - 1 2 o + + 1 2 o + o 0 2 o o o 1 2 o o -
+Tl Gd 1 0 o o o 1 1 o o - 0 1 + o o 1 1 + o o 0 0 + o o 0 1 o + + 1 0 o - o 1 0 o - o 0 0 + o - 1 1 - o o 0 1 o - o 1 0 - - -
+Mo Au Ge 1 2 o o - 1 2 + o o 1 2 o + o 1 2 o + + 1 2 + + o 0 2 o o - 0 2 - - - 0 1 - o o 2 1 - o o 2 0 o + o 2 1 o o + 0 2 o o -
+O Rh Cu 0 1 - - o 1 2 - o o 1 2 o o - 1 0 - o o 0 2 o - - 0 2 - o o 2 1 o o o 1 0 + + o 0 2 o - - 2 1 o - - 2 0 o + o 2 1 o o o 2 0 o o + 2 0 + + +
+Ce Hg 0 1 - - - 0 1 - - o 0 1 - o - 1 0 o + o 0 1 o o - 1 1 o - o 0 0 - o o 0 1 o o - 0 1 - - - 0 1 o - - 0 1 - o - 1 1 o + o
+P Zr 0 1 o + o 0 1 o + o 0 1 o - o 1 0 o - - 0 1 o o + 1 0 - o o
+Pt Y Cu 0 1 - - o 0 2 - o o 1 2 o o - 0 2 - o - 2 0 + o + 0 1 o - - 2 1 o o o 0 1 o o - 2 0 o + o 1 0 o o o 1 0 + o o 2 0 o o + 2 0 o o o 1 2 - o o
+C Sc 1 0 o - - 1 0 - - o 0 1 + o + 0 1 o + + 0 1 o o o 0 1 o + +
+Si Na Cu 0 2 o o + 1 2 - o o 0 1 - o o 1 0 o o o 2 1 o - - 0 2 o o + 2 1 - - o 2 0 - o o 0 1 o - o 2 0 - - - 2 1 - o - 2 0 - o - 0 2 + o o 0 2 o o + 2 1 - o o
+Si Rh Pt 0 0 + o - 0 2 - o o 0 0 + + + 2 1 + + o 2 1 o o + 2 1 + + + 1 2 - o o 0 1 o o + 2 1 o o o 0 1 o o o 2 2 o - o 0 2 o + - 0 1 + + o 1 2 o - - 0 2 + o o 1 2 + o o
+O Y 1 1 o o + 1 0 + o + 1 1 o - o 1 0 - + o 0 1 - o o 1 0 o o o 1 1 o o + 0 0 - o o 0 0 - o o 1 1 o o - 0 1 - o - 0 1 o - - 0 0 o + -
+Nd Ge Ag 1 2 + o + 0 1 o - o 0 1 o - o 0 2 - - o 0 2 o o - 2 0 + o + 0 1 - o o 2 1 o o o 0 1 - o - 2 1 o o o 0 1 - - - 2 1 o - - 1 2 o o o 0 2 - - o 1 2 o o o
+P Cu Te 0 2 o o + 0 1 - o o 1 2 + + + 0 1 o + o 0 1 + o o 1 2 o + + 0 1 - o + 0 1 o - o 2 0 o o o 1 2 o o o 1 0 - + +
+Tm C 0 1 - o o 0 0 o o - 1 0 o + o 0 1 o o - 1 1 - o o 1 1 o o - 0 0 o - - 0 1 - o o 1 0 o o o 1 0 + o o
+Ga Ti Bi 0 1 o + o 1 0 - o o 2 0 - o o 1 2 o o + 2 1 + o + 0 2 o o - 2 0 - o o 1 2 - o o 1 2 - o o 2 1 o + o 1 0 - - - 2 0 o o o 0 2 o o o 0 2 o + + 2 1 + o +
+Hg Ni Hg 0 1 - o - 2 1 + + o 0 2 - - - 2 1 o + o 1 0 o o - 2 1 o + o 2 0 + o + 2 1 o o + 2 1 o + + 1 0 - - o 1 0 - o - 2 1 + o + 1 2 o + - 0 2 o - o 0 2 o o +
+La Mg 1 0 + o o 0 0 + - o 1 1 - + o 0 1 - - - 0 1 o - - 1 1 + o o 0 1 o - - 1 0 + o + 0 0 + o o 0 0 o o + 1 0 o o o 1 0 + + o 0 0 o o + 0 0 + o +
+Hg Ti 0 1 - o - 1 1 - o o 0 1 - o o 0 1 o - - 1 1 o o o 0 0 o o + 1 0 + o o 0 1 - - - 1 1 o o - 1 0 o + o 1 0 + o + 1 1 o + o 1 1 + o o 0 0 + o o 1 0 o o o
+Ca Cu Sm 0 1 + o - 0 1 o - o 1 2 - + - 2 1 + o o 2 0 o o o 0 2 o - + 1 2 o - o 1 0 - o o 1 0 o o o 0 1 o + o 2 1 o o o 2 0 o + o 0 2 + o + 2 0 + o o
+Ta Cu 1 1 o - o 1 1 o o - 0 0 o o - 0 1 o - + 1 0 o - o 1 1 o o + 1 1 o - o 0 1 o o + 1 1 - o o 1 0 - - o 0 0 - o - 0 1 o + o 0 1 + o o 0 1 o + + 1 0 o - o
+Y Se 1 0 o o + 1 0 o o + 1 0 o + o 0 1 - - - 0 1 + o o 1 0 + o o
+Ca Ho 0 1 o - o 1 1 o o + 0 0 o - + 0 1 o + + 1 0 o - o 1 0 - o - 0 1 + o + 1 1 o - - 1 0 - - o 1 1 + o o 0 1 o o + 0 0 + o o 0 0 o o + 1 1 o o -
+Ir Ag 1 0 o - - 0 0 + - o 1 0 - o o 1 0 o - o 1 1 o o - 1 0 - - o 1 0 - o - 0 1 o o + 0 1 + + + 0 1 + + o 0 1 o o + 1 0 - o - 0 1 o o o 1 1 o o + 1 0 o o -
+Ti Ca 0 0 o - o 0 1 o + + 0 1 o + o 0 1 + + + 0 1 o + + 0 1 o o + 0 0 o - o 1 1 - o o 1 0 - - o 0 1 + o o 1 1 + o o 1 1 o + o 1 1 o + o 0 1 + o o 1 0 o o o 0 0 - o o
+Si Tm 0 1 - - - 1 0 o o o 0 1 - - o 1 0 o + o 0 1 - o - 1 0 o + +
+S Mg 0 1 o - o 1 0 + + + 1 0 o + o 1 0 + + +
+Os H Ti 1 2 o + o 2 1 o - o 1 2 o + o 2 1 o - o 0 1 o o o 1 0 - o o 1 0 o o o 2 0 - o - 0 1 + o o 2 1 - o o 0 2 + o o 2 0 - o - 2 0 - - o 0 1 o o + 0 2 + + o
+Pr In Ni 0 2 + o o 1 1 o - o 2 0 + o o 1 2 + o + 0 1 o - - 2 2 o - o 0 1 o o o 0 0 o - o 2 1 - - o 0 1 o - - 0 0 + o o 1 2 o + o 2 1 - - - 1 2 + + o 2 2 - o o 2 0 - o - 2 1 - - o 1 0 o o o
+La Dy 1 0 o + o 1 1 o - o 0 1 o o - 1 0 o o + 0 0 o - o 1 0 o + + 1 1 o o + 0 1 - o o 1 0 o o + 0 1 - - o 1 0 + + + 0 0 o + o 0 1 - - - 1 1 o o - 1 0 - o o
+Mg Cd Ge 2 0 + + + 1 2 o o o 1 2 - o o 0 1 o o - 0 2 o o - 1 0 - o + 0 2 - - - 2 1 o + o 0 1 o o o 1 0 - o o 0 2 - - o 0 1 - - - 0 2 o o - 1 2 o o o
+Ho Au Sc 2 1 + o o 0 2 o - o 2 0 o + + 1 2 o - - 1 0 - o o 1 2 - - o 1 2 o o + 1 2 o o - 2 1 o + o 2 1 o o + 1 2 - o - 0 1 + o o 0 2 o - -
+H Cu As 2 1 - o - 1 0 + o + 2 1 - - - 2 0 - o o 2 0 o - o 1 2 o + + 0 1 o o - 2 0 - - - 0 2 o + + 1 2 + + o 1 0 o o +
+Cd Tl 0 1 - - o 1 1 - o o 1 1 - + o 1 0 o + + 0 0 - o o 0 0 - o o 1 0 o o o 0 0 - o o 0 1 o o o 1 0 o o o 0 1 - o - 0 1 - o -
+Pt Ce Hg 1 2 o - - 0 2 o o - 1 1 o + o 1 0 o o - 0 2 o - - 1 2 - - o 1 2 o o o 1 2 o o - 0 1 o - o 1 0 o - o 1 2 o + o 0 1 o o - 1 0 + o + 0 2 o o + 0 1 - o o 2 0 - o o 2 0 - o -
+Mg Ca H Eu 2 0 o o - 1 2 o o o 1 2 o + + 1 0 - o o 2 1 - o o 2 1 - - - 1 2 + + o 0 1 o o - 2 0 - - - 2 1 - o - 0 2 o + o 2 0 - - - 2 0 o - - 1 2 o - o
+Li S 0 1 - + o 1 0 - o - 1 0 o - o 0 1 + o + 0 1 + o + 1 0 o - - 1 0 o o -
+Sc V 0 1 o + o 0 1 o o + 0 1 o + o 0 1 + + + 0 1 + o o 0 0 + o o 1 1 o o - 1 0 o o o 1 1 o - o 1 0 - o o 0 0 - o o 0 1 o o o 1 1 - o o 0 1 + + +
+Rb Tm Tm 1 2 - o - 0 1 o o o 2 0 - o o 2 0 o o o 1 0 - - o 2 1 + o + 2 1 o - + 0 2 + o o 0 1 o + o 2 0 - o o 1 2 o o -
+Eu Mg 0 1 - o o 1 0 + o - 1 1 - o o 0 1 o o + 0 0 - o o 1 0 - - o 1 0 - o - 0 1 + o + 1 0 o o - 1 0 o o - 0 1 o + - 0 0 + o o 0 0 + o o 1 1 o - o
+N Sr 1 0 + o - 0 1 o o o 0 1 + o + 0 1 o + o 0 1 o + + 0 1 + o o 1 0 o - -
+Au Cu Ge 2 0 o o + 1 0 + o o 0 2 - - o 0 2 - o o 2 0 o o + 2 1 o + + 2 1 + o o 1 2 o o o 1 0 o o o 0 1 o - - 2 0 + o + 2 1 o - o 2 1 + o o 1 2 o o + 2 0 + + o
+Tl Hg 1 0 - - - Sr 1 1 o - o 1 0 - - o 2 1 o o o 1 1 o - o 0 1 o + o 1 1 + o o 1 0 o o - 0 0 - o o 2 1 o + o 1 2 o - - 0 0 + o o 0 1 + + + 0 2 - o o 2 0 o o -
+F Si B 1 2 o - - 0 2 - o o 0 2 + - - 0 0 o o - 1 1 - - o 2 1 - o o 2 0 o + o 0 1 - o o 2 2 - o + 2 0 o o o 2 0 + + + 2 1 o o o 1 0 o + o 1 2 - o o 2 2 + o o 1 0 + o + 2 2 o o + 2 0 + + o
+Hg V Pd 1 2 o + o 1 2 + + o 1 2 + o o 0 2 + o + 2 2 o o - 2 2 o o - 2 1 - - - 1 2 o + + 2 0 o - - 2 0 o o - 0 1 o o o 0 1 + o o 0 1 o o o 1 2 - - - 1 2 o - o
+Si Fe 0 1 - o o 1 1 o + - 1 1 o - o 0 1 - - - 1 0 o + o 0 1 - o - 0 1 - - o 0 0 o o + 1 0 + o + 0 1 o o - 1 1 + o + 0 0 o + o 0 1 - - o 0 0 o o -
+Ag Er 1 0 - - - 0 0 o - o 1 1 o o - 1 1 - o o 0 0 o o - 0 1 o o + 1 1 - o o 0 1 + + o 0 1 o o + 1 0 - - - 0 1 o + o 1 0 o o o 1 0 - - -
+Ca Ag 0 0 o + o 1 1 o o - 0 0 o o o 0 1 - - - 1 1 o o - 0 0 o o - 1 1 - - o 0 1 - o - 1 1 o + o 1 0 + o + 1 0 o o o 0 1 - - o 1 0 + - o
+Te Er 1 0 o o - 1 0 o - - 1 0 - - - 0 1 o o + 0 1 o + o 1 0 - - o 0 1 o o o
+Eu Te Sn 0 1 o o - 0 2 + + o 0 1 o o o 0 2 + + + 1 2 + + + 2 1 o o - 0 1 - - o 2 0 - o o 1 2 + + o 0 1 o - o 2 1 o - - 1 2 o o + 1 0 o o +
+Bi Br Sm 0 2 o - o 1 0 - - o 0 2 o o + 2 1 + o o 2 0 o o o 1 2 - o o 0 1 o - o 2 0 o - o 0 2 + o o 2 1 o + o 1 0 - - - 0 2 + + - 1 2 o - o 1 0 o - -
+Ga Ag Si 1 0 - - o 1 2 o o o 2 1 o + + 2 1 + + + 1 0 - - - 2 0 o - - 2 0 o o - 1 2 o o - 0 2 + o o 2 0 - - o 2 0 - o o 0 1 o + + 1 2 o - o 0 2 o o o
+N Mo 1 0 o o - 1 0 - - o 1 0 o - - 0 0 + o o 1 1 - o o 0 0 o o - 0 1 + o + 1 1 - o o 1 0 o - - 1 1 - o o 0 1 + o + 1 1 o o -
+Nd Y 0 0 o o + 1 0 - - - 0 0 o o - 0 0 - o o 1 0 - - - 1 1 o - o 1 0 o o o 0 1 - o o 1 1 o - o 1 1 o - o 1 1 + o o 0 0 - o o 1 1 o - + 0 0 o - o 1 1 - o o 0 0 o + -
+Dy Ta Hg 1 1 - o o 2 1 o - o 2 0 - o o 1 2 + o + 0 0 + + + 0 0 + - o 2 0 o - - 1 2 o o o 1 1 - + o 2 2 - o o 0 1 - o - 2 2 o + o 2 2 - o o 1 1 o + o 2 2 o o + 1 0 o o + 1 0 + o - 2 0 - o o 1 1 + + o 1 0 + o o
+Ho Hg Sn 2 1 o - o 0 1 o o o 1 0 - - o 2 1 + o + 2 0 o - o 0 2 - + o 2 1 o o - 0 2 o - o 0 2 o o + 2 1 o o - 1 0 - o - 0 2 o + + 2 0 o o - 0 1 o o +
+Y Ho Er 2 1 o o + 0 1 o o + 2 1 + o o 1 0 - - o + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+Hg Au Ni 0 0 - o + 2 1 o - o 2 2 - o o 0 2 - - - 2 1 o o o 2 2 + o o 1 0 - o + 2 2 - + o 1 1 + o o 0 0 o + o 1 0 + + - 2 0 + o + 2 2 o + o 2 2 + + o 0 1 o o - 0 1 - - - 0 2 o - - 0 1 - - - 0 1 o o - 2 1 o - o
+Lu Ce Li 0 2 - - - 0 1 - o - 0 1 - o - 0 2 - - o 1 1 o + o 2 2 o o + 0 2 o - - 2 2 o + + 0 2 o - - 0 2 o o o 2 2 + o o 0 1 o o - 1 2 + o o 2 1 o - o 0 1 - - o 1 2 o - o 2 0 o o +
+In Mg 1 1 + o + 0 1 o o + 1 1 o o - 1 0 - - - 1 1 o + o 0 0 + o + 0 1 o + o 1 1 + o o 0 0 - o o 1 0 - - o 0 1 + + o
+Pt F Li 1 2 - + o 1 2 o + o 1 0 o + o 2 1 - - o 2 0 o - - 2 0 o - o 1 0 o o o 2 1 - - - 1 2 + o o 2 0 - o - 0 1 o o - 0 2 o + o 1 0 + - o
+Pt P Ce 2 0 o o o 2 1 + o o 1 2 - o o 2 0 o + + 2 1 + + o 0 2 - o - 1 2 - o o 1 0 o - o 1 0 o - - 1 0 - - o 1 2 - - - 1 0 - o o 2 0 + o o
+Mo Tm S 0 1 - o o 0 2 o o - 1 1 - - - 1 2 o + + 1 2 + + o 0 2 - o o 0 2 o o - 1 2 - o - 0 2 - o o 2 0 + + + 0 1 o o o 2 1 + + o 1 1 - o - 1 0 + o o 0 1 + - + 2 2 - o o 0 2 - - - 2 1 - o + 2 1 + o o
+Hg Al 0 1 + + o 0 0 - o o 1 0 - o - 1 1 o - o 1 0 - o o 1 0 - - - 0 0 o o - 0 1 o + + 0 1 o o + 1 1 o o + 0 1 o o + 0 0 o - o 0 1 + o o 1 1 - o o 1 0 o o o
+I La 1 0 o o - 1 0 - o - 1 0 - o - 0 1 + o o 1 0 - - - 1 0 o - - 0 0 o o + 1 0 - o - 0 1 o o o 1 0 - - o
+Pb Rh 1 0 o - - 0 1 + o o 1 1 o - o 0 1 o - o 1 0 - o o 0 0 o - o 1 1 o + o 0 0 o - o 0 1 o o o 0 1 o o + 0 0 o o + 1 0 - o - 1 1 o + o 1 1 o + o 1 1 - o o 0 0 o + o
+H Ca Hf 1 0 + o - 0 2 o + + 2 1 - - - 2 1 o - - 1 2 o + o 0 2 + + + 1 0 + - - 1 2 + + + 2 0 + o o 2 0 o o - 1 2 + - o 1 0 o - - 2 1 o o o 0 1 + + o
+Be Rh 0 0 - - o 1 1 + o o 0 0 o o - 1 1 - o o 0 0 - o o 1 1 + o o 0 1 + + + 1 0 o - o 0 1 o o + 1 1 o o + 0 0 o + o 1 0 o - o 0 1 + + + 1 1 - o o 1 0 o - -
+Gd Ru Te 1 2 o + + 2 0 + - o 2 0 - o - 1 2 + o o 2 1 o o o 2 0 o o o 2 1 o o + 2 1 - o o 2 1 - - - 1 0 o + o 0 2 o - o 1 2 o + o 2 0 o o -
+Ti Y 1 0 o + - 0 1 + + o 1 1 o o - 0 0 o o + 0 0 o - o 1 1 o - o 1 0 o - - 0 1 o + o 0 1 + + o 0 1 o + + 1 0 o o - 1 0 - o o 1 1 + o o 0 1 + o o
+Cr Te 0 1 + o + 1 1 - o o 1 0 o - - 1 0 o o o 1 1 + o o 0 1 o + o 1 0 - - o 1 0 o + o 1 0 o o - 0 0 o o - 0 0 o + o 1 0 + o -
+Er Pb 0 0 - o + 0 1 o - o 0 0 o - + 1 0 - - o 1 1 + - o 0 1 o + + 1 1 - o o 1 1 + o o 1 0 o o - 0 1 + + + 0 0 + - o 1 1 - o o 0 0 o - + 0 1 o + + 0 0 o + o 0 0 - - o
+Lu Cu 0 0 o + + 0 1 + o + 0 0 o o - 1 0 - - o 1 0 - o - 1 0 o - o 1 1 + o o 1 0 - o o 1 1 - o o 1 0 o o - 1 0 - - o 0 1 + + + 0 0 o o +
+Cd Zr Pd 2 2 - o - 2 1 o + o 0 0 o - o 2 0 o + + 2 1 + + + 1 2 - - o 0 0 + o + 0 1 + + o 0 1 o o o 1 2 - - - 0 0 o - o 1 2 o o - 0 1 + o + 0 1 o + + 2 0 - o o 1 0 o o o
+I Ta Sb 1 0 o o - 2 1 o + + 2 0 + o - 0 2 - - o 1 2 - - - 0 1 o + o 2 1 o + + 0 2 - o o 2 1 + o + 0 1 o o + 0 1 + + o 1 2 - - - 1 2 o - o 1 0 o o -
+Pr Rh 0 1 o + o 0 1 o + o 1 0 - o - 1 1 - o o 1 0 o o o 1 1 o o + 0 1 + o + 0 0 o + o 1 0 o + o 1 1 + o - 1 0 o - - 1 0 o - o
+Mn Mn 1 0 + + o 1 0 + + + 0 1 - o o 1 0 o + + 0 0 + o o 0 1 o o - 1 1 o o - 1 0 + o o 0 1 o o - 0 1 o - -
+Ni Ba F 1 0 o + o 0 1 - o - 2 0 o o o 2 1 - - - 0 2 o + - 0 2 o + o 2 0 - - - 0 2 + o + 1 2 + + o 1 2 + o o 2 1 - - - 0 1 - o o 0 1 o o + 2 1 o o o
+Ti Cd 0 1 - o - 1 1 + o - 0 1 o - - 1 0 + o o 1 0 o o + 1 0 o + o 0 0 o - o 1 1 - - o 0 0 - o o 1 1 + - o 0 0 o - - 1 0 o o o 1 1 o - o 1 0 o o +
+Sc Ho 1 1 + o o 0 0 o o + 1 1 + - o 1 0 o o - 0 1 + + + 0 0 o - o 0 1 o + o 1 0 o - - 0 0 o - o
+Ca Cu 1 0 - - - 0 0 o o + 0 1 o + o 0 0 o o - 0 1 + + o 1 1 - o o 0 1 + o o 0 1 + o o 0 1 + o o 1 0 o - o 1 1 - o o 1 0 o o o 1 0 o - - 0 1 o o o
+Au Se Cu 0 1 - o o 0 1 - - o 1 2 + o o 2 0 + o o 0 2 - - - 0 2 - o - 2 0 o + o 1 2 + o - 0 2 - o - 1 0 o o + 0 2 - o - 2 1 - o o
+Sm La 0 1 o - - 1 1 o o - 1 0 + + o 0 0 - o o 1 0 o + o 0 0 o o - 0 1 - - - 1 1 + o + 1 1 o o + 0 0 - o o 0 1 o o - 1 0 o + +
+Sb Cd 0 1 + o o 0 0 o - o 1 1 - - o 1 0 - - o 1 1 o + o 1 1 o - o 0 1 o o + 1 1 o - + 0 1 o + + 0 0 o o - 0 0 + o o 1 1 o - o 0 0 o o - 1 1 o o +
+Hg Bi Hg 1 0 o o o 2 2 o o - 0 1 + + o 1 1 o o o 2 2 + o o 1 1 + o - 0 0 o o o 1 0 - o - 1 0 o - - 1 1 o + o 2 2 o o + 2 0 o o - 0 2 o + o 1 1 o + o 1 0 - - - 0 2 o + o 1 0 - - - 2 1 + + o
+O Zn 1 0 o + + 0 1 o o - 0 1 - - - 1 0 o + o 0 0 o - + 1 1 o - o 1 1 o + o 1 0 + o + 0 0 o - o 1 0 + + o 1 0 o o o 0 1 - o o 0 1 o o o
+O La B 0 1 o + o 0 2 - o - 2 0 o o o 0 2 - - - 1 0 o - o 1 2 o o - 2 0 o + + 2 0 + + + 0 1 o + - 1 0 o + - 2 1 + + o 0 1 o o - 2 1 o + o
+Dy Cd 0 1 o - - 0 1 o - o 0 1 o o - 0 1 - - o 0 1 - - - 0 1 o - o 0 1 o - - 0 1 - o -
+Ca Zr 1 0 o + o 0 1 - o o 0 1 - - - 1 0 + + o 0 0 - o o 1 0 o + + 1 1 o o + 1 1 - o o 0 0 o + o 0 1 o o + 1 1 - o o 0 1 o o - 0 1 o - o 0 1 - o - 0 0 o o - 1 1 - o o 1 0 o + + 1 0 + o o
+O Nd 0 1 + o o 0 1 o o + 1 0 - - o 1 0 - o o 0 1 + o o 1 1 o - o 1 0 - o - 1 0 o - o 1 1 o - o 0 1 o + + 0 1 o o o 0 1 o + o
+Nd Au Sn 0 2 o - o 0 1 + o o 2 2 o o o 2 0 o + o 2 2 o + + 2 2 + o o 2 1 o + + 0 2 - o - 2 1 + + + 1 0 - o - 2 0 o o + 2 1 o o + 0 1 o + o 0 1 - + o 2 1 o + o 0 2 o + o
+Se F 0 1 o + o 0 1 + + o 0 1 + o + 1 0 o o - 1 0 o - - 1 0 o o -
+Ga P O 0 1 o o o 0 2 + + o 2 0 o - o 2 1 - - o 2 1 - - o 0 1 o o - 1 2 + o o 0 1 + o o 0 2 + + 1 0 - o o 0 2 o + o 2 0 o - o 1 2 o + + 2 0 - o -
+Ag Br Al 1 2 o o o 0 2 o o - 1 2 - - o 2 0 o o o 1 2 - o - 0 1 o o - 1 0 o + + 2 0 o + + 2 1 o + + 0 1 - - - 0 2 - o o 0 2 o - o 2 1 o + o 2 0 + o +
+Ni N Sm 0 1 o o o 1 2 o o + 1 2 - o o 2 0 o o + 0 2 - - o 2 1 + + + 0 2 o o o 2 0 o + o 1 2 - o - 1 0 o - - 1 2 o + o 1 0 o o - 2 0 o o - 1 2 o - o 2 0 o o o
+Co As 1 1 + o + 1 1 o + o 0 1 + o - 0 0 o - + 0 0 o - o 1 0 o o o 1 0 + o + 0 0 o o - 0 1 o - - 0 1 - - o 0 1 - - o 0 0 o + o 1 1 o + o
+Ti S 1 0 o - o 1 0 o - o 0 1 o + o 1 0 - o o 1 0 - o - 1 0 o - -
+Sb Cu Si 0 2 - - - 2 0 + o - 2 0 - - o 1 0 o o - 1 0 - o o 0 1 + o o 2 1 + + + 1 2 o - o 2 1 + o + 0 2 o - o 2 1 o + + 2 1 o o o 2 1 o + o
+Nb H Si 0 2 o + o 2 1 - o - 1 2 + o o 2 0 + + o 0 1 o o o 2 0 o o + 1 0 + o + 0 1 - - o 0 1 o - - 1 0 o + o 1 2 o - o 1 0 + o o 2 0 + o +
+Zn Zr 1 1 o + + 0 1 o + o 1 1 o o + 1 1 - o o 0 0 o - o 1 1 - o o 0 0 o - + 0 0 o - o 1 0 + - - 0 1 + + o 1 1 o - o 1 0 - - - 0 1 o o + 1 1 o o - 1 0 - o o 0 0 o - o
+K Zn Sb 1 2 o o + 1 0 + o + 0 2 o - o 0 1 o - - 1 0 o o + 0 2 o - o 2 0 o o o 1 2 o o + 0 1 - - o 2 1 o - o 0 1 o - - 0 2 o - o 0 2 o - - 2 0 o o o
+V B Fe 0 2 o - - 0 1 - - - 0 2 o o o 2 1 - - - 1 0 o + + 1 2 + + o 2 0 o o + 2 0 o o + 0 2 - - o 2 1 o - o 2 1 - - - 0 2 o + o 0 2 o + o 2 0 - o o
+Ge Cr 1 0 - - - 1 1 o o + 1 0 o - - 1 0 - - o 1 0 - o - 0 1 + + o 1 1 o o - 0 0 - o - 0 1 + o o 0 0 o o - 0 1 o o + 0 0 o + o 1 1 o + o
+Lu Li Hg 0 2 - o - 0 1 - - o 0 1 o o - 2 2 o + o 2 2 - o + 1 0 + o o 1 1 o o - 2 1 o o - 0 0 o - o 1 2 - o - 2 0 o o o 1 2 o o + 0 1 - - - 2 2 + o o 1 1 o o - 0 0 - o o 2 2 - - o 1 0 o + + 2 1 o - o 2 2 o o +
+Be In 0 1 - o - 0 1 - o - 1 0 + o o 0 0 - o o 0 1 - - o 1 1 - o o 0 1 - o - 0 0 o + o 1 0 + + + 0 1 - o o 1 0 o + o 1 0 o o + 0 1 - o o
+Mo Ho 1 0 - - + 0 1 - - o 1 1 + o o 0 0 o + o 0 1 o o o 1 1 - o - 1 1 o - o 1 0 + o o 0 0 o + o 0 0 o - o 0 0 + o o 1 1 - o o 0 0 o - o 0 1 - - +
+In Bi 0 0 o - o 0 0 o - o 1 1 o + o 0 1 o o - 1 0 - - o 1 1 o o + 0 1 o + o 1 1 o + o 1 0 o - - 1 0 - - o 0 0 o - +
+Mg Ho 0 0 - o o 0 1 - o o 0 0 o + o 1 1 o + o 0 1 o - o 0 1 o o - 1 0 + + o 1 1 + o o 1 0 + + + 1 0 o + o 1 1 + o o 0 0 o + o 0 1 o - o 0 1 - - -
+Lu Mg 1 1 - o o 1 0 o - - 0 0 o o + 1 0 - - - 0 0 + o o 1 1 o - o 1 0 o - o 1 1 + o o 0 0 o - + 0 1 o o + 0 0 o o - 0 1 + + o 1 0 - o -
+O Si Fe 0 2 + - o 1 0 - o o 0 1 o o - 1 0 - - o 0 2 + o - 0 2 o + o 2 1 o - o 1 2 - o o 2 1 + + + 1 2 - - o 2 0 + o + 1 2 o o o 2 0 o o + 2 0 o - -
+Ag O Ni 1 2 o + o 1 0 o + + 2 1 o o - 1 0 + o o 1 2 + o o 1 0 o o + 1 0 + o o 0 2 o o - 2 1 o - o 0 2 - - o 2 0 o o o 1 2 o o - 0 2 - - o 1 2 o - o 1 2 + o +
+Cu Gd Mo 2 1 + o o 2 1 o + o 1 2 - - - 0 1 + o o 0 1 - + o 2 1 o + + 0 1 + o o 1 0 - o - 2 0 o - o 2 0 + o o 2 0 + o o 0 2 o o + 1 2 - o - 0 2 o o + 1 2 o - -
+Ce Se 0 1 - - - 0 1 - o o 1 0 o + o 0 1 - o o 0 1 - o o
+H Sb Ni 1 2 + o o 0 1 + + + 1 2 o o + 0 2 + + + 2 2 o - o 0 2 o o + 0 1 o + + 1 2 o + o 1 0 - o - 1 0 - o o 2 1 - o o 2 0 o - o 2 0 - - o 2 0 o - -
+Ir Tc 1 0 - - - 0 1 o + o 0 0 o - o 1 0 - o - 1 1 - - o 1 1 o o - 0 1 o + + 1 0 o o o 0 0 o o o 1 1 o + o 0 1 + + o 0 1 o + o 0 0 o o +
+Sb Te Cd 2 0 + o + 0 2 o - o 2 1 + + o 0 1 - o o 0 1 o o - 0 2 o o o 2 0 o o + 1 0 o + o 0 1 o o - 0 1 o o - 1 2 o - o 2 0 o o + 2 0 + + o 1 2 - o -
+Al F Mg 1 0 + o o 2 0 o o o 2 0 o o - 2 0 o + o 0 1 o o o 1 2 o o + 2 0 o + + 1 2 + o o 0 1 o o - 2 1 o + o 1 2 + o o 1 0 + o o
+Tb S 1 1 - - o 0 1 o o o 1 1 o - - 1 0 o o o 0 1 o - - 0 0 o - o 0 0 o - + 0 0 - o o 0 0 o - o 1 1 o - o 1 1 o - o 1 0 + o o 0 1 - - - 0 0 o - o 0 1 - - -
+N Co S 1 2 - - o 1 2 - o o 2 0 + + o 2 0 o o + 1 2 - + o 0 2 - o o 2 0 o - o 1 2 o o + 2 0 o o + 1 0 o + o 2 0 + o o 2 1 o + o 1 0 o o + 2 1 - o o
+V Mg 1 1 - + o 0 0 o - o 0 0 - o o 0 1 o o + 0 1 - - - 0 0 o + o 1 1 o - o 0 0 + o o 1 0 + o + 0 1 - o - 0 1 o - o 1 1 o o - 0 0 - o o 1 1 o o o 0 1 o - -
+Ti Er Sn 0 1 + o o 0 2 o + + 0 2 + o o 2 1 o o o 0 2 o + + 0 1 + o + 0 2 - o o 0 1 + o + 1 2 - - o 1 0 o o - 0 1 + o o 1 0 - - o 2 1 o o + 1 2 - - -
+H Sm Si 0 1 + o + 2 1 + o o 1 0 o - o 2 1 o + o 2 0 - - o 2 0 o - - 2 0 o - - 2 1 o - o 2 1 o o - 1 2 o o o 1 2 o o - 1 0 - - o 1 0 o - - 1 2 o - o
+Ti Se 1 0 o + o 0 1 o - o 0 1 o - o 1 0 o o + 1 0 o + o 0 1 o o -
+Cs K 0 1 + o o 1 0 o - - 0 0 o - o 1 0 - o o 0 1 o o + 0 0 o + o 1 1 o o + 1 0 o - - 1 0 - - o 1 0 o o - 1 0 - - - 1 1 o - o 1 1 o o - 0 0 o o + 0 1 + + o
+Hf V Mg 1 0 - o - 1 1 - o o 0 1 + + o 0 1 o + o 2 2 - o o 0 2 o - - 2 0 - - - 2 0 - o - 2 0 - - o 1 0 - o o 1 1 + o o 0 1 o o o 2 0 o o o 0 2 o o o 1 2 o - - 0 1 o o o
+Si Ag Pb 2 0 o + o 2 0 o + o 1 2 - - o 1 2 o - o 0 2 - o o 0 1 + o o 2 0 o + + 0 1 o o o 0 1 o o + 2 1 + + o 2 1 + o o 1 0 - - o 1 2 o - - 0 2 o - o
+C Tl 0 1 o + o 0 1 + o + 1 0 - o - 1 0 - o o 1 0 - o - 0 1 o o +
+Pb O 0 1 o - - 0 1 - o - 0 1 - - o 0 1 o - - 0 1 - o o 0 1 - o -
+Mg Si B 2 0 - - o 1 0 - o - 2 1 o + + 0 2 - o + 2 0 o + + 0 1 o o + 0 2 o o + 0 2 + + o 1 2 o - o 1 2 o o - 2 1 + o o 2 0 o + o 0 1 o o o 1 2 + o o
+Mg Nd Sm 2 1 o + o 0 2 o o o 0 2 o + o 2 1 + o + 1 1 o + o 0 2 - o o 1 0 - - - 2 2 + o - 2 2 o o + 0 1 + + + 0 1 + o o 0 0 - o o 0 1 o + o 1 2 + o - 1 1 - - - 0 2 o - o 0 2 - o o 2 1 - o o 1 0 - - - 0 0 + o -
+Ag Mo H 2 0 - o + 1 2 - - o 2 0 + - + 2 1 + o o 1 0 - - - 1 0 o - - 2 0 o o o 1 2 - - o 2 0 o o o 0 1 o o + 0 0 - o o 0 0 o - o 0 2 + o o 1 2 - - - 2 2 - o - 1 1 o - o 1 2 - - - o 2 0 o + -
+Pd Rh 1 0 - - - 0 1 o + + 0 1 + o + 1 0 o - -
+Re O 1 0 + + o 0 1 - o - 0 1 - o o 1 0 + o o 1 0 + o + 1 0 o o +
+Pd Pd Bi 1 0 o o o 0 2 + + + 2 1 + + o 0 2 + o + 2 0 o o - 0 2 o + + 1 2 o - o 0 2 + o o 2 1 o o o 2 0 o - - 2 1 o o + 2 0 o - o 1 0 - o - 0 1 + + o
+Mo Nd 0 0 o + o 0 1 o o + 1 1 - o o 1 0 - - - 1 0 o - - 0 1 o o o 1 1 o + o 0 0 o - o 0 1 o + + 0 1 + + o 1 1 o - o 0 0 + o o 0 1 o + o 1 1 o - o 1 1 o + o
+Ga N 1 0 - - - 1 1 + o o 1 1 + o o 1 0 - - o 0 1 o + o 1 0 - o - 0 1 + o + 0 0 o o + 0 0 o o + 1 0 o o o 0 1 o + o 0 0 o o - 0 1 + + o 0 0 o - o
+Mo K Te 0 2 o + o 2 1 - - o 0 1 o - - 2 1 o o - 2 1 o - o 1 0 + o - 0 2 o + o 1 2 o o + 2 1 o o - 0 1 o o - 1 0 o o + 2 1 o - o 0 1 o o o
+Os Pt Dy 0 2 o - o 0 1 o - o 2 0 + o o 2 1 o o - 2 1 o o + 1 0 + + o 0 2 - o o 1 0 o + o 1 2 o + o 1 2 o o o 0 2 o - - 0 1 - - - 2 0 + o o
+N Bi 1 0 - o - 1 0 - - o 0 1 o o o 1 0 - o o 0 1 + o o
+Ca Mg 0 1 o - - 0 1 - o o 1 0 + o o 1 1 - o o 1 0 + o o 1 0 o o + 0 0 - - o 0 1 o - - 0 1 o - o 1 1 o o - 0 0 + o o 0 0 o - o 1 1 o o + 0 1 o - -
+O Ca 1 0 - - o 1 0 - o - 0 1 o + + 0 1 o + o 0 1 o o o 0 1 o + + 0 1 + o o
+In Zn 0 0 - o o 1 1 o + o 1 0 o - - 0 0 o o - 0 1 o o + 1 0 - - - 0 1 o + o 0 1 + o + 1 1 + o o 0 0 o - o 0 0 - o o 1 0 o - o 1 2 o - o 0 1 o + + 1 0 - - -
+Pt Gd 0 0 o o - 1 0 - - - 0 0 + o o 0 0 o o - 0 1 o + + 0 0 o o + 1 0 - - - 0 1 + o o 0 1 o o + 1 1 o o + 1 1 o o + 1 1 o o - 0 1 o + + 0 1 + o + 0 0 o o + 1 0 - - o 1 1 o o -
+Cd Ho Ge 2 1 o - - 0 1 - - o 1 2 o + + 1 2 o + o 0 1 - - o 0 1 o - - 1 2 o o + 2 0 o o o 0 2 - o - 1 2 o o + 1 2 + o o 2 0 o o o 2 1 o o - 2 0 o + -
+La Bi Sb 1 2 o o + 1 2 + + o 0 2 o + o 2 1 - - - 1 0 o + o 2 0 o - o 1 2 o o o 2 0 - - - 2 1 - o - 1 2 o o o
+Pd Dy 0 1 o o + 1 1 o o + 1 0 o - - 1 0 o o o 1 1 - o o 1 0 - - - 0 1 + o o 1 0 - - - 1 1 - o o 0 0 o + o 1 0 - - - 1 1 o o + 0 0 o o - 0 0 - o o 1 0 o - o 0 0 o + o
+- S 0 1 - o - 0 1 o - - 0 1 - o o 1 0 + + o 1 0 o o o 0 1 - - o
+Co Tb 1 0 - - o 1 0 - o o 1 1 + o - 0 1 + o o 1 0 o - - 0 1 o o + 1 1 - o o 1 0 o - o 0 0 o + o 1 0 o - - 0 0 + o o 1 1 - + o 1 0 - o - 1 1 - o -
+Cd As 0 1 o o o 1 0 - - o 1 0 o - - 1 0 o - - 1 0 - o - 1 0 - o o 1 0 - o o 0 1 o + + 1 0 - o o
+Cd Rb Si 0 1 o o + 0 2 - o o 2 0 + o + 0 1 - - o 1 0 o o o 1 0 + o + 1 2 - - o 1 0 o o o 0 2 - - - 0 2 o o - 0 2 - o o 1 2 o - - 1 0 + o o 0 2 o o o
+B Li Ag 2 1 - - - 0 2 o + + 0 1 + o o 0 1 o - o 2 0 - o o 1 2 o o + 0 2 + + + 2 0 o o - 1 2 + + o 2 1 o - o 2 0 - - o 1 2 o o o 0 2 - o o 1 2 + o o 2 0 o - -
+Sc Sb Sn 0 2 o o - 2 1 o o o 2 1 + o o 2 1 + + o 2 1 o o o 2 0 o - o 2 0 o o + 2 0 + + + 0 1 - - o 2 0 + o + 1 0 o + + 1 0 + + o 0 1 - - - 1 2 + o o
+Ba B 1 1 - o - 1 1 - o o 0 0 - o o 0 1 o - o 0 0 + o o 1 1 o o + 0 1 - - - 0 1 o - - 1 1 o o + 0 1 - - o 0 0 - o - 0 1 - - - 0 0 o o - 0 1 o - - 0 1 - - o
+Se C 0 1 - - - 0 1 - - o 1 0 o + + 0 1 o o - 0 1 - - o 0 1 o o - 0 1 - o o
+O Cu Ca 1 0 o o - 0 1 o - o 1 2 - o - 0 1 + o o 2 1 + o o 2 1 + + o 0 2 o - o 1 0 o o - 2 0 + o o 1 2 o - - 0 2 - - o 2 0 o + o 0 2 - - - 1 0 o o o
+Y Zn 0 0 - o - 1 0 o o + 1 0 o + o 0 0 - o - 1 1 + o o 1 1 o + o 1 0 + + o 1 0 + o o
+Te Li Pt 1 2 o o o 0 2 o + o 2 1 o o - 2 1 + o o 0 2 o + - 0 1 o + o 1 2 - o o 1 0 o - o 1 2 o o + 1 2 + o o 0 2 - o o 2 0 - o o 0 1 - o o 0 2 + o o 0 2 o + +
+Mo Ca 0 1 - - o 0 0 o o - 1 0 o o + 0 1 - - - 0 1 - - o 1 0 + o o 1 1 o + o 0 0 o + o 1 1 o + o 0 1 o o - 1 1 - - - 1 0 o + + 1 1 o - o 0 1 o o -
+Cd Sb Na 0 2 - o - 1 0 o o + 0 2 o o o 2 1 o o - 0 2 - o o 2 0 o o + 1 2 o o o 1 2 o - o 0 1 o o - 2 1 o + o 0 2 - - o 1 0 o + o 0 2 o - -
+Sb Sr Si 2 0 o + o 1 0 - o o 2 1 + + + 2 0 o - o 2 1 o + o 0 1 + + o 2 0 - o o 1 0 o - - 2 0 o o o 0 1 o + o 1 2 o + - 2 1 o o o 2 1 o o o 1 2 o o o 0 2 - o -
+Hg Te 1 1 - o o 0 0 o o - 1 0 + o o 0 1 - - o 0 1 - - - 1 0 + o + 1 0 o o + 0 1 o o o 1 0 + o o 1 0 o + o 0 1 - - -
+Re Ga Dy 1 2 o o + 2 0 o - o 0 2 o o - 0 2 - o o 1 0 - o o 2 0 o o o 1 0 - o o 1 2 - o - 2 1 + + + 2 0 o + o 0 1 + - + 2 0 o + o 2 1 + + o 0 1 o o + 2 0 o + o
+Ti Pd O 2 0 + o + 0 1 o + o 1 2 o - - 1 2 - - o 1 2 - o - 1 0 o o - 0 2 - o o 1 2 - - - 2 1 o + o 0 2 o o o 1 0 o - o 0 2 o + o 0 2 o o -
+Rh S 1 0 o o + 0 1 - - - 1 1 o + o 1 1 o - o 1 0 + + o 1 0 + + o 0 1 - - - 0 1 o - o 0 1 o o - 0 0 - o o 1 0 + + o 0 0 + o o 0 0 o - o
+Eu F Si 1 2 o + + 2 0 o - o 0 2 + o o 1 0 - - o 1 2 o + o 2 0 - - - 1 2 o + + 0 1 - o o 2 0 o - - 2 1 o - - 1 2 o + o 0 1 o o o 2 0 o - o 1 2 + + o 2 0 o o -
+Na Pd Y 1 2 o o o 2 1 - o o 1 2 o + + 0 2 o + o 2 1 - - - 2 0 - - o 1 2 + o + 2 1 o o - 2 0 - - - 2 0 o - o 0 1 - o o 1 2 + + +
+Hg V Bi 2 0 - - o 0 2 o + o 0 2 + o + 0 2 o + + 1 2 o o o 1 2 o o + 2 1 o o o 0 2 + + o 0 2 - o o 0 1 o o o
+Pd Nb 1 1 o o - 0 1 + o o 0 0 o - o 0 1 o o o 1 0 o - - 1 1 o - o 1 0 o - o 0 1 + + + 0 1 + + + 0 1 + o + 1 0 o - - 0 0 o - o 0 1 + + o
+Rh Fe Ne 1 2 - + o 0 1 - o - 0 2 - - - 1 0 o o o 2 1 o - o 0 1 - - - 1 2 o o o 0 2 o o o 1 2 o + + 0 1 o - o 0 2 - o + 0 2 o + o 0 2 o + o 2 1 - o o
+Pd Sn Sn 0 2 o o + 0 2 o + o 2 0 - o - 1 0 o o o 1 2 + + o 1 0 o o o 2 0 o - o 2 0 - o o 0 2 + + + 2 1 o o o 1 2 o o + 2 0 o - o 2 0 o - o
+Mg Mg Cu 2 0 + + - 2 1 o o - 2 0 o o + 2 0 o o o 1 2 o o - 1 1 - - o 0 1 o o o 1 0 - o o 1 2 + - - 2 2 + - o 1 1 - o - 2 2 + o - 1 2 o + o 0 1 o - o 0 2 o + o 0 1 o - o 1 0 o o o 0 2 o o o
+Mg Y Tb 1 0 + o o 2 2 o - o 1 2 o o + 0 0 o + o 1 1 o o - 0 2 - o + 2 2 o - o 2 1 - o o 2 1 o - o 1 2 + + o 2 0 - - - 1 0 + o + 0 1 o - o 1 2 + + + 0 2 o + + 0 2 o + + 0 1 - o o 0 2 o + + 2 1 - o o 0 2 + + o 1 2 o + o
+F K Mg 1 2 - - o 0 2 + o + 0 2 o o o 1 2 + o o 2 1 - o o 1 2 o + + 2 0 - - o 1 0 o o o 0 2 o o + 0 2 o o + 1 2 - o o 0 1 o - +
+Ce Se K 0 2 o + o 2 1 + o - 0 1 o o - 1 2 - + o 1 0 - o - 0 1 - + + 1 0 - o o 1 0 - - o 1 2 o o - 2 1 o o + 0 2 o - o 2 0 - o o 2 1 o + o 1 2 - o -
+C Ta 1 0 - - o 0 1 + o + 0 1 o + +
+Sr Pb 0 0 + o o 1 1 - o o 1 0 - - - 1 1 o + o 0 0 o o + 1 0 o - - 0 0 o + + 1 0 - - o 0 1 o + o 0 0 o o - 0 0 o o + 1 0 - o - 1 1 o o - 1 1 o o + 1 0 o - o 0 1 o + +
+Ce O Tb 1 2 o o o 0 2 o o o 2 0 o o + 0 2 o o o 2 0 + + o 0 2 o - - 1 2 - o - 1 0 o o o 1 0 o + o 2 0 + o + 1 2 + o - 0 1 o o - 2 0 + + o 2 1 - o o
+Mg S 1 0 - - - 0 1 o o o 1 0 - - o 0 1 + o o 0 1 + o o 1 0 - o - 0 1 o o -
+Al Nb Ge 2 0 - - + 2 0 o - o 1 2 - - o 0 2 o + o 1 2 - - - 1 0 o - - 2 1 o + o 2 0 - o - 0 2 o + o 2 1 o - o 0 1 + o + 1 0 o - o 1 0 o o - 1 2 - o o 1 0 o o -
+Er O 0 1 o o + 0 1 - - o 0 1 - - - 1 0 o o + 1 0 + o o
+Mg Te 0 1 - - o 0 1 - - - 1 0 o o o 1 0 + o + 0 1 - o - 1 0 + o o
+Pd Mg Pd 1 0 o o o 2 1 + o + 1 2 o - o 1 0 o - - 2 0 - o o 2 0 - o o 1 1 o o - 0 1 + + o 2 1 - + + 1 2 o + o 2 2 + o o 2 1 - + o 1 2 - - o 1 0 - o - 2 1 + + + 2 0 o o - 1 0 - - - 0 0 o - o
+Sb Sc 1 0 o o - 1 1 - o o 0 0 + o o 0 0 - o o 0 1 + o + 0 0 o o + 1 1 - o o 0 1 o + o 1 1 - o o 1 0 o - o 1 1 o - o 0 1 o o + 1 1 - o o 0 0 - o o 0 0 + + o 1 1 o - o 1 1 o - o
+Rb In 0 0 - o o 0 0 - o o 0 0 o + o 0 1 o + o 1 0 o o o 1 1 - o o 1 1 + - o 1 1 - o + 0 0 + o o 1 0 - - - 0 1 o o + 0 0 o - o
+H Si Si 0 1 o o o 2 0 - o + 0 2 + - o 2 1 - - o 2 0 - o - 0 2 - o + 2 0 o o - 1 2 + o + 0 2 o o + 2 0 o - o 1 0 o - o 0 1 o o o 2 0 - o - 1 2 + o +
+H Rb B 0 2 o o o 2 1 + + o 2 1 + o + 0 2 - o o 2 0 o o o 1 2 o o - 2 1 o + + 0 1 o o o 1 2 - o - 1 0 - o - 1 2 o o o 2 0 + o o 2 1 o + o 1 0 - - - 1 2 - o - 2 1 + o +
+Te Ti 0 1 o o - 1 0 o o + 0 1 - o - 0 1 - - -
+Gd Rb 0 1 o o o 0 1 + o o 1 1 + o o 1 1 + o o 1 0 o - - 0 1 + + o 0 1 o + + 1 0 - - o 0 0 - o o 0 1 o o + 0 1 o + + 1 0 o - - 0 0 o o - 1 1 - o o
+Ir B Zn 0 1 + + + 0 2 o o o 2 0 o o o 2 1 + o + 1 1 + o o 1 0 o - - 2 1 o o + 1 2 - o - 1 2 o - o 2 0 o o o 0 1 o + + 2 1 + o o 0 2 o - - 2 1 + o o 0 1 o + o 1 0 o o o 2 1 o + + 2 2 o + -
+Nb Ag Ge 0 2 - - - 0 1 - + - 2 0 o + + 2 0 + o o 2 0 + + o 2 0 o + + 1 2 o - o 2 0 + o o 0 1 o - o 1 0 + o o 1 2 o o o 2 1 o + o 0 1 - o o 2 1 + o + 2 0 + + o
+Pr Hg 0 1 - - o 0 1 - o - 0 1 o o - 0 1 o o o 1 0 + o + 0 1 - o - 0 1 - o o 1 0 o + o
+F Hf Ta 0 1 o o + 2 1 o o o 0 2 - o - 2 1 + o o 1 2 o - - 1 2 o - o 1 2 - o o 0 2 o o - 1 0 - - o 2 0 o o o 1 2 o - - 2 0 o o +
+Al Te 1 0 + + o 1 0 o + + 1 0 o o o 0 1 o o -
+Mg Ho F 1 2 o o o 0 0 - - o 0 0 - - - 1 1 + - - 2 2 o - o 1 1 o + o 2 1 + + o 0 2 o o + 0 1 + + o 1 1 - o - 2 2 - o + 0 0 o - + 2 1 - o + 0 2 - o o 1 2 + + o 1 0 o + o 0 1 - - -
+Mn Bi Sb 2 0 o o + 2 1 + o o 0 1 - o - 2 1 o - o 2 1 o - - 1 2 - - o 1 0 o o + 2 0 o + o 1 0 o o + 2 1 o o o 1 0 o o + 2 0 + o + 0 2 - - -
+O Ti 1 0 o + o 0 1 o - - 0 1 - - o 0 1 - o - 0 1 - o o 0 0 + o o 1 0 + + o 0 0 + o o 1 0 + o + 1 1 - o - 0 1 o - - 1 1 + o o 1 1 o + o
+Zn Lu 0 0 - o o 0 1 o + o 0 0 o + o 0 1 o o + 1 1 - o o 1 0 o - - 1 0 o - o 1 0 o - - 1 0 - o - 1 0 o - o 0 1 o + o 0 0 + o o 0 1 o + o 1 1 o - o 1 1 o - o 0 0 - o o 1 1 - o o
+Si Mg K 2 2 - - o 0 2 o o + 2 0 - o + 1 2 o o o 0 0 - - o 2 1 o - o 1 0 o o - 2 2 o o - 0 2 o + o 2 0 - o o 1 2 + o o 0 1 o + o 2 2 + + - 0 0 + - o 1 0 - - o 1 2 o + o 2 1 - - - 2 1 - o - 2 1 - - o
+Ni Pd Sm 1 1 - o o 1 2 - - - 0 0 - o - 1 1 o + o 2 2 - o o 0 2 o - o 2 2 o o - 1 0 o o o 0 2 + o o 1 0 - - - 2 0 + - - 0 2 + + + 1 0 o o o 1 2 + o o 2 2 o o - 1 0 - o + 2 2 - - o 2 2 o + o 1 0 - o o 0 2 o + o
+Dy Cu 0 1 o o o 0 1 o - - 1 0 + o o 0 0 - - o 1 0 + + o 1 0 + + + 1 1 o o - 0 1 - o - 0 1 - - o 0 0 o o + 1 1 o - o 0 1 - o - 1 0 + o + 0 0 o + o 0 1 o o o
+Au Ca Ce 1 1 - o o 2 2 + o + 1 1 o + + 2 0 - - - 2 2 - o - 0 2 o - + 0 1 - o o 1 2 o o + 1 2 - o o 2 0 - o o 0 1 o + - 0 1 o o - 1 1 o + - 0 2 - o o 0 0 + o - 2 1 o + o 1 0 - o - 0 1 - + + 2 0 - o o 0 0 - o o 2 1 - o o
+Re Ce 1 0 - o - 0 1 + o o 0 0 + o o 1 0 o o - 0 0 + o o 1 1 - o o 0 1 + + o 0 1 o + o 1 0 o - o 1 1 o + o 0 0 - o o 1 0 o - o 1 0 - o - 0 0 o o - 1 0 o - -
+Cd Os Sn 1 0 o o - 2 0 o o o 1 2 - - o 1 2 o o o 2 1 o o + 0 2 o + o 1 2 - - - 2 1 o + + 2 0 - - o 0 1 + o + 0 2 + o o 1 0 - - - 2 0 - - -
+Er Pt 1 1 o o - 1 0 - - - 1 1 - o o 0 1 o o + 1 0 - o - 1 0 - o o 0 0 - o o 1 0 o - - 1 0 - o o 0 0 o + o 0 0 o + + 0 1 o + o 0 1 + + o 1 1 o o -
+Li F Ho 2 1 o o - 2 1 - o o 1 0 o o o 2 0 o o o 1 2 - o - 1 2 - o o 0 2 - o Se 0 2 o - o 0 2 o + o 1 0 - o o 0 2 o + + 1 0 - o - 2 0 - o o 0 1 + o o
+Zn Mg F 0 1 o + o 1 0 o o - 1 2 o + - 2 1 + o o 1 0 - o o 2 1 o o o 2 1 o + o 1 2 - o - 0 2 - + o 0 1 + o o 2 0 o + - 2 0 o - + 2 0 o o + 1 2 - o -
+Sm Cu 0 1 - - - 1 1 - o o 1 1 - o - 0 1 - - o 1 0 o o + 0 0 - o - 1 0 o o o 0 1 o - - 0 0 + o o 1 1 - + o 0 1 o o - 0 0 o o + 1 1 o + - 0 0 + o o
+Hf Te S 0 2 o o + 2 1 - o o 2 2 - - o 1 0 o - o 1 2 o o - 1 1 o o - 1 2 + o o 0 1 - - - 1 2 o + o 2 0 o o o 0 0 o - o 1 0 + o o 1 2 o o + 2 1 o o - 2 0 + + o 1 2 o o o 0 1 - o o
+Sc Pr 0 1 + o o 1 1 + o o 1 0 - - o 1 1 o + o 1 1 o o + 0 0 o o - 0 1 + o + 0 0 - o o 1 0 - o o 0 1 o o + 1 0 o o - 1 1 o o + 0 0 o + o 0 0 + o o 0 0 o o - 1 1 - o -
+F Li As 1 2 - - o 2 1 + + o 2 0 + o + 0 1 o o o 0 2 - o - 2 0 o + + 0 1 - o - 1 0 o o - 1 2 o o o 2 0 + o o 1 2 o - o 1 0 - o o 0 2 o - - 0 2 o - -
+O Ni Bi 2 0 - o o 2 1 - o o 0 1 - o o 1 0 o o - 0 1 o + o 2 1 - - o 2 0 o - - 1 2 o + o 0 1 - - - 2 0 - - - 2 0 - o o 2 0 - - -
+Tb Ho 0 1 o o + 0 1 + o o 0 1 + + + 1 1 o - o 1 0 o - o 1 1 o o - 1 0 - o - 0 1 o o + 1 1 + o o 1 0 o - o 0 0 o o + 0 1 o o + 0 0 o - o
+Cu Si O 1 2 + o o 1 2 + + o 2 0 - o - 2 0 o o o 2 1 - - - 2 1 o o - 0 2 o o - 1 2 o + o 1 2 o + o 0 1 o + o 1 2 - + + 1 2 o + + 1 0 o o o
+Tb Ti C 0 2 - o - 1 2 o o o 0 0 o o + 1 0 + + + 0 1 o - o 1 0 o o + 0 2 - - o 0 2 - o o 1 2 o o o 1 2 o o + 0 0 o + o 1 0 o + + 0 2 - - - 1 1 o o + 2 2 - o o 2 2 o + o 0 0 o - o 1 2 o o o
+Tl Pd 1 1 o o + 1 0 o - o 0 1 + o o 0 0 + o o 0 1 + + + 0 1 + + o 1 1 o - o 0 1 o + o 1 0 o o - 0 0 o o - 0 1 + + + 1 1 o + o 0 1 o + o 1 0 - o - 0 0 + o o
+C Hg Pt 0 1 o o + 0 2 o + + 2 1 - o o 2 1 - - - 1 0 o + o 2 1 o o - 2 1 - - o 1 2 o + o 2 1 o - o 0 2 o o o 2 0 o - - 0 2 + + o
+Co Te 0 1 o o - 1 0 o + + 0 1 - o - 1 0 + o o 1 0 o + o 0 0 - o o 1 1 o + o 0 1 - o - 1 1 o + o 0 1 - - o 0 1 - - -
+Re Se 1 0 - - o 1 0 o - - 1 0 - o - 0 1 o o + 0 1 + o + 0 1 o o +
+Pd Au 0 0 o o + 1 0 o - - 1 0 - - o 1 1 o - o 0 0 - o o 0 1 o o + 0 0 o o - 1 1 + o o 1 1 - - o 0 1 o + + 1 0 - o o 1 0 - - - 1 0 - o o
+Se Li Te 1 2 o o + 1 2 + + + 2 0 - - - 2 1 - - o 1 0 o o o 2 1 - - o 0 2 + o + 1 2 o o o 1 0 o - - 1 0 o o - 0 1 + o o 0 2 + o +
+Ni Ni Sm 2 2 o - - 0 2 o o o 0 2 - - o 0 2 o o o 1 2 + o o 2 1 + o o 2 1 o + o 0 1 o o - 0 2 - - o 0 0 + o o 1 0 + o - 0 1 o o o 2 0 o + o 2 1 + + o 0 2 o - -
+Ba Rh Cu 0 2 - o - 0 2 o - - 0 0 o - o 1 2 o o o 1 1 o - o 1 1 - o o 1 0 o + o 2 0 + o o 1 2 - - o 2 2 o o + 2 0 o + o 1 0 o o o 2 1 o o + 0 1 o - o 2 2 o - o
+N Cl Co 1 2 o - - 0 1 + o o 2 1 o o o 0 0 - o o 1 2 - - o 1 0 o o - 0 1 o o + 2 1 o + o 2 0 o - o 2 1 + o o 1 2 + o o 0 2 o o + 0 1 o o + 0 1 o o + 0 2 - + o 1 2 o + o 1 2 - - o
+Se Rh Au 1 2 o - - 1 2 - o o 2 0 o + o 1 2 o o - 1 0 - o o 1 2 - o - 2 1 o o + 0 1 o + o 1 0 o o o 0 1 + o o 2 0 o - +
+Pd Mn V 1 0 o - o 1 2 - - o 1 1 + o + 2 0 o o - 2 2 + o o 1 0 - o - 0 2 + + o 1 2 o o + 1 0 o o o 0 2 o + o 2 1 - - - 0 2 + + + 2 0 - o - 0 2 + o o 2 1 - - o 2 0 o - o 0 2 + o +
+Sn Zr Zn 1 2 - o o 1 2 o - o 0 1 o o + 2 1 o o + 0 1 o o o 0 2 o o + 0 2 o + o 2 0 o - o 2 0 o - o 0 2 o o o 1 2 o + + 0 2 + + + 1 0 + o o
+Hg Cu Y 1 1 - o + 2 2 o + o 1 2 o + o 0 0 o - o 2 0 - o + 2 0 o - - 2 2 o o + 0 2 o o o 0 2 o o + 0 0 o + o 0 2 - - o 1 2 + + o 2 1 o o o 1 0 - + + 0 1 - o - 0 0 - o o 2 1 - - - 1 2 o + o 0 1 o - o 0 1 + o o
+Er Sb 0 1 - - o 0 1 o + - 1 0 o + o 1 0 + + o 1 0 + o o 0 1 o - - 1 0 o o +
+Zn O Ni 1 0 + o o 2 0 + o o 0 1 o - - 1 2 - o o 2 1 o + o 2 0 + + o 2 1 + o + 1 2 o o o 2 1 + + o 0 2 - - - 0 2 - - - 2 0 o o + 2 0 + o + 0 2 o o -
+Mg Pt Hf 2 0 o + + 1 2 - o o 2 1 o o + 2 2 o o + 0 0 - o o 1 2 + o o 2 0 + o + 2 1 o + o 2 0 o + + 0 1 - - o 0 1 o o - 1 0 o o + 2 1 - o - 0 2 o - - 0 0 - o + 1 1 + o o 0 1 o - o 0 1 o - -
+Ge Pt Mn 0 2 o - - 0 2 o o - 0 2 o - o 0 2 - o o 1 2 - o o 1 0 + o + 0 2 - - o 0 1 - o o 2 1 - o o 1 2 o o + 0 1 - o o 1 0 o + + 0 2 o - o 0 1 o - - 2 0 o o +
+Nd V Si 2 0 o o + 1 2 - o - 1 2 o - o 0 2 - o o 1 2 - - o 0 1 o - o 2 1 - + - 0 1 o o o 2 1 o - o 1 2 o o o 0 1 - o - 0 1 o - - 0 2 o o o 1 0 o o + 2 1 o - o
+Ce Zn 0 1 + o + 0 1 o o + 1 1 o - o 0 1 o o + 0 1 + o + 0 0 - o - 0 1 o + o 0 1 + o o 1 1 o + o 1 0 - - - 1 1 o + o 1 0 - - -
+Se Se Cd 2 0 + + o 2 1 + o o 2 0 o + o 1 0 + o + 1 2 - o o 1 2 o o - 1 2 o - - 1 2 - - o 2 0 - o o 1 2 o o - 2 0 o o + 2 1 o + o
+In Na 0 1 o o - 0 1 - o o 1 0 o o + 0 1 - - - 0 1 - - o 1 0 + o + 0 1 - - o
+N S Al 0 2 - o - 0 2 - - + 0 0 o + o 2 0 o o o 2 0 o + o 0 1 o - o 0 2 o o + 0 2 o + o 1 0 - - o 1 2 o o o 0 2 o o o 1 1 o + + 1 2 o - o 2 2 o - - 0 1 o o + 1 2 o o -
+Dy Ga Cu 1 0 o o + 2 1 - o - 0 2 o o o 2 1 - o o 2 1 + + o 1 0 - + o 1 2 + o + 1 2 o o + 2 0 o + o 2 0 o - o 0 1 o - o 2 1 - o o 2 0 o o o 0 2 o - -
+Mg As Si 1 0 o - - 2 2 o - o 2 2 o o + 2 1 o + - 0 1 + + o 1 0 o - - 0 2 o o + 2 1 + o + 0 0 o - o 0 0 o o + 2 1 o o + 2 0 - + + 0 1 + o + 1 1 o - o 2 0 o o + 2 2 o + o 1 2 o o o
+Zr Ho 1 0 o o - 1 0 o o - 1 0 - - o 1 1 - o o 0 0 o - o 1 1 - o o 0 1 + + + 1 1 o - o 0 1 o + + 1 1 o + o 0 0 o o + 1 0 + - o 1 0 o - o 0 0 o + o
+Pd In P 0 1 o o o 2 0 - - - 1 2 o o + 2 1 o o - 1 2 - - o 0 2 o + + 2 0 - - o 1 2 + o o 0 2 + o o 2 0 - o - 2 0 - - - 0 1 o - o
+Fe Mn 0 1 - - o 0 1 - - - 1 0 + + + 1 0 + o + 0 1 o - o 1 0 o o o 0 1 - o - 1 0 + o o
+Pd Au Hg 0 1 - - o 0 1 - o - 2 1 - o o 2 0 o o + 1 2 + o + 0 2 o - + 1 2 + + o 2 0 o + o 0 2 - o o 0 2 o - - 1 2 o o o 2 0 o o + 1 2 - o o 0 1 - o o
+V Pr Hg 0 1 - - - 0 1 o - o 2 0 + + o 2 0 o o o 1 1 + + o 2 2 o o - 1 1 - o + 2 2 - + o 2 2 + o o 2 1 o o o 2 2 o - - 0 0 o + o 1 2 o o + 2 2 o o + 2 1 + - o 0 1 - - o 2 1 + o o 2 0 + + + 0 0 + o o 2 2 + o o 0 2 o - - 2 0 o o o
+Ga Sm Er 1 0 o - - 0 2 + o o 2 1 + o o 2 1 + o o 2 1 + o + 0 2 o o + 1 0 - o o 2 1 + o o 0 2 - o o 0 1 + o + 1 2 o o o 2 0 o + o 2 1 + + o 1 2 o - - 0 2 o - o
+Hg Hf Cu 2 1 o o + 0 2 o - o 0 1 - - o 1 0 + o + 0 1 o o - 0 0 o + + 0 2 o - - 2 2 o + o 2 1 - - - 2 2 o o + 0 2 o o o 1 2 o + + 1 0 + o o 2 2 - + o 1 1 - o o 1 2 o o + 0 0 o + o 2 2 + + o
+Eu Dy Kr 2 1 + o + 2 1 + o + 0 2 o o - 2 1 o + o 0 2 o - o 1 2 o - o 0 1 o o + 1 2 - - o 0 2 o o o 0 1 o o + 0 1 + + o 1 1 - o - 0 2 o o + 0 0 - o o 1 2 - + o 2 1 o o + 1 0 o o o
+S H Si 1 0 - o o 0 2 + o o 1 2 - o - 1 2 o - o 1 2 - - o 0 2 - o + 1 0 o - - 0 2 o o o 1 2 o - o 0 1 + o o 0 2 o + + 2 0 o o o 1 0 - - o 1 2 o o o 2 0 - o -
+Al Cu Ga 2 2 + + o 0 2 o o + 2 1 o o + 2 1 o + + 0 1 o o o 0 1 o + + 0 1 + + + 1 0 o - o 0 1 o o o 2 1 + o o 0 2 o + o 1 2 - o o 1 2 o - - 1 0 o o -
+Ti Mn 0 0 + o o 0 1 - o - 1 0 o - o 0 0 - o o 1 0 o - - 1 0 o - o 0 1 o + o 1 1 o - o 1 0 - - - 1 1 + o o 0 1 + + + 0 1 o o + 0 1 + o o 0 0 o - o 0 1 + o + 1 1 o + o
+Br Ca 1 0 o + + 1 0 - o o 1 0 o - o 0 1 o - o 0 1 + o - 1 0 - o o 1 0 - - +
+Ce Nd Hg 0 2 + - o 0 1 + - - 1 2 + + + 1 2 - + o 1 2 + + + 1 2 + + o 0 1 o o - 0 1 o o o 1 2 + + + 1 0 o + o 1 2 + + o 0 2 o o o 0 2 - - - 2 2 o + o 0 2 o o - 0 2 o + o
+Mg Tm 0 0 o o + 0 1 - - - 0 1 o o - 1 1 + o - 1 0 + + o 0 0 o - o 1 0 o + o 0 0 o o - 0 1 o - - 1 0 + + + 1 1 o o + 1 1 o o + 1 0 o + o 1 0 o o o
+Ca Mn 0 0 + + o 1 1 o - o 1 1 - o o 0 0 o o o 1 0 - o - 1 0 o o o 0 1 o o o 1 0 - o - 1 1 o o - 0 0 + o o 1 1 + + o 0 1 o o + 0 1 + + + 1 0 - o -
+Te Bi 0 0 - o + 0 1 o + + 1 0 o - o 1 1 - o o 1 0 - - o 0 1 o o + 1 0 o o - 1 0 - - - 0 0 o o + 0 1 + o o 1 1 o o - 1 0 o - o 0 1 + o o
+I Bi 0 1 o + + 1 0 - o - 1 0 o o o 0 1 + + + 1 0 o - - 1 1 o o + 1 0 - - o 1 0 o - o 1 0 o o o 1 1 - o o
+Te Pt 1 1 - o o 1 0 - - - 0 0 o + o 0 1 o + + 0 1 + + o 1 1 + o o 1 1 o - o 0 1 o o + 0 0 o + o 0 0 + o o 0 1 + + o 1 0 - - o 0 0 o + o 1 1 o o + 1 1 - o -
+Ag Fe 1 1 o - o 1 1 - o o 1 0 o o - 1 0 - - - 1 1 o - o 1 1 o o - 0 0 - - o 1 0 - - - 0 0 o o + 1 0 - - - 0 0 - o o 0 0 o - o 0 1 o + o 1 0 o o - 1 0 - o o
+Ni Ca 0 0 + o - 0 0 o + o 0 0 + o o 1 1 o - o 1 1 o - o 1 1 o + o 1 0 o - - 1 1 o + o 1 1 o o +
+Mg As Mg 1 2 o - - 1 0 o o - 0 1 + + o 0 2 + o o 2 0 o o - 2 1 o o o 1 0 - o - 0 1 o + + 0 1 + + + 1 2 - - o 0 2 o o o 1 2 - - - 2 1 o o o
+Na Nd 0 1 o + o 0 1 o + o 1 1 o o + 0 1 o + - 1 0 - - o 1 0 - o - 0 1 + + + 0 1 + o o 0 0 + o o 0 1 + o o 0 1 o + + 1 1 - o o 1 0 o - o 0 0 o + o
+Er Nb Cs 1 0 o o - 1 0 o o o 2 2 o + o 2 1 + + o 2 2 o + o 2 1 + o + 2 1 o + + 1 0 o - - 2 0 o + - 0 2 - o + 1 2 - - o 1 2 - - - 1 2 - - - 2 0 - o o 0 2 o o + 0 2 o - o 1 2 - - -
+N C 1 0 + o o 0 1 - - - 0 1 o - o 0 1 - - o 1 0 o + + 1 0 o + +
+N Ni Ga 0 2 o o - 1 2 o - o 2 1 + o + 2 0 + o + 0 2 o - o 2 1 o + + 2 1 + o + 1 2 o o - 0 2 o o o 2 0 + + o 2 0 o + o 0 1 o o o 2 0 + o o 0 1 - o -
+Hg Cu 0 0 o + o 1 1 o - o 0 0 + o o 1 0 - - - 0 1 o + - 1 1 - o o 1 0 - o - 0 1 o + o 0 1 + + +
+Bi Ga 0 1 + o + 0 1 o + + 1 0 o - - 1 0 - - - 1 0 o - - 1 0 o - o 1 0 o o -
+Mg Al Rh 0 2 o o - 2 1 + + o 0 1 o o - 0 0 o - o 0 2 - o - 2 1 + o + 0 1 o - o 0 0 - o o 1 0 - o o 0 0 - - o 1 2 - - o 1 2 - o + 1 2 o - - 0 2 o - o 1 2 o o - 2 0 + + + 2 1 + + o
+Sb Pd Ga 2 0 o - - 0 1 + + + 2 0 - o - 2 0 o o o 2 0 o - - 2 1 - o o 2 0 o - o 0 1 o o o 1 2 o - o 1 2 - o - 1 0 - - o 2 0 - o - 0 2 + o + 0 2 + o o
+Cu I 1 0 o + + 1 0 o o o 1 0 + o o 0 1 - - o
+Eu B Rb 0 2 + + o 0 2 + - - 0 2 - - o 0 2 o - - 1 2 o o + 0 1 - o - 2 1 Ar o o 1 0 - o o 1 2 + o o 2 0 + o o 2 0 + o + 0 2 o - - 2 1 o - o 1 2 o o - 0 2 o o o
+K Mg Ge 2 0 o + o 0 1 o o o 1 2 o o o 0 1 o o - 2 0 + + o 0 1 - o o 1 2 o - o 1 0 o - o 2 1 + o + 0 2 o - o 2 1 + + o 2 1 + o +
+Ni Sm 1 1 o o + 1 0 o + o 0 1 - o - 0 1 - o o 0 0 o o + 0 1 o - - 0 0 o - o 0 0 o o + 1 0 + + o 1 1 o o + 0 0 - o o 1 1 - o o 0 1 o - o 0 1 o - o 1 0 + + + 1 0 + o o
+V Ho 0 1 o o + 1 0 o - o 0 0 o o + 1 1 - o o 1 0 - - - 1 0 - - o 0 1 o + o 1 0 o o o 0 1 o o o 0 0 o o - 0 1 + + + 1 0 - - + 1 1 o - o 1 0 - o o 1 1 - o o
+Si Rh Bi 1 2 o - o 0 2 - - - 1 2 o o + 0 2 o - o 1 0 o o + 2 0 o o o 0 1 - o - 1 2 o + o 2 0 + + + 0 2 o o - 1 2 + o o 2 1 - o + 1 2 - o o 0 2 o - - 1 2 o o o
+Ho Si 0 1 o - o 1 1 o + o 0 0 o + o 1 1 - o o 0 1 o o - 1 0 + o o 1 0 o + o 0 0 o o - 0 0 + o o 0 1 - - - 1 1 o + o 1 0 + + o 1 0 + + + 0 0 o + o 1 1 o - o
+Sb N N 1 0 - - - 2 1 o o + 2 0 o - o 0 2 o o o 0 2 - - o 2 0 + o o 0 1 + + + 1 2 o o - 0 1 o o o
+Si Sm Ge 0 1 o + o 0 1 + o + 1 2 - - - 0 1 + o o 2 0 o o o 2 0 o + o 0 2 o o + 1 0 o - o 0 1 + o o 1 2 o - - 2 0 o o - 1 0 - - o 2 0 o - - 2 1 + o o 2 1 + o o
+Co Al Te 1 2 o - - 0 1 + o o 0 1 o + o 0 1 o o o 0 2 - o o 2 1 + + o 2 0 o o + 0 1 o - o 0 2 o - - 2 1 + o o 1 2 - o - 2 0 + o o 0 2 o - o 2 1 o + +
+Y Cu 0 1 + + + 1 0 o - o 0 1 o + + 0 0 o o + 1 1 o o + 1 1 o - o 1 0 o - - 0 1 o + o 0 0 + o o 0 1 + o + 1 0 o - - 1 0 - o o 1 0 o o - 1 1 + o o 1 0 o o o
+Rh H Cu 1 2 o o o 1 0 o o + 1 2 + o + 0 2 + o o 1 0 o o + 0 2 o + + 1 0 - o o 1 2 o o o 0 1 o o + 0 1 + o o 1 2 + o + 1 2 o o + 2 0 o - o 0 2 o + o 2 1 - o -
+Ni In 1 0 - - o 1 1 o - o 0 1 o + + 0 0 o o - 0 1 - o + 1 1 o o - 1 0 - o o 0 1 o + o 0 0 o o - 1 0 - o - 1 1 - o o 0 0 o - o 1 0 - - o 1 0 - - - 0 1 o o o 0 1 o + +
+Lu Se 1 0 o + o 1 0 o o + 0 0 o o + 0 0 - o o 1 0 + o o 1 0 + + o 1 0 + o o 1 0 + o o 0 0 o - o 1 1 o + o 0 1 - - - 1 1 o o +
+Hg Ge Sb 2 2 + o o 2 1 - o o 0 0 o o + 2 1 o o + 1 1 - o - 1 2 o - - 2 0 - - o 2 2 + o o 1 2 o + o 0 0 o o - 2 0 - o - 0 2 o + o 1 2 + + o 0 1 o o -
+Ho In La 1 0 - + - 1 0 o + o 2 2 o + o 1 0 + o o 0 1 - o o 2 0 o - o 0 0 o o - 2 2 - o o 2 2 o o + 2 1 - o o 0 1 - o o 0 1 - - - 0 2 o o o 0 1 - o - 0 1 o - o 0 1 o o o 1 2 o o - 2 0 o + o
+Cu Ar Mg 2 0 o o o 0 2 o - o 0 0 o + - 0 0 - - + 2 1 o + o 0 1 o o + 2 2 - o o 1 1 + o - 0 1 + + - 1 1 - o + 0 1 + o o 2 1 o + o 0 2 + - + 2 2 + + o 2 0 + + o 0 2 - o o 2 2 - + o 1 1 o o - 2 1 o o +
+N Fe Ga 1 0 - o - 2 1 o o + 0 1 o + + 2 1 o + o 1 2 - - o 2 1 + + o 2 1 + o o 1 2 o - - 2 0 o o o 0 2 o + o 0 2 o o o 2 1 + + + 0 1 + o o 1 2 - - -
+Zn Pt 1 1 o + o 1 0 o - - 1 0 - - o 0 0 + o o 0 0 o - o 1 1 + o o 0 0 o + o 1 0 - o - 1 0 o - o 1 1 + o o 0 1 + o o 0 1 + o + 1 1 o o + 0 0 o + o 0 1 + o o 0 1 + + o 0 0 - o +
+Sn Eu 0 1 - o o 0 0 + o o 0 1 - - o 0 0 - o - 0 1 - o o 1 0 + + + 1 0 + o + 1 1 o o + 1 1 o o + 0 1 o o - 0 0 o + - 0 1 - o o 1 0 + + o 1 1 o o +
+Ca Au 1 0 + o - 0 1 + o + 0 1 o + + 0 1 o + + 0 1 + + o 0 1 o + o 0 0 o o + 1 1 o o - 0 1 + + o 0 1 o + o 1 0 - o - 1 1 o o - 0 0 + o o 0 1 + - o
+Cr O 0 1 - o - 0 0 o o - 1 1 o o - 1 0 + o o 1 0 o + + 1 0 o + + 0 0 - - o 1 1 - o o 1 0 o - o 1 0 o + + 1 0 o + o 1 0 o o + 1 1 - o o 0 0 - o o 0 1 o - -

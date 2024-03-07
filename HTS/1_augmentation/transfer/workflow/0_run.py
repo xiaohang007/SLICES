@@ -8,7 +8,7 @@ import configparser
 os.environ["OMP_NUM_THREADS"] = "1"
 
 config = configparser.ConfigParser()
-config.read('../settings.ini') #path of your .ini file
+config.read('./settings.ini') #path of your .ini file
 bond_scaling = config.getfloat("Settings","bond_scaling") 
 delta_theta = config.getfloat("Settings","delta_theta") 
 delta_x = config.getfloat("Settings","delta_x") 

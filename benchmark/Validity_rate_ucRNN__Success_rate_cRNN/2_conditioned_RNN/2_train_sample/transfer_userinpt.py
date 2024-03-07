@@ -161,16 +161,16 @@ if __name__ == "__main__":
                         help='Directory to save the generated SMILES')
     parser.add_argument('--save_process_smi',action='store',dest='tf_process_dir',default='Model1_sample_process.csv',
                         help='Directory to save the generated SMILES')
-    parser.add_argument('--eform_target',action='store',dest='eform_target',default='-2',
+    parser.add_argument('--target',action='store',dest='target',default='-2',
                         help='Directory to save the generated SMILES')
     arg_dict = vars(parser.parse_args())
     print(arg_dict)
-    task_, voc_, smi_, prior_, tf_, nums_, save_smi_, tf_process_dir_, eform_target_ = arg_dict.values()
+    task_, voc_, smi_, prior_, tf_, nums_, save_smi_, tf_process_dir_, target_ = arg_dict.values()
 
     if task_ == 'train_model':
         train_model(voc_dir=voc_, smi_dir=smi_, prior_dir=prior_, tf_dir=tf_,
                     tf_process_dir=tf_process_dir_,freeze=False)
     if task_ == 'sample_smiles':
-        sample_smiles(voc_, nums_, eform_target_,save_smi_,tf_, until=False)
+        sample_smiles(voc_, nums_, target_,save_smi_,tf_, until=False)
 
 

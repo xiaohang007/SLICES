@@ -12,7 +12,7 @@ from utils import Variable
 
 class Vocabulary(object):
     """A class for handling encoding/decoding from SMILES to an array of indices"""
-    def __init__(self, init_from_file=None, max_length=301):
+    def __init__(self, init_from_file=None, max_length=10000):
         self.special_tokens = ['EOS', 'GO']
         self.additional_chars = set()
         self.chars = self.special_tokens
@@ -129,7 +129,7 @@ def canonicalize_smiles_from_file(fname):
             #mol = Chem.MolFromSmiles(smiles)
             if 1:
                 smiles_list.append(smiles)
-        print("{} SMILES retrieved".format(len(smiles_list)))
+        print("{} SLICES retrieved".format(len(smiles_list)))
         return smiles_list
 
 
@@ -244,7 +244,7 @@ def mask_seq(seqs, seq_lens):
 
 if __name__ == "__main__":
     smiles_file = sys.argv[1]
-    print("Reading smiles...")
+    print("Reading SLICES...")
     smiles_list = canonicalize_smiles_from_file(smiles_file)
     print("Constructing vocabulary...")
     voc_chars = construct_vocabulary(smiles_list)

@@ -20,7 +20,7 @@ torch.cuda.empty_cache()
 
 
 
-def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False):
+def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False, batch_size=32,epochs=10):
     """
     Transfer learning on target molecules using the SMILES structures
     Args:
@@ -35,13 +35,14 @@ def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False)
     Returns: None
 
     """
+    print("Transfer learning on target crystals using the SLICES")
     voc = Vocabulary(init_from_file=voc_dir)
     #cano_smi_file('all_smi_refined.csv', 'all_smi_refined_cano.csv')
     moldata = MolData(smi_dir, voc)
     # Monomers 67 and 180 were removed because of the unseen [C-] in voc
     # DAs containing [C] removed: 43 molecules in 5356; Ge removed: 154 in 5356; [c] removed 4 in 5356
     # [S] 1 molecule in 5356
-    data = DataLoader(moldata, batch_size=32, shuffle=True, drop_last=False,
+    data = DataLoader(moldata, batch_size=batch_size, shuffle=True, drop_last=False,
                       collate_fn=MolData.collate_fn)
     transfer_model = RNN(voc)
     # if freeze=True, freeze all parameters except those in the linear layer
@@ -58,7 +59,7 @@ def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False)
     optimizer = torch.optim.Adam(transfer_model.rnn.parameters(), lr=0.0005)
 
     smi_lst = []; epoch_lst = []
-    for epoch in range(1, 8):
+    for epoch in range(0, epochs):
 
         for step, batch in tqdm(enumerate(data), total=len(data)):
             seqs = batch.long()
@@ -161,13 +162,15 @@ if __name__ == "__main__":
                         help='Directory to save the generated SMILES')
     parser.add_argument('--save_process_smi',action='store',dest='tf_process_dir',default='Model1_sample_process.csv',
                         help='Directory to save the generated SMILES')
+    parser.add_argument('--batch_size', action='store', dest='batch_size', default='32')
+    parser.add_argument('--epochs', action='store', dest='epochs', default='9')
     arg_dict = vars(parser.parse_args())
     print(arg_dict)
-    task_, voc_, smi_, prior_, tf_, nums_, save_smi_, tf_process_dir_ = arg_dict.values()
+    task_, voc_, smi_, prior_, tf_, nums_, save_smi_, tf_process_dir_, batch_size_, epochs_ = arg_dict.values()
 
     if task_ == 'train_model':
         train_model(voc_dir=voc_, smi_dir=smi_, prior_dir=prior_, tf_dir=tf_,
-                    tf_process_dir=tf_process_dir_,freeze=False)
+                    tf_process_dir=tf_process_dir_,freeze=False, batch_size=int(batch_size_), epochs=int(epochs_))
     if task_ == 'sample_smiles':
         sample_smiles(voc_, nums_,save_smi_,tf_, until=False)
 
