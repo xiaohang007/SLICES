@@ -78,7 +78,7 @@ if not entry:
 
 
 #This gets all entries belonging to the relevant system.
-competitive_compositions=loadfn("../../7_EAH_prescreen/competitive_compositions.json.gz")
+competitive_compositions=loadfn("../competitive_compositions.json.gz")
 competitive_entries = []
 for comp in competitive_compositions:
     flag=0
