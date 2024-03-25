@@ -9,8 +9,8 @@ It has several main functionalities:
 
 Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
-**Nature Communications** [[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)
-[[Source code]](invcryrep/) 
+**Nature Communications** [[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[SLICES晶体语言视频介绍]](https://www.bilibili.com/video/BV17H4y1W7aZ/) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)[[Source code]](invcryrep/) 
+
 
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./examples/figure_intro.png)
@@ -40,8 +40,12 @@ We also provide a codeocean capsule (a modular container for the software enviro
 
 ## Installation
 ```bash
+conda create --name slices python=3.9
+conda activate slices
+pip install tensorflow==2.15.0
 pip install slices
-#If you're in China and want to speed up the download, you can use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
+#If you're in China, use this command instead: "pip install tensorflow==2.15.0 -i https://pypi.tuna.tsinghua.edu.cn/simple".
+#If you're in China, use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
 Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not directly compatible with Windows or MacOS due to the modified XTB binary was compiled on Linux. To run SLICES on Windows or MacOS, one can run SLICES with docker, referring to [Jupyter backend setup](#jupyter-backend-setup).
 
@@ -49,12 +53,7 @@ If "TypeError: bases must be types" occurs when you use SLICES library, then do 
 ```bash
 pip install protobuf==3.20.0
 ```
-If errors still occur, then you can create a Python 3.9 environment and install slices in this environment: 
-```bash
-conda create --name slices python=3.9
-conda activate slices
-pip install slices
-```
+If errors still occur, then you can run SLICES with docker, referring to [Jupyter backend setup](#jupyter-backend-setup).
 ## Examples
 ### Crystal to SLICES and SLICES to crystal
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
