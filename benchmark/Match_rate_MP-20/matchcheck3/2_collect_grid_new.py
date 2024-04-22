@@ -18,7 +18,7 @@ for i in glob.glob("job_*"):
     os.system("python 2_collect_clean_glob_details.py")
     os.chdir("..")
 
-with open('/crystal/benchmark/get_json/cifs_filtered.json', 'r') as f:
+with open('../get_json/cifs_filtered.json', 'r') as f:
     cifs=json.load(f)
 num=len(cifs)
 import configparser
