@@ -140,7 +140,7 @@ docker pull xiaohang07/slices:v8   # Download SLICES_docker with pre-installed S
 # Make entrypoint_set_cpus.sh executable 
 sudo chmod +x entrypoint_set_cpus.sh
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it --privileged=true -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v8 /crystal/entrypoint_set_cpus.sh
+docker run  -it --privileged=true -h workq --gpus all --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v8 /crystal/entrypoint_set_cpus.sh
 ```
 
 ### Reconstruction benchmark for MP-20
