@@ -4,7 +4,7 @@
 #PBS -o job.out
 #PBS -e job.err
 echo "begin time"; date
-#PBS -l walltime=48:00:00
+#PBS -l walltime=4800:00:00
 
 
 python 0_run.py
