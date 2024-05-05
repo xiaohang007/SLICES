@@ -700,6 +700,73 @@ class InvCryRep:
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
+    def SLICES2SLICESAug_atom_order(self,SLICES,strategy=3,num=10):
+        """ Convert Structure to SLICES and conduct data augmentation.
+        
+        (1) extract edge_indices, to_jimages and atom_types from a pymatgen structure object
+        (2) encoding edge_indices, to_jimages and atom_types into multiple equalivent SLICES strings 
+            with a data augmentation scheme (only atom_order is randomized)
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+            strategy (int, optional): Strategy number. Defaults to 3.
+            num (int, optional): Increase the dataset size by a magnitude of num. Defaults to 200.
+
+        Returns:
+            list: A list of num SLICES strings.
+        """
+
+        self.from_SLICES(SLICES,strategy)
+        atom_symbols = [str(ElementBase.from_Z(i)) for i in self.atom_types]
+        edge_indices=self.edge_indices
+        to_jimages=self.to_jimages
+        num_edges=len(edge_indices)
+        SLICES_list=[]
+        SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages))
+        #calcualte how many element and edge permuatations needed. round((n/6)**(1/2)) 
+        num_permutation=num
+        # shuffle to get permu
+        permu=[]
+        for i in range(num*10):
+            temp=tuple(random.sample(atom_symbols, k=len(atom_symbols)))
+            if temp != tuple(atom_symbols):
+                permu.append(temp)
+        permu_unique=list(set(permu))
+
+
+        # For duplicates, we take the smallest index that has not been taken.
+        def get_index_list_allow_duplicates(ori,mod):
+            indexes = defaultdict(deque)
+            for i, x in enumerate(mod):
+                indexes[x].append(i)
+            ids = [indexes[x].popleft() for x in ori]
+            return ids
+        index_mapping=[]
+        for i in permu_unique[:num_permutation]:
+            index_mapping.append(get_index_list_allow_duplicates(atom_symbols,i))
+        
+        def shuffle_dual_list(a,b):
+            c = list(zip(a, b))
+            random.shuffle(c)
+            a2, b2 = zip(*c)
+            return a2,b2
+        def remove_duplicate_arrays(arrays):
+            unique_arrays = []
+            for array in arrays:
+                if array not in unique_arrays:
+                    unique_arrays.append(array)
+            return unique_arrays
+        # shuffle atom list
+        for i in range(len(index_mapping)):
+            atom_symbols_new=permu_unique[i]
+            edge_indices_new=copy.deepcopy(edge_indices)
+            for j in range(num_edges):
+                edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
+                edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
+            SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols_new,edge_indices_new,to_jimages))
+        random.shuffle(SLICES_list)
+        return SLICES_list[:num]
+
     def structure2SLICESAug_atom_order(self,structure,strategy=3,num=10):
         """ Convert Structure to SLICES and conduct data augmentation.
         
@@ -768,7 +835,7 @@ class InvCryRep:
             for j in range(num_edges):
                 edge_indices_new[j][0]=index_mapping[i][edge_indices[j][0]]
                 edge_indices_new[j][1]=index_mapping[i][edge_indices[j][1]]
-            SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages))
+            SLICES_list.append(self.get_slices_by_strategy(strategy,atom_symbols_new,edge_indices_new,to_jimages))
         random.shuffle(SLICES_list)
         return SLICES_list[:num]
 
