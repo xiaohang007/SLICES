@@ -35,6 +35,7 @@ We also provide a codeocean capsule (a modular container for the software enviro
   - [Reconstruction benchmark for MP-21-40](#reconstruction-benchmark-for-MP-21-40)
   - [Reconstruction benchmark for QMOF-21-40](#reconstruction-benchmark-for-QMOF-21-40)
   - [Material generation benchmark](#material-generation-benchmark)   
+  - [Property optimization benchmark](#property-optimization-benchmark)   
 - [Citation](#citation)
 - [Contact](#contact)
 
@@ -422,6 +423,70 @@ python count.py # calculate the number of compositionally valid reconstructed cr
 Structural validity (%) = num_struc_valid/num_reconstructed\*100
 Compositional validity (%) = num_comp_valid/num_reconstructed\*100
 
+
+### Property optimization benchmark
+(1) Convert crystal structures in datasets to SLICES strings and conduct data augmentation
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/1_augmentation
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect.py
+```
+(2) Train conditional RNN
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/2_train_sample
+sh 0_train_prior_model.sh
+```
+(3) Sample 1000 SLICES strings with $E_{form}$ target = -4.5 eV/atom
+Modify ./settings.ini to define the $E_{form}$ target and the number of SLICES to be sampled 
+```bash
+sh 1_sample_in_parallel.sh # wait for jobs to finish (using qstat to check)
+python 2_collect_clean_glob_details.py
+```
+(4) Removing duplicate edges in SLICES strings to fix the syntax error
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/3_fix_syntax_check
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect_clean_glob_details.py
+```
+
+(5) Reconstruct crystal structures from SLICES strings and calculate the number of reconstructed crystals (num_reconstructed)
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/4_inverse
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect_clean_glob_details.py
+!!! In order to address the potential memory leaks associated with M3GNet, we implemented a strategy of 
+restarting the Python script at regular intervals, with a batch size of 30.
+python count.py #calculate the number of reconstructed crystals (num_reconstructed)
+```
+
+(6) Evaluate the formation energy distribution of the reconstructed crystals with the M3GNet model
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/5_eform_m3gnet
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect_clean_glob_details.py
+python 3_normal_distri_plot.py # plot the formation energy distribution (M3GNet) of the reconstructed crystals 
+```
+
+(7) Evaluate the formation energy distribution of the reconstructed crystals at PBE level (took less than 1 day to finish with 36*26 cores HPC; need to tweak the ./workflow/0_EnthalpyOfFormation\*.py to deal with some tricky cases of VASP cell optimization)
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/6_eform_PBE
+python 1_splitRun.py # wait for jobs to finish (using qstat to check)
+python 2_collect_clean_glob_details.py
+python 3_normal_distri_plot.py # plot the formation energy distribution (PBE) of the reconstructed crystals 
+```
+
+(8) **Reproduction of Table 3:**  Calculate SR5, SR10, SR15 in Table S1 using formation energies (at PBE level) of crystals generated with a target of -4.5 eV/atom
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
+python calculate_SR5-10-15_TableS1.py # SR5, SR10, SR15 are printed in the terminal
+```
+
+(9) **Reproduction of Fig. S2c:** Repeat step (3-6) with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom. Extract formation energy distributions from "results_5_eform_m3gnet.csv" in step (6) and transfer the data to "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c/energy_formation_m3gnet_lists.csv". Then:
+```bash
+cd /crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/7_calculate_FigureS2c
+python plot_FigureS1c.py # get Fig. S2c as test3.svg
+```
+The formation energy distributions with $E_{form}$ target = -3.0, -4.0, -5.0, -6.0 eV/atom can be accessed from "/crystal/benchmark/Validity_rate_ucRNN__Success_rate_cRNN/2_conditioned_RNN/Other_targets/3_eform_\*".
 
 ## Citation
 
