@@ -18,7 +18,7 @@ with open("results.csv",'a') as result:
 result_sci=""
 for root,dirs,files in os.walk('./'):
     for f in files:
-        if f.endswith('result.csv') :
+        if f.endswith('result.sli') :
             with open(os.path.join(root, f),'r') as result:
                 result_sci += result.read()
 with open("./prior_aug.sli",'w') as result:
