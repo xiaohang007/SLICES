@@ -173,7 +173,7 @@ class InvCryRep:
             print("ERROR - graph_method not implemented") 
         return structure_graph
 
-    def from_SLICES(self,SLICES,strategy=3,fix_duplicate_edge=False):
+    def from_SLICES(self,SLICES,strategy=3,fix_duplicate_edge=True):
         """Extract edge_indices, to_jimages and atom_types from decoding a SLICES string.
 
         Args:
@@ -1803,7 +1803,7 @@ class InvCryRep:
             print(e)
             return [structure_recreated_std, structure_recreated_opt],0
 
-    def SLICES2structure(self,SLICES,strategy=3):
+    def SLICES2structure(self,SLICES,strategy=3,fix_duplicate_edge=True):
         """Convert a SLICES string back to its original crystal structure.
 
         Args:
@@ -1813,7 +1813,7 @@ class InvCryRep:
             Structure: A pymatgen Structure object.
             float: Energy per atom predicted with M3GNet.
         """
-        self.from_SLICES(SLICES,strategy)
+        self.from_SLICES(SLICES,strategy,fix_duplicate_edge)
         structures,final_energy_per_atom = self.to_structures()
         return structures[-1],final_energy_per_atom
 
