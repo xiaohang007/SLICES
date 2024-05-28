@@ -11,7 +11,9 @@ from utils import Variable, decrease_learning_rate
 import gc,re,subprocess
 import argparse
 gc.collect()
+from invcryrep.invcryrep import InvCryRep
 
+CG=InvCryRep(graph_method="econnn")
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
@@ -55,11 +57,22 @@ def pretrain(restore_from=None,batch_size=128,epochs=10):
             optimizer.step()
 
             # Every 500 steps we decrease learning rate and print some information
-            if step % 700 == 0 and step != 0:
+            if step % round(len(data)/10) == 0 and step != 0:
                 decrease_learning_rate(optimizer, decrease_by=0.03)
                 tqdm.write('*'*50)
-                #tqdm.write("Epoch {:3d}   step {:3d}    loss: {:5.2f}\n".format(epoch, step, loss.data[0]))
-                seqs, likelihood, _ = Prior.sample(batch_size)        #这句的问题
+                tqdm.write("Epoch {:3d}   step {:3d}    loss: {:5.2f}\n".format(epoch, step, loss.data))
+                seqs, likelihood, _ = Prior.sample(16)
+                valid = 0
+                for i, seq in enumerate(seqs.cpu().numpy()):
+                    slices = voc.decode(seq)
+                    if CG.check_SLICES(slices,dupli_check=False,graph_rank_check=False):
+                        valid += 1
+                    if i < 5:
+                        tqdm.write(slices)
+                #torch.cuda.empty_cache()
+                tqdm.write("\n{:>4.1f}% valid SLICES".format(100 * valid / len(seqs)))
+                del seqs, likelihood, _
+                tqdm.write('*'*50 + '\n')      #这句的问题
                 torch.save(Prior.rnn.state_dict(), 'Prior_local.ckpt')
         # Save the prior
         torch.save(Prior.rnn.state_dict(), 'Prior_local.ckpt')

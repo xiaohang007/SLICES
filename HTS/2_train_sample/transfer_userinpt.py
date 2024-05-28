@@ -14,7 +14,9 @@ import tempfile
 import subprocess
 import re
 import gc
+from invcryrep.invcryrep import InvCryRep
 
+CG=InvCryRep(graph_method="econnn")
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 torch.cuda.empty_cache()
 
@@ -70,10 +72,22 @@ def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False,
             loss.backward()
             optimizer.step()
 
-            if step % 40 == 0 and step != 0:
+            if step % round(len(data)/10) == 0 and step != 0:
                 decrease_learning_rate(optimizer, decrease_by=0.03)
-                #tqdm.write("Epoch {:3d}   step {:3d}    loss: {:5.2f}\n".format(epoch, step, loss.data[0]))
-                tqdm.write("*"*50 + '\n')
+                tqdm.write('*'*50)
+                tqdm.write("Epoch {:3d}   step {:3d}    loss: {:5.2f}\n".format(epoch, step, loss.data))
+                seqs, likelihood, _ = transfer_model.sample(16)
+                valid = 0
+                for i, seq in enumerate(seqs.cpu().numpy()):
+                    slices = voc.decode(seq)
+                    if CG.check_SLICES(slices,dupli_check=False,graph_rank_check=False):
+                        valid += 1
+                    if i < 5:
+                        tqdm.write(slices)
+                #torch.cuda.empty_cache()
+                tqdm.write("\n{:>4.1f}% valid SLICES".format(100 * valid / len(seqs)))
+                del seqs, likelihood, _
+                tqdm.write('*'*50 + '\n')      #这句的问题
                 torch.save(transfer_model.rnn.state_dict(), tf_dir)
         torch.save(transfer_model.rnn.state_dict(), tf_dir)
 
