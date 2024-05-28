@@ -60,7 +60,7 @@ def pretrain(restore_from=None,batch_size=128,epochs=10):
             optimizer.step()
 
             # Every 50 steps we decrease learning rate and print some information
-            if step % round(len(data)/20) == 0 and step != 0:
+            if step % round(len(data)/10) == 0 and step != 0:
                 decrease_learning_rate(optimizer, decrease_by=0.03)
                 tqdm.write('*'*50)
                 tqdm.write("Epoch {:3d}   step {:3d}    loss: {:5.2f}\n".format(epoch, step, loss.data))
