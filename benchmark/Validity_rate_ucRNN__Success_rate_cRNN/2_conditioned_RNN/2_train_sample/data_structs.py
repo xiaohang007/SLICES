@@ -31,7 +31,7 @@ class Vocabulary(object):
         return smiles_matrix
         
     def decode(self, matrix):
-        """Takes an array of indices and returns the corresponding SMILES"""
+        """Takes an array of indices and returns the corresponding SLICES"""
         chars = []
         for i in matrix:
             if i == self.vocab['EOS']: break
@@ -43,7 +43,7 @@ class Vocabulary(object):
             smiles = "".join(chars) 
         return smiles
     def tokenize(self, smiles):
-        """Takes a SMILES and return a list of characters/tokens"""
+        """Takes a SLICES and return a list of characters/tokens"""
         tokenized = smiles.strip().split(' ')
         tokenized.append('EOS')
         return tokenized
@@ -118,7 +118,7 @@ class MolData(Dataset):
 
 
 def tokenize(smiles):
-    """Takes a SMILES and return a list of characters/tokens"""
+    """Takes a SLICES and return a list of characters/tokens"""
     tokenized = smiles.split(' ')
     tokenized.append('EOS')
     return tokenized
@@ -134,7 +134,7 @@ def canonicalize_smiles_from_file(fname):
             #mol = Chem.MolFromSmiles(smiles)
             if 1:
                 smiles_list.append(smiles)
-        print("{} SMILES retrieved".format(len(smiles_list)))
+        print("{} SLICES retrieved".format(len(smiles_list)))
         return smiles_list
 
 
@@ -249,7 +249,7 @@ def mask_seq(seqs, seq_lens):
 
 if __name__ == "__main__":
     smiles_file = sys.argv[1]
-    print("Reading smiles...")
+    print("Reading SLICES...")
     smiles_list = canonicalize_smiles_from_file(smiles_file)
     print("Constructing vocabulary...")
     voc_chars = construct_vocabulary(smiles_list)

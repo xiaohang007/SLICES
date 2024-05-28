@@ -46,6 +46,7 @@ class RNN():
         if torch.cuda.is_available():
             self.rnn.cuda()
         self.voc = voc
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def likelihood(self, target, energy):
         """
@@ -108,7 +109,7 @@ class RNN():
         start_token[:] = self.voc.vocab['GO']
         h = self.rnn.init_h(batch_size)
         x = start_token
-        energies = torch.ones(batch_size) * energy
+        energies = torch.ones(batch_size, device=self.device) * energy
         energies = energies.unsqueeze(1)
         sequences = []
         log_probs = Variable(torch.zeros(batch_size))
