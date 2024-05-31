@@ -11,9 +11,9 @@ from utils import Variable, decrease_learning_rate
 import gc,re,subprocess
 import argparse
 gc.collect()
-from invcryrep.invcryrep import InvCryRep
+from slices import check_SLICES
 
-CG=InvCryRep(graph_method="econnn")
+
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
@@ -65,7 +65,7 @@ def pretrain(restore_from=None,batch_size=128,epochs=10):
                 valid = 0
                 for i, seq in enumerate(seqs.cpu().numpy()):
                     slices = voc.decode(seq)
-                    if CG.check_SLICES(slices,dupli_check=False,graph_rank_check=False):
+                    if check_SLICES(slices,dupli_check=False,graph_rank_check=False):
                         valid += 1
                     if i < 5:
                         tqdm.write(slices)

@@ -411,7 +411,10 @@ class InvCryRep:
             bool: Return True if a SLICES is syntaxlly valid.
         """
         try:
-            self.from_SLICES(SLICES,strategy)
+            if dupli_check:
+                self.from_SLICES(SLICES,strategy,fix_duplicate_edge=False)
+            else:
+                self.from_SLICES(SLICES,strategy,fix_duplicate_edge=True)
         except:
             return False
         # make sure the rank of first homology group of graph >= 3, in order to get 3D embedding 

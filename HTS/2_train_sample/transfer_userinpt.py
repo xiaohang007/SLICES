@@ -14,9 +14,7 @@ import tempfile
 import subprocess
 import re
 import gc
-from invcryrep.invcryrep import InvCryRep
-
-CG=InvCryRep(graph_method="econnn")
+from slices import check_SLICES
 #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 torch.cuda.empty_cache()
 
@@ -80,7 +78,7 @@ def train_model(voc_dir, smi_dir, prior_dir, tf_dir,tf_process_dir,freeze=False,
                 valid = 0
                 for i, seq in enumerate(seqs.cpu().numpy()):
                     slices = voc.decode(seq)
-                    if CG.check_SLICES(slices,dupli_check=False,graph_rank_check=False):
+                    if check_SLICES(slices,dupli_check=False,graph_rank_check=False):
                         valid += 1
                     if i < 5:
                         tqdm.write(slices)
