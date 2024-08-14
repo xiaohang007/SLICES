@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os,sys,json
-from invcryrep.crystalgraph import CrystalGraph
+from slices.crystalgraph import CrystalGraph
 from pymatgen.core.structure import Structure
 import configparser
 os.environ["OMP_NUM_THREADS"] = "1"

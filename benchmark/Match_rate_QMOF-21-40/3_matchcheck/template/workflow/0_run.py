@@ -2,7 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,sys,json,gc
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 import configparser
 import time
@@ -30,7 +30,7 @@ with open('temp.json', 'r') as f:
     cifs=json.load(f)
 os.system("rm result.csv")  # to deal with slurm's twice execution bug
 check=False
-CG=InvCryRep(graph_method=graph_method, check_results=check)
+CG=SLICES(graph_method=graph_method, check_results=check)
 for i  in range(len(cifs)):
     p = cifs[i]["cif"] #path to CIF file
     try:
@@ -55,7 +55,7 @@ for i  in range(len(cifs)):
                 fn.write(cifs[i]["qmof_id"]+','+'0'+','+a+','+b+','+'0'+','+a2+','+b2+','+'1'+','+c2+','+d2+','+str(num_atoms)+','+str(time_used)+'\n')
     except Exception as e1:
         del CG
-        CG=InvCryRep(graph_method=graph_method, check_results=check)
+        CG=SLICES(graph_method=graph_method, check_results=check)
         with open("result.csv",'a') as fn:
             fn.write(cifs[i]["qmof_id"]+','+str(e1).split('\n')[0]+'\n')
 

@@ -1,6 +1,0 @@
-rm: cannot remove '100x.sli': No such file or directory
-rm: cannot remove 'temp2': No such file or directory
-
-real	0m13.646s
-user	0m13.216s
-sys	0m0.094s

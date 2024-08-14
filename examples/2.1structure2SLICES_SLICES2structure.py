@@ -1,9 +1,10 @@
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 # obtaining the pymatgen Structure instance of NdSiRu
 original_structure = Structure.from_file(filename='NdSiRu.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep()
+backend=SLICES(relax_model="chgnet")
+#backend=SLICES(relax_model="m3gnet")
 # converting a crystal structure to its SLICES string
 slices_NdSiRu=backend.structure2SLICES(original_structure) 
 # converting a SLICES string back to its original crystal structure and obtaining its M3GNet_IAP-predicted energy_per_atom

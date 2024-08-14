@@ -1,1 +1,4 @@
-docker run  -it -h workq --shm-size=0.1gb  -v /[]:/crystal -w /crystal crystal:80 /crystal/entrypoint_set_cpus.sh
+docker run -it -p 8888:8888 -h workq --shm-size=0.5gb --gpus all -v C:\Users\admin\Desktop\xtb_test\SLICES2:/crystal -w /crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus_jupyter.sh
+docker run -it -p 8888:8888 -h workq --shm-size=0.5gb --gpus all -v C:\Users\admin\Desktop\xtb_test\SLICES2:/crystal -w /crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus.sh
+docker run  -it -h workq --shm-size=0.1gb  -v /media/xxx007/新加卷/SLICES2:/crystal -w /crystal vasp:amd_slim /crystal/entrypoint_set_cpus.sh
+docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v C:\Users\admin\Desktop\xtb_test\SLICES2:/crystal -w /crystal xiaohang07/slices:gradio /crystal/entrypoint_set_cpus.sh

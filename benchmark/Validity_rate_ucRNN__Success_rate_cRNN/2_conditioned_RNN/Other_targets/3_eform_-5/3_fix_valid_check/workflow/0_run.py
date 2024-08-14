@@ -5,9 +5,9 @@ import os,sys,json,gc,math
 import csv
 import pickle
 
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 
-CG=InvCryRep()
+CG=SLICES()
 
 os.system("rm result.csv")  # to deal with slurm's twice execution bug
 

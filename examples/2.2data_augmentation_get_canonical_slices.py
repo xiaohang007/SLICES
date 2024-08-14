@@ -1,12 +1,12 @@
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 # obtaining the pymatgen Structure instance of Sr3Ru2O7
 original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep(graph_method='econnn')
+backend=SLICES(graph_method='econnn')
 # converting a crystal structure to its SLICES string and perform data augmentation (with random atom order) (5x)
-slices_list=backend.structure2SLICESAug_atom_order(structure=original_structure,strategy=3,num=5) 
+slices_list=backend.structure2SLICESAug_atom_order(structure=original_structure,strategy=4,num=50) 
 slices_list_unique=list(set(slices_list))
 #print(slices_list_unique)
 cannon_slices_list=[]

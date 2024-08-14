@@ -1,2 +1,0 @@
-folder,opt2_match_sum,opt_match_sum,std_match_sum,opt2_match2_sum,opt_match2_sum,std_match2_sum,opt2_topo2_sum,opt_topo2_sum,std_topo2_sum,time_sum,     bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul,graph_method
-job_0,83.72665534804754,61.64685908319185,44.49915110356537,87.87775891341256,82.28777589134125,73.09847198641765,0.04115512647134039,0.15071716607529423,0.1784399949362176,3.8798429328658512,1.05,0.005,0.45,1.0,1.25,0.5,0.0,0.01,True,econnn

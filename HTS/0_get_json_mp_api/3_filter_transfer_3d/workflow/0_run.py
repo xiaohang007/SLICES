@@ -2,7 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,sys,json
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 import configparser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -25,7 +25,7 @@ with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
 check=False
-CG=InvCryRep(graph_method=graph_method, check_results=check)
+CG=SLICES(graph_method=graph_method, check_results=check)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     if check:

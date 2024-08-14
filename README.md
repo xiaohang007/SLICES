@@ -15,6 +15,9 @@ Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./examples/figure_intro.png)
 
+# MatterGPT
+![Optional Text](./examples/MatterGPT.jpg)
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -25,9 +28,10 @@ We also provide a codeocean capsule (a modular container for the software enviro
 - [Tutorials](#tutorials)
   - [Video Tutorials](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4037964)
   - [Jupyter backend setup](#jupyter-backend-setup)
-  - [Tutorial 1. Examples](./Tutorial_1_example.ipynb)
-  - [Tutorial 2. Inverse Design Case Study](./Tutorial_2_inverse_design_case_study.ipynb)
-  - [Tutorial 3. Inverse Design with cRNN](./Tutorial_3_inverse_design_with_cRNN.ipynb)
+  - [Tutorial 1.0 Examples](./Tutorial_1.0_Intro_Example.ipynb)
+  - [Tutorial 2.1 MatterGPT for Single-Property (eform) Material Inverse Design](./Tutorial_2.1_MatterGPT_eform.ipynb)
+  - [Tutorial 2.2 MatterGPT for Single-Property (bandgap) Material Inverse Design](./Tutorial_2.2_MatterGPT_bandgap.ipynb)
+  - [Tutorial 2.3 MatterGPT for Multi-Property (bandgap&eform) Material Inverse Design](./Tutorial_2.3_MatterGPT_2props_bandgap_eform.ipynb)
 - [Documentation](#documentation)
 - [Reproduction of benchmarks](#reproduction-of-benchmarks)
   - [General setup](#general-setup)
@@ -41,11 +45,10 @@ We also provide a codeocean capsule (a modular container for the software enviro
 
 ## Installation
 ```bash
-conda create --name slices python=3.9
+# pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple (use this if you are in China)
+conda env create --name slices --file=environments.yml
 conda activate slices
-pip install tensorflow==2.15.0
-pip install slices
-#If you're in China, use this command instead: "pip install tensorflow==2.15.0 -i https://pypi.tuna.tsinghua.edu.cn/simple".
+pip install slices==2.0.2
 #If you're in China, use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
 Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not directly compatible with Windows or MacOS due to the modified XTB binary was compiled on Linux. To run SLICES on Windows or MacOS, one can run SLICES with docker, referring to [Jupyter backend setup](#jupyter-backend-setup).
@@ -60,12 +63,12 @@ If errors still occur, then you can run SLICES with docker, referring to [Jupyte
 Converting a crystal structure to its SLICES string and converting this SLICES string back to its original crystal structure. 
 Suppose we wish to convert the crystal structure of NdSiRu (mp-5239,https://next-gen.materialsproject.org/materials/mp-5239?material_ids=mp-5239) to its SLICES string and converting this SLICES string back to its original crystal structure. The python code below accomplishes this:
 ```python
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 # obtaining the pymatgen Structure instance of NdSiRu
 original_structure = Structure.from_file(filename='NdSiRu.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep()
+backend=SLICES()
 # converting a crystal structure to its SLICES string
 slices_NdSiRu=backend.structure2SLICES(original_structure) 
 # converting a SLICES string back to its original crystal structure and obtaining its M3GNet_IAP-predicted energy_per_atom
@@ -76,24 +79,24 @@ print('\nfinal_energy_per_atom_IAP is: ',final_energy_per_atom_IAP,' eV/atom')
 # if final_energy_per_atom_IAP is 0, it means the M3GNet_IAP refinement failed, and the reconstructed_structure is the ZL*-optimized structure.
 ```
 ### Augment SLICES and canonicalize SLICES
-Converting a crystal structure to its SLICES string and perform data augmentation (2000x), then reduce these 2000 SLICES to 1 canonical SLICES with get_canonical_SLICES.
+Converting a crystal structure to its SLICES string and perform data augmentation (50x), then reduce these 50 SLICES to 1 canonical SLICES with get_canonical_SLICES.
 ```python
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 # obtaining the pymatgen Structure instance of Sr3Ru2O7
 original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=InvCryRep(graph_method='econnn')
-# converting a crystal structure to its SLICES string and perform data augmentation (2000x)
-slices_list=backend.structure2SLICESAug(structure=original_structure,num=2000) 
+backend=SLICES(graph_method='crystalnn')
+# converting a crystal structure to its SLICES string and perform data augmentation (50x)
+slices_list=backend.structure2SLICESAug_atom_order(structure=original_structure,num=50) 
 slices_list_unique=list(set(slices_list))
 cannon_slices_list=[]
 for i in slices_list_unique:
     cannon_slices_list.append(backend.get_canonical_SLICES(i))
 # test get_canonical_SLICES
 print(len(slices_list),len(set(cannon_slices_list)))
-# 2000 SLICES generated by data augmentation has been reduced to 1 canonical SLICES
+# 50 SLICES generated by data augmentation has been reduced to 1 canonical SLICES
 ```
 ## [视频教程](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4012344)
 
@@ -109,18 +112,22 @@ print(len(slices_list),len(set(cannon_slices_list)))
 **(4) Run following commands in terminal (Linux or WSL2 Ubuntu on Win11)** 
 ```bash
 # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
-docker pull xiaohang07/slices:v8.1   
+docker pull xiaohang07/slices:v9  
+# You can download the compressed docker image v9 at https://figshare.com/s/260701a1accd0192de20 if docker pull does not work. 
+# Then you can load this docker image using the following command: 
+xz -dc slices_v9.tar.xz | docker load
 # Make entrypoint_set_cpus.sh executable 
 sudo chmod +x entrypoint_set_cpus_jupyter.sh
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run -it -p 8888:8888 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v8.1 /crystal/entrypoint_set_cpus_jupyter.sh
+docker run -it -p 8888:8888 -h workq  --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus_jupyter.sh
 ```
 **(5) Press CTRL (or Command on Mac) and click the link that starts with http://127.0.0.1 in your terminal (highlighted in yellow in the image below).
 This will open the Jupyter notebook in your web browser. Click on the Tutorial_*.ipynb file to load the relevant tutorial notebook.**
 ![Optional Text](./examples/jupyter.png)
-### [Tutorial 1. Examples](./Tutorial_1_example.ipynb)
-### [Tutorial 2. Inverse Design Case Study](./Tutorial_2_inverse_design_case_study.ipynb)
-### [Tutorial 3. Inverse Design with cRNN](./Tutorial_3_inverse_design_with_cRNN.ipynb)
+### [Tutorial 1.0 Examples](./Tutorial_1.0_Intro_Example.ipynb)
+### [Tutorial 2.1 MatterGPT for Single-Property (eform) Material Inverse Design](./Tutorial_2.1_MatterGPT_eform.ipynb)
+### [Tutorial 2.2 MatterGPT for Single-Property (bandgap) Material Inverse Design](./Tutorial_2.2_MatterGPT_bandgap.ipynb)
+### [Tutorial 2.3 MatterGPT for Multi-Property (bandgap&eform) Material Inverse Design](./Tutorial_2.3_MatterGPT_2props_bandgap_eform.ipynb)
 
 
 ## Documentation
@@ -137,11 +144,11 @@ Put Materials Project's new API key in "APIKEY.ini".
 Edit "CPUs" in "slurm.conf" to set up the number of CPU threads available for the docker container.
 
 ```bash
-docker pull xiaohang07/slices:v8.1   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
+docker pull xiaohang07/slices:v9   # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 # Make entrypoint_set_cpus.sh executable 
 sudo chmod +x entrypoint_set_cpus.sh
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-docker run  -it --privileged=true -h workq --gpus all --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v8.1 /crystal/entrypoint_set_cpus.sh
+docker run  -it --privileged=true -h workq --gpus all --shm-size=0.1gb  -v /[]:/crystal -w /crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus.sh
 ```
 
 ### Reconstruction benchmark for MP-20

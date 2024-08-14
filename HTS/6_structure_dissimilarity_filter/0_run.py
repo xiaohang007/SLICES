@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-from invcryrep.utils import temporaryWorkingDirectory,splitRun,splitRun_csv,show_progress,collect_csv_filter
+from slices.utils import temporaryWorkingDirectory,splitRun,splitRun_csv,show_progress,collect_csv_filter
 import os,sys,glob
 from monty.serialization import loadfn, dumpfn
 # save structural fingerprints to json

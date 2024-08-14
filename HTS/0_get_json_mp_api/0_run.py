@@ -2,7 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import json
-from invcryrep.utils import temporaryWorkingDirectory,search_materials,exclude_elements_json,splitRun,show_progress,collect_json,collect_csv
+from slices.utils import temporaryWorkingDirectory,search_materials,exclude_elements_json,splitRun,show_progress,collect_json,collect_csv
 # Download entries to build general and transfer datasets
 dict_json=search_materials(apikeyPath='/crystal/APIKEY.ini',formation_energy=(-10000,0),num_sites=(1,5),fields=["material_id"])
 exclude_elements=['Fr' , 'Ra','Ac','Th','Pa','U','Np',\

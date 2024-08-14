@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-from invcryrep.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv
+from slices.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv
 import pandas as pd
 splitRun_csv(filename='../4_composition_filter/results_4_composition_filter.csv',threads=16,skip_header=True)
 show_progress()

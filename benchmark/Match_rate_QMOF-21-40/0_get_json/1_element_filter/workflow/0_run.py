@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os,sys,json
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 import configparser
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -20,7 +20,7 @@ print(delta_theta,lattice_expand)
 with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
-CG=InvCryRep(graph_method=graph_method)
+CG=SLICES(graph_method=graph_method)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:

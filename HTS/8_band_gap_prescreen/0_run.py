@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-from invcryrep.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv_filter
+from slices.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv_filter
 splitRun_csv(filename='../7_EAH_prescreen/results_7_EAH_prescreen_filtered.csv',threads=4,skip_header=True)
 show_progress()
 band_gap_lower_limit=0.1 # eV

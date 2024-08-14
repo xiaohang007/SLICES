@@ -2,7 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,sys,json,gc,math
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.structure import Structure
 import configparser
 import time
@@ -35,7 +35,7 @@ repul = config.getboolean("Settings","repul")
 graph_method = config.get("Settings","graph_method")
 
 check=False
-CG=InvCryRep(graph_method=graph_method, check_results=check)
+CG=SLICES(graph_method=graph_method, check_results=check)
 results=[]
 with open('temp_splited.csv', 'r') as f:
     reader = csv.reader(f)

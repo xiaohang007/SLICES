@@ -1,3 +1,0 @@
-{'task': 'sample_smiles', 'voc_dir': '../Voc_prior', 'smi_dir': 'cano_acceptors_smi.csv', 'prior_dir': 'data/Prior_gua_withda.ckpt', 'tf_dir': '../Prior_local.ckpt', 'nums': '100', 'save_dir': 'temp', 'tf_process_dir': 'Model1_sample_process.csv', 'target': '-4.5'}
-
-100 molecules sampled, 100 valid SMILES, 0 with double Br

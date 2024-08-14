@@ -6,7 +6,7 @@ import csv
 import pickle
 import numpy as np
 from pymatgen.core.composition import Composition
-from invcryrep.invcryrep import InvCryRep
+from slices.core import SLICES
 from pymatgen.core.periodic_table import ElementBase
 from collections import Counter
 import smact,itertools
@@ -80,7 +80,7 @@ def smact_validity(comp, count,
     else:
         return False
 
-CG=InvCryRep()
+CG=SLICES()
 os.system("rm result.csv")  # to deal with slurm's twice execution bug
 
 with open('temp.csv', 'r') as f:

@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_Ti2SbIr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.67502359
+_cell_length_b   5.65796991
+_cell_length_c   3.18924500
+_cell_angle_alpha   91.18935098
+_cell_angle_beta   90.14686343
+_cell_angle_gamma   33.77778131
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti2SbIr
+_chemical_formula_sum   'Ti2 Sb1 Ir1'
+_cell_volume   46.87496944
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  -0.03823666  0.08946775  -0.04228063  1
+  Ti  Ti1  1  -0.94550068  1.00760559  0.90168966  1
+  Ti  Ti2  1  -0.67791056  0.23775696  0.39428824  1
+  Ir  Ir3  1  -0.59077413  0.13917092  -0.61715140  1

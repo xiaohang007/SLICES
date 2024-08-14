@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-from invcryrep.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv
+from slices.utils import temporaryWorkingDirectory,splitRun_csv,show_progress,collect_csv
 
 splitRun_csv(filename='../3_inverse/results_3_inverse.csv',threads=16,skip_header=True)
 show_progress()
