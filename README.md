@@ -19,6 +19,7 @@ We also provide a codeocean capsule (a modular container for the software enviro
 ![Optional Text](./examples/MatterGPT.jpg)
 ![Optional Text](./examples/huggingface_space.png)
 ## Online Demo: https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU
+## 视频讲解: https://www.bilibili.com/video/BV1HdeHeyEfP
 ## Table of Contents
 
 - [Installation](#installation)
