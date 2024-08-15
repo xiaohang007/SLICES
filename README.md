@@ -10,13 +10,13 @@ It has several main functionalities:
 Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
 **Nature Communications** [[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[SLICES晶体语言视频介绍]](https://www.bilibili.com/video/BV17H4y1W7aZ/)[[SLICES101]](https://www.bilibili.com/video/BV1Yr42147dM/) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)[[Source code]](invcryrep/) 
-
-
+We provide a huggingface space to allow conversion of CIF to SLICES and SLICES to CIF online. 
+## [[SLICES online demo]](https://huggingface.co/spaces/xiaohang07/SLICES)
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./examples/figure_intro.png)
 
 # MatterGPT  
-## [[Paper]](https://arxiv.org/abs/2408.07608) [[Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU) [[视频讲解]](https://www.bilibili.com/video/BV1HdeHeyEfP)
+## [[Paper]](https://arxiv.org/abs/2408.07608) [[MatterGPT Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU) [[视频讲解]](https://www.bilibili.com/video/BV1HdeHeyEfP)
 ![Optional Text](./examples/MatterGPT.jpg)
 ![Optional Text](./examples/huggingface_space.png)
 
