@@ -15,11 +15,11 @@ Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
 ![Optional Text](./examples/figure_intro.png)
 
-# MatterGPT
+# MatterGPT  
+## [[Paper]](https://arxiv.org/abs/2408.07608) [[Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU) [[视频讲解]](https://www.bilibili.com/video/BV1HdeHeyEfP)
 ![Optional Text](./examples/MatterGPT.jpg)
 ![Optional Text](./examples/huggingface_space.png)
-## Online Demo: https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU
-## 视频讲解: https://www.bilibili.com/video/BV1HdeHeyEfP
+
 ## Table of Contents
 
 - [Installation](#installation)
