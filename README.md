@@ -514,5 +514,18 @@ Please consider citing the following paper if you find our code & data useful.
 }
 ```
 
+```
+@misc{chen2024mattergptgenerativetransformermultiproperty,
+      title={MatterGPT: A Generative Transformer for Multi-Property Inverse Design of Solid-State Materials}, 
+      author={Yan Chen and Xueru Wang and Xiaobin Deng and Yilun Liu and Xi Chen and Yunwei Zhang and Lei Wang and Hang Xiao},
+      year={2024},
+      eprint={2408.07608},
+      archivePrefix={arXiv},
+      primaryClass={cond-mat.mtrl-sci},
+      url={https://arxiv.org/abs/2408.07608}, 
+}
+```
+
 ## Contact and Support
 Start a new discussion thread in [[Discussion]](https://github.com/xiaohang007/SLICES/discussions/categories/general), or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) xiaohang07@live.cn if you have any questions.
+
