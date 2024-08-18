@@ -10,15 +10,14 @@ It has several main functionalities:
 Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
 **Nature Communications** [[Paper]](https://www.nature.com/articles/s41467-023-42870-7) [[SLICES晶体语言视频介绍]](https://www.bilibili.com/video/BV17H4y1W7aZ/)[[SLICES101]](https://www.bilibili.com/video/BV1Yr42147dM/) [[Data/Results]](https://doi.org/10.6084/m9.figshare.22707472)[[Source code]](invcryrep/) 
-We provide a huggingface space to allow conversion of CIF to SLICES and SLICES to CIF online. 
-## [[SLICES online demo]](https://huggingface.co/spaces/xiaohang07/SLICES)
-We also provide a codeocean capsule (a modular container for the software environment along with code and data, that runs in a browser), allowing one-click access to guaranteed computational reproducibility of SLICES's benchmark. [[Codeocean Capsule]](https://codeocean.com/capsule/8643173/tree/v1)
-![Optional Text](./examples/figure_intro.png)
 
+We provide a huggingface space to allow one-click conversion of CIF to SLICES and SLICES to CIF online. 
+## [[Online SLICES/CIF Convertor]](https://huggingface.co/spaces/xiaohang07/SLICES)
+![Optional Text](./docs/SLICES_demo.png)
 # MatterGPT  
 ## [[Paper]](https://arxiv.org/abs/2408.07608) [[MatterGPT Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU) [[视频讲解]](https://www.bilibili.com/video/BV1HdeHeyEfP)
-![Optional Text](./examples/MatterGPT.jpg)
-![Optional Text](./examples/huggingface_space.png)
+![Optional Text](./docs/MatterGPT.jpg)
+![Optional Text](./docs/huggingface_space.png)
 
 ## Table of Contents
 
@@ -125,7 +124,7 @@ docker run -it -p 8888:8888 -h workq  --shm-size=0.5gb --gpus all -v /[]:/crysta
 ```
 **(5) Press CTRL (or Command on Mac) and click the link that starts with http://127.0.0.1 in your terminal (highlighted in yellow in the image below).
 This will open the Jupyter notebook in your web browser. Click on the Tutorial_*.ipynb file to load the relevant tutorial notebook.**
-![Optional Text](./examples/jupyter.png)
+![Optional Text](./docs/jupyter.png)
 ### [Tutorial 1.0 Examples](./Tutorial_1.0_Intro_Example.ipynb)
 ### [Tutorial 2.1 MatterGPT for Single-Property (eform) Material Inverse Design](./Tutorial_2.1_MatterGPT_eform.ipynb)
 ### [Tutorial 2.2 MatterGPT for Single-Property (bandgap) Material Inverse Design](./Tutorial_2.2_MatterGPT_bandgap.ipynb)
