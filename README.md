@@ -530,6 +530,7 @@ During the development process, I referenced and drew inspiration from several e
  - [xtb](https://github.com/grimme-lab/xtb)
  - [m3gnet](https://github.com/materialsvirtuallab/m3gnet)
  - [chgnet](https://github.com/CederGroupHub/chgnet)
+ - [molgpt](https://github.com/devalab/molgpt)
  
 ## Contact and Support
 Start a new discussion thread in [[Discussion]](https://github.com/xiaohang007/SLICES/discussions/categories/general), or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) xiaohang07@live.cn if you have any questions.
