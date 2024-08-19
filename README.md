@@ -524,7 +524,13 @@ Please consider citing the following paper if you find our code & data useful.
       url={https://arxiv.org/abs/2408.07608}, 
 }
 ```
-
+## Acknowledgement
+During the development process, I referenced and drew inspiration from several excellent open source projects and related resources. I would like to express special thanks to the developers of these projects and the contributions of the open source community. The main projects we referenced are:
+ - [tobascco](https://github.com/peteboyd/tobascco)
+ - [xtb](https://github.com/grimme-lab/xtb)
+ - [m3gnet](https://github.com/materialsvirtuallab/m3gnet)
+ - [chgnet](https://github.com/CederGroupHub/chgnet)
+ 
 ## Contact and Support
 Start a new discussion thread in [[Discussion]](https://github.com/xiaohang007/SLICES/discussions/categories/general), or reach out to Hang Xiao (https://www.researchgate.net/profile/Hang-Xiao-8) xiaohang07@live.cn if you have any questions.
 
