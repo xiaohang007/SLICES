@@ -148,23 +148,20 @@ def main():
     os.system("rm result.csv")
     with open("temp.csv", 'r') as f:
         reader = csv.reader(f)
+        original_dir = os.getcwd()
         for row in reader:
             with open("./temp.vasp","w") as fn:
                 fn.write('\n'.join(row[3].split('\\n')))
             with open("./result.csv","a") as fn: 
-                opt_jobs = structure_optimization(vasp_cmd, structure_file="temp.vasp",directory="./relax")
-                os.chdir("./relax")
                 try:
+                    opt_jobs = structure_optimization(vasp_cmd, structure_file="temp.vasp",directory="./relax")
+                    os.chdir("./relax")
                     c_opt = Custodian(handlers1, opt_jobs, max_errors=10)
                     c_opt.run()
-                except Exception as e:
-                    print(e)
-                os.chdir("..")
-
+                    os.chdir(original_dir)
                 # Second part: Static and band structure calculations
-                calc_jobs = static_and_bands_calculations(vasp_cmd, optimized_structure_file="./relax/CONTCAR.relax2",directory="./bands")
-                os.chdir("./bands")
-                try:
+                    calc_jobs = static_and_bands_calculations(vasp_cmd, optimized_structure_file="./relax/CONTCAR.relax2",directory="./bands")
+                    os.chdir("./bands")
                     c_calc = Custodian(handlers2, calc_jobs, max_errors=10)
                     c_calc.run()
                     vrun = Vasprun2('./vasprun.xml.bands')
@@ -198,8 +195,9 @@ def main():
                     fn.write(row[0]+','+row[1]+','+row[2]+','+poscar+','+str(round(dir_gap,4))+','+str(round(indir_gap,4))+','+str(enthalpyForm)+','+row[4]+'\n') 
                     fig.savefig("../../candidates/"+row[0]+"_"+row[1]+"_dirGap-"+str(round(dir_gap,2))+"-indirGap-"+str(round(indir_gap,2))+"-eform-"+str(enthalpyForm)+".png")
                 except Exception as e:
-                    print(e)
-                os.chdir("..")
-    os.system("rm -f ./relax ./bands")
+                    print(f"Error processing row: {e}")
+                finally:
+                    os.chdir(original_dir)
+                    os.system("rm -rf ./relax ./bands")
 if __name__ == "__main__":
     main()

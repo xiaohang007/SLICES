@@ -5,9 +5,7 @@
 #PBS -e job.err
 #PBS -l walltime=100000:00:00
 export OMP_NUM_THREADS=1
-export MKL_DEBUG_CPU_TYPE=5
-export MKL_CBWR=AVX2
-export I_MPI_PIN_DOMAIN=numa
+
 
 python 0_run.py
 
