@@ -75,7 +75,7 @@ def structure_optimization(vasp_cmd, structure_file="POSCAR", directory="./relax
     
 def main():
     # Define error handlers
-    vasp_cmd = ["/opt/vasp.6.3.2/bin/vasp_std"] #["mpirun", "-np", "4", "/opt/vasp.6.3.2/bin/vasp_std"]
+    vasp_cmd = ["mpirun", "-np", "16", "/opt/vasp.6.3.2/bin/vasp_std"] #["mpirun", "-np", "4", "/opt/vasp.6.3.2/bin/vasp_std"]
     handlers = [
         VaspErrorHandler(),
         UnconvergedErrorHandler(),
