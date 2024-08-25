@@ -11,7 +11,7 @@ slices_list_unique=list(set(slices_list))
 #print(slices_list_unique)
 cannon_slices_list=[]
 for i in slices_list_unique:
-    cannon_slices_list.append(backend.get_canonical_SLICES(i,strategy=3))
+    cannon_slices_list.append(backend.get_canonical_SLICES(i,strategy=4))
 # test get_canonical_SLICES
 print(len(slices_list),len(set(cannon_slices_list)))
 #print(cannon_slices_list)
