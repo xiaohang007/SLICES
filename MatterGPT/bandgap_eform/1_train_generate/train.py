@@ -41,23 +41,25 @@ if __name__ == '__main__':
                         default=5e-5, help="learning rate", required=False)
     parser.add_argument('--lstm_layers', type=int, default=0,
                         help="number of layers in lstm", required=False)
-
+    parser.add_argument('--train_dataset', type=str, default="../../../data/mp20_nonmetal/train_data_reduce_zero.csv",
+                        help="path to the training dataset file")
+    parser.add_argument('--test_dataset', type=str, default="",
+                        help="path to the test dataset file (optional)")
     args = parser.parse_args()
 
     set_seed(42)
 
     # train data
-    train_dataset_file =  "../../../data/mp20_nonmetal/train_data_reduce_zero.csv"  # "./data/alex_crystalnn_eform_bandgap_nonmetal_shuffled.csv"
+    train_dataset_file = args.train_dataset
     data_train = pd.read_csv(train_dataset_file, delimiter=',',header=0)
     slices_train = data_train.iloc[:, 0].tolist()
     eform_train = data_train.iloc[:, 1].tolist() 
     bandgap_train = data_train.iloc[:, 2].tolist()
     props_train = [[float(p1), float(p2)] for p1, p2 in zip(eform_train,bandgap_train)]
     
-
     slices_test=[]
     # test data (optional)    
-    test_dataset_file = "" #./data/test_data_reduce_zero.csv
+    test_dataset_file = args.test_dataset
     if os.path.exists(test_dataset_file):
         data_test = pd.read_csv(test_dataset_file, delimiter=',',header=0)
         slices_test = data_test.iloc[:, 0].tolist()
