@@ -3,7 +3,7 @@
 #PBS -N ./structures/Nb3I8L1.vasp
 #PBS -o job.out
 #PBS -e job.err
-#PBS -l walltime=48:00:00
+#PBS -l walltime=4800000:00:00
 
 
 export OMP_NUM_THREADS=1
