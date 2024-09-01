@@ -13,11 +13,10 @@ Developed by Hang Xiao 2023.04 xiaohang07@live.cn
 
 We provide a huggingface space to allow one-click conversion of CIF to SLICES and SLICES to CIF online. 
 ## [[Online SLICES/CIF Convertor]](https://huggingface.co/spaces/xiaohang07/SLICES)
-![Optional Text](./docs/SLICES_demo.png)
+[![IMAGE ALT TEXT](./docs/SLICES_demo.png)](https://huggingface.co/spaces/xiaohang07/SLICES "Online SLICES/CIF Convertor")
 # MatterGPT  
 ## [[Paper]](https://arxiv.org/abs/2408.07608) [[MatterGPT Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU) [[视频简介]](https://www.bilibili.com/video/BV1HdeHeyEfP)[[视频教程]](https://www.bilibili.com/video/BV1agsLeUEAB)
-![Optional Text](./docs/MatterGPT.jpg)
-![Optional Text](./docs/huggingface_space.png)
+[![IMAGE ALT TEXT](./docs/huggingface_space.png)](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU "MatterGPT Online Demo")
 
 ## Table of Contents
 
