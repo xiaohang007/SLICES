@@ -5,7 +5,7 @@
 #PBS -e job.err
 echo "begin time"; date
 #PBS -l walltime=48000:00:00
-export PATH=/opt/conda/bin:$PATH
+export PATH=/opt/conda/env/chgnet/bin:$PATH
 source activate chgnet
 
 python 0_run.py

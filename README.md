@@ -35,12 +35,6 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
   - [Tutorial 2.3 MatterGPT for Multi-Property (bandgap&eform) Material Inverse Design](./Tutorial_2.3_MatterGPT_2props_bandgap_eform.ipynb)
 - [Documentation](#documentation)
 - [Reproduction of benchmarks](#reproduction-of-benchmarks)
-  - [General setup](#general-setup)
-  - [Reconstruction benchmark for MP-20](#reconstruction-benchmark-for-MP-20)
-  - [Reconstruction benchmark for MP-21-40](#reconstruction-benchmark-for-MP-21-40)
-  - [Reconstruction benchmark for QMOF-21-40](#reconstruction-benchmark-for-QMOF-21-40)
-  - [Material generation benchmark](#material-generation-benchmark)   
-  - [Property optimization benchmark](#property-optimization-benchmark)   
 - [Citation](#citation)
 - [Contact](#contact)
 
@@ -118,7 +112,7 @@ docker pull xiaohang07/slices:v9
 # Then you can load this docker image using the following command: 
 xz -dc slices_v9.tar.xz | docker load
 # Make entrypoint_set_cpus.sh executable 
-sudo chmod +x entrypoint_set_cpus_jupyter.sh
+sudo chmod +x entrypoint_set_cpus_jupyter.sh ./slices/xtb_noring_nooutput_nostdout_noCN
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
 # e.g. for windows cmd: -v C:\Users\admin\Desktop\SLICES:/crystal
 # e.g. for windows wsl: -v /mnt/c/Users/admin/Desktop/SLICES:/crystal
