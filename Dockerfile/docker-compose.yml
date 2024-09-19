@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  workq:
+    #image: umat:v1
+    build: .
+    container_name: workq
+    hostname: workq
+    ports:
+      - "8880:8880"
+    shm_size: '0.5gb'
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - /home/mvd/soft/SLICES:/crystal
+      - /home/mvd/soft/DockerFiles/slice:/mnt
+    command: /mnt/entrypoint_set_cpus_jupyter.sh 
+

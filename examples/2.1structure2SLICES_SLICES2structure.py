@@ -1,9 +1,11 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 from slices.core import SLICES
 from pymatgen.core.structure import Structure
 # obtaining the pymatgen Structure instance of NdSiRu
 original_structure = Structure.from_file(filename='NdSiRu.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=SLICES(relax_model="chgnet")
+backend=SLICES(relax_model="m3gnet")
 #backend=SLICES(relax_model="m3gnet")
 # converting a crystal structure to its SLICES string
 slices_NdSiRu=backend.structure2SLICES(original_structure) 

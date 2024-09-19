@@ -25,16 +25,14 @@ print(delta_theta,lattice_expand)
 with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
-CG=SLICES(graph_method=graph_method,relax_model="chgnet")
+CG=SLICES(graph_method=graph_method,relax_model="m3gnet")
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:
-        CG.from_cif(cif_string)
-        if CG.check_element():
-            if cifs[i]["band_gap"] > 0.01:
-                ori = Structure.from_str(cif_string,"cif")
-                dim=CG.get_dim(ori)
-                if dim==3:
+        ori = Structure.from_str(cif_string,"cif")
+        if cifs[i]["band_gap"] > 0.01:
+            if CG.check_element(ori):
+                if CG.check_3D(ori):
                     num_ori=len(np.array(ori.atomic_numbers))
                     sga = SpacegroupAnalyzer(ori)
                     ori_pri = sga.get_primitive_standard_structure()
@@ -57,6 +55,5 @@ for i  in range(len(cifs)):
 
 with open('output.json', 'w') as f:
     json.dump(cifs_filtered, f)
-
 
 

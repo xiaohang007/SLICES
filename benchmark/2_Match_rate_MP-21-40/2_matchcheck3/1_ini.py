@@ -16,7 +16,7 @@ param_grid = {
 'vbond_param_ave_covered':[0],
 'vbond_param_ave':[0.01],
 'repul':[True],
-'graph_method':['crystalnn'],
+'graph_method':['econnn'],
 }
 grid=list(ParameterGrid(param_grid))
 os.system('rm -rf job_*')

@@ -2,6 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,subprocess,random,warnings
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -13,7 +14,7 @@ from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
 from pymatgen.core.periodic_table import ElementBase
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.analysis.dimensionality import get_dimensionality_larsen
+from pymatgen.analysis.dimensionality import get_dimensionality_larsen, get_structure_components
 from pymatgen.core.composition import Composition
 import re
 import networkx as nx
@@ -77,7 +78,7 @@ def function_timeout(seconds: int):
 class SLICES:
     """Invertible Crystal Representation (SLICES and labeled quotient graph)
     """    
-    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='crystalnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="chgnet"):
+    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="m3gnet"):
         """__init__
 
         Args:
@@ -133,16 +134,33 @@ class SLICES:
                 sys.stdout = old_stdout
                 sys.stderr = old_stderr
 
-    def check_element(self):
+    @staticmethod
+    def check_element(structure):
         """Make sure no atoms with atomic numbers higher than 86 (due to GFN-FF's limitation).
+
+        Args:
+            structure (Structure): A pymatgen Structure.
 
         Returns:
             bool: Return True if all atoms with Z < 87.
-        """        
-        if self.atom_types.max() < 87:
+        """
+        atom_types = np.array(structure.atomic_numbers)
+        if atom_types.max() < 87:
             return True
         else:
             return False
+
+    def check_2D(self, structure):
+        structure_graph=self.structure2structure_graph(structure)
+        structure_components=get_structure_components(structure_graph)
+        dim=[component['dimensionality']  for component in structure_components]
+        return all(b==2 for b in dim)
+        
+    def check_3D(self, structure):
+        structure_graph=self.structure2structure_graph(structure)
+        structure_components=get_structure_components(structure_graph)
+        dim=[component['dimensionality']  for component in structure_components]
+        return all(b==3 for b in dim) and len(structure_components)==1
 
     def cif2structure_graph(self,string):
         """Convert a cif string to a structure_graph.
@@ -165,7 +183,7 @@ class SLICES:
                 structure, MinimumDistanceNN())
         elif self.graph_method == 'crystalnn':
             structure_graph = StructureGraph.with_local_env_strategy(
-                structure, CrystalNN())
+                structure, CrystalNN(porous_adjustment=False,weighted_cn=True))
         else:
             print("ERROR - graph_method not implemented") 
         return structure_graph,structure
@@ -190,7 +208,7 @@ class SLICES:
                 structure, MinimumDistanceNN())
         elif self.graph_method == 'crystalnn':
             structure_graph = StructureGraph.with_local_env_strategy(
-                structure, CrystalNN())
+                structure, CrystalNN(porous_adjustment=False,weighted_cn=True))
         else:
             print("ERROR - graph_method not implemented") 
         return structure_graph
@@ -880,7 +898,7 @@ class SLICES:
         elif self.graph_method == 'mininn':
             bonded_structure = MinimumDistanceNN().get_bonded_structure(structure)
         elif self.graph_method == 'crystalnn':
-            bonded_structure = CrystalNN().get_bonded_structure(structure)
+            bonded_structure = CrystalNN(porous_adjustment=False,weighted_cn=True).get_bonded_structure(structure)
         else:
             print("ERROR - graph_method not implemented") 
         dim=get_dimensionality_larsen(bonded_structure)
@@ -1079,6 +1097,7 @@ class SLICES:
                 index=temp2[0][0]
             else:
                 print('Cannot find bond!!!') 
+                continue
             if np.isnan(data['vbond'][index][2]):
                 bond_weight.append(1)
                 data['vbond'][index][2]=1
@@ -1185,6 +1204,7 @@ class SLICES:
                     index=temp2[0][0]
                 else:
                     print('Cannot find bond!!!') 
+                    continue
                 if np.isnan(data['vbond'][index][2]):
                     bond_weight.append(1)
                     data['vbond'][index][2]=1
@@ -1606,12 +1626,12 @@ class SLICES:
             periodic_rep=cycle_rep
         lattice_arcs = np.dot(cycle_cocycle_I, periodic_rep)
         inner_p = np.dot(np.dot(lattice_arcs, metric_tensor), lattice_arcs.T)
-
+        epsilon2 = 1e-10
         for k in range(len(colattice_inds[0])):
             i=colattice_inds[0][k]
             j=colattice_inds[1][k]
             if i==j:
-                square_diff += (inner_p[i][j]-mat_target[i][j])**2 + 4*vbond_param_ave_covered*(covered_pair_lj[i][1]/np.sqrt(inner_p[i][j]))**12  # inner_p单位是 Angstrom的平方
+                square_diff += (inner_p[i][j]-mat_target[i][j])**2 + 4*vbond_param_ave_covered*(covered_pair_lj[i][1]/np.sqrt(max(inner_p[i][j], epsilon2)))**12  # inner_p单位是 Angstrom的平方
             else:
                 square_diff += angle_weight*colattice_weights[k]*(inner_p[i][j]-mat_target[i][j])**2  # divide angle weight by 3
         # repulsive part of LJ potential to prevent atom collision
@@ -1782,40 +1802,43 @@ class SLICES:
         # get the gfnff-scaled standard placement
         atom_symbols=[str(ElementBase.from_Z(i)) for i in self.atom_types]
         structure_recreated_std = Structure(lattice_vectors_scaled, atom_symbols,coordinates_std)
-        # optimize X (lattice vectors and cocycle_rep)
-        # get lattice type
-        lattice_length_list=[metric_tensor_std[0,0],metric_tensor_std[1,1],metric_tensor_std[2,2]]
-        lattice_length_list_unique=list(set(lattice_length_list))
-        lattice_type=len(lattice_length_list_unique)
-        if lattice_type==2:
-            if metric_tensor_std[0,0]==metric_tensor_std[1,1]:
-                lattice_type=23
-            if metric_tensor_std[0,0]==metric_tensor_std[2,2]:
-                lattice_type=22
-            if metric_tensor_std[2,2]==metric_tensor_std[1,1]:
-                lattice_type=21
-        x,bounds = self.initialize_x_bounds(net.ndim,net.cocycle_rep,metric_tensor_std,lattice_type,delta_theta,delta_x,lattice_expand,lattice_shrink)
-        x=fmin_l_bfgs_b(self.func, x, fprime=None, args= \
-        (net.ndim,net.order,inner_p_target,colattice_inds,colattice_weights,net.cycle_rep,net.cycle_cocycle_I, \
-        num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
-        lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std), \
-        approx_grad=True, bounds=bounds, m=10, factr=10000000.0, pgtol=1e-05, \
-        epsilon=1e-08, iprint=- 1, maxfun=15000, maxiter=15000, disp=None, callback=None, maxls=20)
-        #get optimized structure
-        net.metric_tensor, net.cocycle_rep = self.convert_params(x[0], net.ndim, int(net.order - 1),lattice_type,metric_tensor_std)
-        lattice_vectors_new=np.linalg.cholesky(net.metric_tensor)
-        if net.cocycle is not None: 
-            net.periodic_rep = np.concatenate((net.cycle_rep, net.cocycle_rep), axis=0)
+        if net.cocycle_rep is None:
+            structure_recreated_opt = structure_recreated_std
         else:
-            net.periodic_rep=net.cycle_rep
-        arc_coord_new=net.lattice_arcs
-        coordinates_new=self.get_coordinates(arc_coord_new,num_nodes,shortest_path,spanning) 
-        structure_recreated_opt = Structure(lattice_vectors_new, atom_symbols,coordinates_new)
-        if self.check_results:
-            print(x[0])
-            print(self.func_check(x[0],net.ndim,net.order,inner_p_target,colattice_inds,colattice_weights,net.cycle_rep,net.cycle_cocycle_I, \
+            # optimize X (lattice vectors and cocycle_rep)
+            # get lattice type
+            lattice_length_list=[metric_tensor_std[0,0],metric_tensor_std[1,1],metric_tensor_std[2,2]]
+            lattice_length_list_unique=list(set(lattice_length_list))
+            lattice_type=len(lattice_length_list_unique)
+            if lattice_type==2:
+                if metric_tensor_std[0,0]==metric_tensor_std[1,1]:
+                    lattice_type=23
+                if metric_tensor_std[0,0]==metric_tensor_std[2,2]:
+                    lattice_type=22
+                if metric_tensor_std[2,2]==metric_tensor_std[1,1]:
+                    lattice_type=21
+            x,bounds = self.initialize_x_bounds(net.ndim,net.cocycle_rep,metric_tensor_std,lattice_type,delta_theta,delta_x,lattice_expand,lattice_shrink)
+            x=fmin_l_bfgs_b(self.func, x, fprime=None, args= \
+            (net.ndim,net.order,inner_p_target,colattice_inds,colattice_weights,net.cycle_rep,net.cycle_cocycle_I, \
             num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
-            lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std))
+            lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std), \
+            approx_grad=True, bounds=bounds, m=10, factr=10000000.0, pgtol=1e-05, \
+            epsilon=1e-08, iprint=- 1, maxfun=15000, maxiter=15000, disp=None, callback=None, maxls=20)
+            #get optimized structure
+            net.metric_tensor, net.cocycle_rep = self.convert_params(x[0], net.ndim, int(net.order - 1),lattice_type,metric_tensor_std)
+            lattice_vectors_new=np.linalg.cholesky(net.metric_tensor)
+            if net.cocycle is not None: 
+                net.periodic_rep = np.concatenate((net.cycle_rep, net.cocycle_rep), axis=0)
+            else:
+                net.periodic_rep=net.cycle_rep
+            arc_coord_new=net.lattice_arcs
+            coordinates_new=self.get_coordinates(arc_coord_new,num_nodes,shortest_path,spanning) 
+            structure_recreated_opt = Structure(lattice_vectors_new, atom_symbols,coordinates_new)
+            if self.check_results:
+                print(x[0])
+                print(self.func_check(x[0],net.ndim,net.order,inner_p_target,colattice_inds,colattice_weights,net.cycle_rep,net.cycle_cocycle_I, \
+                num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
+                lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std))
         try:
             if num_nodes <= 20:
                 structure_recreated_opt2, final_energy_per_atom=self.relax(structure_recreated_opt)

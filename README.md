@@ -82,7 +82,7 @@ from pymatgen.analysis.structure_matcher import StructureMatcher, ElementCompara
 # obtaining the pymatgen Structure instance of Sr3Ru2O7
 original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
-backend=SLICES(graph_method='crystalnn')
+backend=SLICES(graph_method='econnn')
 # converting a crystal structure to its SLICES string and perform data augmentation (50x)
 slices_list=backend.structure2SLICESAug_atom_order(structure=original_structure,num=50) 
 slices_list_unique=list(set(slices_list))
@@ -108,6 +108,7 @@ print(len(slices_list),len(set(cannon_slices_list)))
 ```bash
 # Download SLICES_docker with pre-installed SLICES and other relevant packages. 
 docker pull xiaohang07/slices:v9  
+# you can build your own docker image using the Dockerfile in this repo. Many thanks to Prof. Haidi Wang (https://haidi-ustc.github.io/about/) for the Dockerfile.
 # You can download the compressed docker image v9 at https://figshare.com/s/260701a1accd0192de20 if docker pull does not work. 
 # Then you can load this docker image using the following command: 
 xz -dc slices_v9.tar.xz | docker load

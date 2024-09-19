@@ -10,7 +10,7 @@ import numpy as np
 os.environ["OMP_NUM_THREADS"] = "1"
 
 config = configparser.ConfigParser()
-config.read('./settings.ini') #path of your .ini file
+config.read('../settings.ini') #path of your .ini file
 bond_scaling = config.getfloat("Settings","bond_scaling") 
 delta_theta = config.getfloat("Settings","delta_theta") 
 delta_x = config.getfloat("Settings","delta_x") 
@@ -28,11 +28,9 @@ CG=SLICES(graph_method=graph_method)
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:
-        CG.from_cif(cif_string)
-        if CG.check_element():
-            ori = Structure.from_str(cif_string,"cif")
-            dim=CG.get_dim(ori)
-            if dim==3:
+        ori = Structure.from_str(cif_string,"cif")
+        if CG.check_element(ori):
+            if CG.check_3D(ori):
                 num_ori=len(np.array(ori.atomic_numbers))
                 sga = SpacegroupAnalyzer(ori)
                 ori_pri = sga.get_primitive_standard_structure()
