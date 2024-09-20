@@ -30,9 +30,9 @@ RUN wget -P /tmp https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Minicon
 ENV PATH=/opt/miniconda/bin:$PATH
 
 # 创建新的 conda 环境并安装包
-RUN conda create -n chgnet python=3.10 -y
+RUN conda create -n umat python=3.10 -y
 
-RUN /bin/bash -c "source activate chgnet && \
+RUN /bin/bash -c "source activate umat && \
     conda install pymatgen -c conda-forge -y && \
     pip install --no-cache torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 && \
     pip install --no-cache dgl==2.1.0 -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html && \
@@ -47,7 +47,7 @@ RUN /bin/bash -c "source activate chgnet && \
     pip install --no-cache alignn "
 
 # 安装 jarvis_leaderboard 并重新安装 dgl
-RUN /bin/bash -c "source activate chgnet  && \
+RUN /bin/bash -c "source activate umat  && \
     pip install --no-cache jarvis_leaderboard -i https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip uninstall dgl -y && \
     pip install dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html && \
@@ -56,17 +56,17 @@ RUN /bin/bash -c "source activate chgnet  && \
     pip install --no-cache ipython  && \
     conda clean --all -f -y "
 
-RUN /bin/bash -c "source activate chgnet  &&  \
+RUN /bin/bash -c "source activate umat  &&  \
     pip install jupyter -i https://pypi.tuna.tsinghua.edu.cn/simple"
 
 # 配置 .bashrc 以自动激活环境
-RUN echo "source /opt/miniconda/bin/activate && conda activate chgnet" >> /root/.bashrc
+RUN echo "source /opt/miniconda/bin/activate && conda activate umat" >> /root/.bashrc
 
 # Set environment variables
 ENV PATH=/opt/miniconda/bin:$PATH \
-    LD_LIBRARY_PATH=/opt/miniconda/envs/chgnet/lib:$LD_LIBRARY_PATH \
+    LD_LIBRARY_PATH=/opt/miniconda/envs/umat/lib:$LD_LIBRARY_PATH \
     DGLBACKEND=pytorch \
-    DGLDEFAULTDIR=/mnt/data/.dgl 
+    DGLDEFAULTDIR=/crystal/data/.dgl 
 
 #COPY slurm.conf /etc/slurm/
 
@@ -79,7 +79,7 @@ RUN rm -rf /var/spool/slurm-llnl && \
     chown -R slurm:slurm /var/run/slurm-llnl/
 
 # 设置工作目录
-WORKDIR /mnt/data
+WORKDIR /crystal
 
 # 启动容器时进入 bash
 CMD ["bash"]

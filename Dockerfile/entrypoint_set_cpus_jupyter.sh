@@ -8,4 +8,6 @@ service munge restart
 service slurmctld restart
 service slurmd restart
 sinfo
+mv /lib/x86_64-linux-gnu/libstdc++.so.6 /lib/x86_64-linux-gnu/libstdc++.so.6.bk
+ln -s /opt/miniconda/envs/umat/lib/libstdc++.so.6.0.33  /lib/x86_64-linux-gnu/libstdc++.so.6
 jupyter notebook --allow-root --ip 0.0.0.0 --port=8880 --NotebookApp.iopub_data_rate_limit=1.0e10
