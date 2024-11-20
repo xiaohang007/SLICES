@@ -28,7 +28,7 @@ for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:
         ori = Structure.from_str(cif_string,"cif")
-        sci_list=CG.structure2SLICESAug_atom_order(structure=ori,strategy=3,num=5)
+        sci_list=CG.structure2SLICESAug_atom_order(structure=ori,num=5)
 
         with open("result.csv",'a') as f:
             for j in sci_list:

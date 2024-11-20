@@ -36,7 +36,7 @@ def convert_graph(edge_indices,to_jimages):
     net_voltage=np.array(net_voltage)
     return x_dat, net_voltage
 
-def from_SLICES(SLICES,strategy=3,fix_duplicate_edge=True):
+def from_SLICES(SLICES,fix_duplicate_edge=True):
     """Extract edge_indices, to_jimages and atom_types from decoding a SLICES string.
 
     Args:
@@ -149,7 +149,7 @@ def from_SLICES(SLICES,strategy=3,fix_duplicate_edge=True):
     atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in atom_symbols])    
     return edge_indices,to_jimages,atom_types
 
-def check_SLICES(SLICES,strategy=3,dupli_check=True,graph_rank_check=True):
+def check_SLICES(SLICES,dupli_check=True,graph_rank_check=True):
     """Check if a slices string conforms to the proper syntax.
 
     Args:
