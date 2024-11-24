@@ -228,7 +228,7 @@ class SLICES:
         self.atom_types = None
         self.edge_indices = None
         self.to_jimages = None
-        tokens=SLICES.split(" ")
+        tokens=SLICES.strip().split(" ")
         if strategy==3:
             for i in range(len(tokens)):
                 if tokens[i].isnumeric():
