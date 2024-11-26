@@ -115,9 +115,9 @@ xz -dc slices_v9.tar.xz | docker load
 # Make entrypoint_set_cpus.sh executable 
 sudo chmod +x entrypoint_set_cpus_jupyter.sh ./slices/xtb_noring_nooutput_nostdout_noCN
 # Repalce "[]" with the absolute path of this repo's unzipped folder to setup share folder for the docker container.
-# e.g. for windows cmd: -v C:\Users\admin\Desktop\SLICES:/crystal
-# e.g. for windows wsl: -v /mnt/c/Users/admin/Desktop/SLICES:/crystal
-# e.g. for linux: -v /home/admin/Desktop/SLICES:/crystal
+# e.g. for windows cmd: -v C:\Users\admin\Desktop\SLICES-main:/crystal
+# e.g. for windows wsl: -v /mnt/c/Users/admin/Desktop/SLICES-main:/crystal
+# e.g. for linux: -v /home/admin/Desktop/SLICES-main:/crystal
 docker run -it -p 8888:8888 -h workq  --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus_jupyter.sh
 ```
 **(5) Press CTRL (or Command on Mac) and click the link that starts with http://127.0.0.1 in your terminal (highlighted in yellow in the image below).
