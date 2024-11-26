@@ -120,6 +120,8 @@ sudo chmod +x entrypoint_set_cpus_jupyter.sh ./slices/xtb_noring_nooutput_nostdo
 # e.g. for linux: -v /home/admin/Desktop/SLICES-main:/crystal
 docker run -it -p 8888:8888 -h workq  --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus_jupyter.sh
 ```
+Please note: The best way to run this project is using Docker on Windows 11, as this allows you to utilize GPU for model training directly within Docker containers. In contrast, when running Docker on Ubuntu, accessing GPU from within Docker containers has proven problematic (verified across multiple machines). Therefore, on Ubuntu systems, a hybrid approach is required: install PyTorch directly on the host machine for training MatterGPT models and generating SLICES, while other steps can be run in Docker. 
+请注意：在所有操作系统中，运行此项目的最佳方式是使用 Windows 11 的 Docker 环境，因为它能够让你在 Docker 容器内直接调用 GPU 来训练模型。相比之下，在 Ubuntu 系统中运行 Docker 时会遇到 GPU 调用的问题（经过多台计算机测试验证），因此在 Ubuntu 上需要采用混合方案：在本机直接安装 PyTorch 来训练 MatterGPT 模型和生成 SLICES，而其他步骤则可以在 Docker 容器中完成。
 **(5) Press CTRL (or Command on Mac) and click the link that starts with http://127.0.0.1 in your terminal (highlighted in yellow in the image below).
 This will open the Jupyter notebook in your web browser. Click on the Tutorial_*.ipynb file to load the relevant tutorial notebook.**
 ![Optional Text](./docs/jupyter.png)
