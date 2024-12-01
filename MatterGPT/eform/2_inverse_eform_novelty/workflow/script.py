@@ -24,10 +24,6 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 
 
-os.system("rm result.csv")  # to deal with slurm's twice execution bug
-  # This loads the default pre-trained model
-
-
 def compare_compositions(struct1, struct2):
     return struct1.composition == struct2.composition
 
