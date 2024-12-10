@@ -43,7 +43,7 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 # pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple (use this if you are in China)
 conda env create --name slices --file=environments.yml
 conda activate slices
-pip install slices==2.0.2
+pip install slices
 #If you're in China, use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
 Please note that this installtion method is intended for Linux operating systems like Ubuntu and CentOS. Unfortunately, SLICES is not directly compatible with Windows or MacOS due to the modified XTB binary was compiled on Linux. To run SLICES on Windows or MacOS, one can run SLICES with docker, referring to [Jupyter backend setup](#jupyter-backend-setup).
