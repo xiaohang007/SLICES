@@ -59,7 +59,7 @@ def function_timeout(seconds: int):
         @contextmanager
         def time_limit(seconds_):
             def signal_handler(signum, frame):  # noqa
-                raise SystemExit("Timed out!")  #TimeoutException
+                raise TimeoutException("Timed out!")  #TimeoutException
             signal.signal(signal.SIGALRM, signal_handler)
             signal.alarm(seconds_)
             try:
@@ -1890,7 +1890,7 @@ class SLICES:
             print(e)
             return structures,final_energy_per_atom
 
-    @function_timeout(seconds=180)
+    @function_timeout(seconds=360)
     def relax(self,struc):
         """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 60 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
@@ -1911,7 +1911,7 @@ class SLICES:
         final_energy_per_atom = float(relax_results['trajectory'].energies[-1] / len(struc))
         return final_structure,final_energy_per_atom
 
-    @function_timeout(seconds=360)
+    @function_timeout(seconds=720)
     def relax_large_cell1(self,struc):
         """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 360 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
@@ -1932,7 +1932,7 @@ class SLICES:
         final_energy_per_atom = float(relax_results['trajectory'].energies[-1] / len(struc))
         return final_structure,final_energy_per_atom
 
-    @function_timeout(seconds=1000)
+    @function_timeout(seconds=2000)
     def relax_large_cell2(self,struc):
         """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 1000 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
