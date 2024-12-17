@@ -14,9 +14,11 @@ The **Simplified Line-Input Crystal-Encoding System (SLICES)** is the first inve
 
 ## Main Functionalities
 
-1. Encode crystal structures into SLICES strings
-2. Reconstruct original crystal structures (Text2Crystal)
+1. **Encode crystal structures into SLICES strings**
+2. **Reconstruct original crystal structures (Text2Crystal)**
 3. **Inverse design of solid-state materials with desired properties using MatterGPT**
+4. **Inverse design of solid-state materials with desired properties and crystal systems using MatterGPT ([SLICES-PLUS](https://arxiv.org/abs/2410.22828))**
+
 ---
 We provide a huggingface space to allow one-click conversion of CIF to SLICES and SLICES to CIF online. 
 ### [[Online SLICES/CIF Convertor]](https://huggingface.co/spaces/xiaohang07/SLICES)
@@ -70,7 +72,6 @@ pip install slices
 pip install protobuf==3.20.0
 ```
 - If errors persist, consider using Docker instead.
-## [Tutorials for Local Installation](./local_MatterGPT_benchmark/Tutorials_local.md) 
 ### Docker Installation for Jupyter Backend
 Follow these steps to set up SLICES using Docker:
 
@@ -150,9 +151,8 @@ print('Unique Canonical SLICES:', len(canonical_slices))
 ```
 
 ---
-
-## Tutorials for Docker Installation
-
+## Tutorials
+### Tutorials for Docker Installation
 - **SLICES Video Tutorials**: [Bilibili](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4012344)
 - **MatterGPT Video Tutorials**: [Bilibili](https://www.bilibili.com/video/BV1agsLeUEAB)
 - **Jupyter Setup Instructions**: See [Docker Setup](#docker-installation-for-jupyter-backend)
@@ -161,7 +161,7 @@ print('Unique Canonical SLICES:', len(canonical_slices))
    - [Single-Property Material Design (eform)](./Tutorial_2.1_MatterGPT_eform.ipynb)
    - [Single-Property Material Design (bandgap)](./Tutorial_2.2_MatterGPT_bandgap.ipynb)
    - [Multi-Property Design](./Tutorial_2.3_MatterGPT_2props_bandgap_eform.ipynb)
-
+### [Tutorials for Local Installation](./local_MatterGPT_benchmark/Tutorials_local.md) 
 ---
 
 ## Documentation
@@ -176,7 +176,7 @@ Refer to the [Benchmarks Guide](benchmark/benchmarks.md) for detailed instructio
 
 ## Citation
 
-If you use SLICES or MatterGPT, please cite the following works:
+If you use SLICES, MatterGPT or SLICES-PLUS, please cite the following works:
 
 ```bibtex
 @article{xiao2023invertible,
@@ -198,6 +198,16 @@ If you use SLICES or MatterGPT, please cite the following works:
   archivePrefix={arXiv},
   primaryClass={cond-mat.mtrl-sci},
   url={https://arxiv.org/abs/2408.07608}
+}
+
+@misc{wang2024slicespluscrystalrepresentationleveraging,
+      title={SLICES-PLUS: A Crystal Representation Leveraging Spatial Symmetry}, 
+      author={Baoning Wang and Zhiyuan Xu and Zhiyu Han and Qiwen Nie and Hang Xiao and Gang Yan},
+      year={2024},
+      eprint={2410.22828},
+      archivePrefix={arXiv},
+      primaryClass={physics.comp-ph},
+      url={https://arxiv.org/abs/2410.22828}, 
 }
 ```
 
