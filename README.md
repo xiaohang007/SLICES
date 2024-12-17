@@ -52,7 +52,8 @@ The local version does not require Docker. Follow the steps below to set up the 
 
 ```bash
 # For users in China, configure pip for a faster mirror:
-pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+python -m pip install --upgrade pip
+pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 # Install environment
 conda env create --name slices --file=environments.yml
