@@ -1,0 +1,2 @@
+folder,opt2_match_sum,opt_match_sum,std_match_sum,opt2_match2_sum,opt_match2_sum,std_match2_sum,opt2_topo2_sum,opt_topo2_sum,std_topo2_sum,time_sum,     bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul,graph_method
+job_0,93.03891649221923,85.23544099472873,77.06121213649777,94.94564806174178,93.08179273121642,90.62775858155312,0.015820731682417977,0.039562518240416795,0.048082207263397195,1.2308820530308617,1.05,0.005,0.45,1.0,1.25,0.5,0.0,0.01,True,crystalnn

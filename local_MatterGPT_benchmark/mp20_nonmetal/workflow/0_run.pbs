@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -N ./structures/Nb3I8L1.vasp
+#PBS -o job.out
+#PBS -e job.err
+echo "begin time"; date
+#PBS -l walltime=48000:00:00
+export PATH=/opt/conda/env/chgnet/bin:$PATH
+source activate chgnet
+
+python 0_run.py
+echo "End time"; date
