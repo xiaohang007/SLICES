@@ -1,10 +1,13 @@
 # Local Installation
 ```bash
-# pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple (use this if you are in China)
+# For users in China, configure pip for a faster mirror:
+python -m pip install --upgrade pip
+pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+
+# Install environment
 conda env create --name slices --file=environments.yml
 conda activate slices
 pip install slices
-#If you're in China, use this command instead: "pip install slices -i https://pypi.tuna.tsinghua.edu.cn/simple".
 ```
 Please note that this installtion method is intended for Linux operating systems like Ubuntu or Ubuntu on win11. To run SLICES on MacOS, one can run SLICES with docker, referring to [Jupyter backend setup](#jupyter-backend-setup).
 
