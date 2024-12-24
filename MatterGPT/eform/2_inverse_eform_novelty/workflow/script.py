@@ -58,10 +58,8 @@ with open('temp_splited.csv', 'r') as f:
     for row in reader:
         try:
             if CG.check_SLICES(row[1],strategy=4,dupli_check=False):
-                CG.from_SLICES(row[1],strategy=4,fix_duplicate_edge=True)
                 #print(bond_scaling, delta_theta, delta_x,lattice_shrink,lattice_expand,angle_weight,epsilon,repul)
-                structure,energy_per_atom=CG.to_relaxed_structure(bond_scaling, delta_theta, delta_x, \
-                lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
+                structure,energy_per_atom=CG.SLICES2structure(row[1])
                 finder = SpacegroupAnalyzer(structure)
                 try:
                     primitive_standard_structure = finder.get_primitive_standard_structure()
