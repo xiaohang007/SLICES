@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 x = torch.tensor([stoi[context]], dtype=torch.long)[None,...].repeat(args.batch_size, 1).to(device)
                 p = torch.tensor([[c]]).repeat(args.batch_size, 1).to(device) if nprops == 1 else torch.tensor([c]).repeat(args.batch_size, 1).unsqueeze(1).to(device)
 
-                y = model.sample(x, params["block_size"], temperature=1.2, do_sample=True, top_k=0.0, top_p=0.9, prop=p)  
+                y = model.sample(x, params["block_size"], temperature=0.9, do_sample=True, top_k=50, top_p=0.9, prop=p)  
                 for gen_mol in y:
                     completion = " ".join([itos[int(i)] for i in gen_mol])
                     completion = completion.replace("<", "").strip()
