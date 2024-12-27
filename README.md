@@ -87,8 +87,7 @@ docker pull xiaohang07/slices:v9
 
 # you can build your own docker image using the Dockerfile in this repo. Many thanks to Prof. Haidi Wang (https://haidi-ustc.github.io/about/) for the Dockerfile.
 # You can download the compressed docker image v9 at https://figshare.com/s/260701a1accd0192de20 if docker pull does not work. 
-# Then you can load this docker image using the following command: 
-xz -dc slices_v9.tar.xz | docker load
+# Then you can load this docker image using the following command: xz -dc slices_v9.tar.xz | docker load
 
 # Make scripts executable
 sudo chmod +x entrypoint_set_cpus_jupyter.sh ./slices/xtb_noring_nooutput_nostdout_noCN
