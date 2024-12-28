@@ -12,7 +12,6 @@ import warnings
 warnings.filterwarnings("ignore")
 import contextlib
 from itertools import zip_longest
-from mp_api.client.mprester import MPRester
 import configparser
 from contextlib import redirect_stdout
 import pandas as pd
@@ -210,29 +209,6 @@ def exclude_elements_json(input_json,exclude_elements):
     print(str(round((len(input_json)-len(flitered_json))/len(input_json)*100,1))+"% materials excluded")
     return flitered_json
 
-def search_materials(apikeyPath,**search_params):
-    def grouper(iterable, n, fillvalue=None):
-        args = [iter(iterable)] * n
-        return zip_longest(fillvalue=fillvalue, *args)
-    config = configparser.ConfigParser()
-    config.read(apikeyPath) #path of your .ini file
-    apikey = config.get("Settings","API_KEY")
-    with MPRester(api_key=apikey) as mpr:
-        docs = mpr.summary.search(**search_params)
-        oxide_mp_ids = [e.material_id for e in docs]
-        data = []
-        mpid_groups = [g for g in grouper(oxide_mp_ids, 1000)]
-        for group in tqdm(mpid_groups,position=0, leave=True,bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}'):
-            # The last group may have fewer than 1000 actual ids,
-            # so filter the `None`s out.
-            temp=[]
-            for i in group:
-                if i != None:
-                    temp.append(i)
-            docs = mpr.summary.search(material_ids=temp, fields=["material_id", "structure"])
-            data.extend(docs)
-        dict_json = [{"material_id":str(e.material_id),"cif":e.structure.to(fmt="cif")} for e in data]
-        return dict_json
 
 def determine_bin_count(data_size, target_values):
     # 使用Sturges规则作为起点
