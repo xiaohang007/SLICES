@@ -32,11 +32,14 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 
 1. [Installation](#installation)
    - [Local Installation](#local-installation)
-   - [Docker Installation for Jupyter Backend](#docker-installation-for-jupyter-backend)
+   - [Docker Installation](#docker-installation)
 2. [Examples](#examples)
    - [Crystal to SLICES and SLICES to Crystal](#crystal-to-slices-and-slices-to-crystal)
    - [Augment SLICES and Canonicalize SLICES](#augment-slices-and-canonicalize-slices)
 3. [Tutorials](#tutorials)
+   - [本地安装MatterGPT教程](./Tutorials_local_CN.md)
+   - [Tutorials for Local Installation](./Tutorials_local.md) 
+   - [Tutorials for Docker Installation](#tutorials-for-docker-installation)
 4. [Documentation](#documentation)
 5. [Reproducing Benchmarks](#reproducing-benchmarks)
 6. [Citation](#citation)
@@ -46,65 +49,88 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 ---
 
 ## Installation
-
-### Local Installation
-The local version does not require Docker. Follow the steps below to set up the environment:
+可以选择 1.本地安装 **或者** 2.docker安装。
+## Local Installation
+本地安装指南(Ubuntu或者win11的Ubuntu子系统)
+### 1.1 安装 Miniconda 并配置中国源 
+**如果你已经安装了 Miniconda 并配置好了中国镜像源，可以跳过这一步。**
+- 首先，更新 Ubuntu 系统的包索引并安装 `wget` 工具，用于下载文件。
+- 然后，你通过 `wget` 下载 Miniconda 安装脚本并执行安装，将 Miniconda 安装到 `~/miniconda3` 目录。
+- 在安装完成后，删除安装脚本，并配置了 `pip` 使用清华大学的镜像源，以提高下载速度。
 
 ```bash
-# For users in China, configure pip for a faster mirror:
+sudo apt-get update
+sudo apt-get install wget
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+source ~/miniconda3/bin/activate
+conda init --all
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --set show_channel_urls yes
 pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 python -m pip install --upgrade pip
+```
 
-# Install environment
+### 1.2 下载 SLICES 仓库并安装 Conda 子环境及 SLICES 包
+- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
+- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖（环境配置文件是 `environments.yml`）。
+- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
+
+```bash
+wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
+unzip slices_repo.zip
+cd SLICES-main
 conda env create --name slices --file=environments.yml
 conda activate slices
 pip install slices
 ```
+安装完成！
+如果想用Docker来跑SLICES的环境，可以选择下面的安装方法：
+### Docker Installation
 
-**Important Notes:**
-- SLICES works on **Linux systems** like Ubuntu or WSL2 (Windows Subsystem for Linux).
-- It is not directly compatible with Windows or MacOS due to dependency on a modified XTB binary.
-- For Windows/MacOS users, use Docker instead ([Docker Setup](#docker-installation-for-jupyter-backend)).
+请按照以下步骤使用 Docker 安装 SLICES:
 
-**Troubleshooting:**
-- If you encounter `TypeError: bases must be types`, fix it by running:
+---
 
-```bash
-pip install protobuf==3.20.0
-```
-- If errors persist, consider using Docker instead.
-### Docker Installation for Jupyter Backend
-Follow these steps to set up SLICES using Docker:
+1. **下载仓库**，并解压文件。
 
-1. **Download the Repository** and unzip it.
-2. **Insert Materials Project API Key** into `APIKEY.ini`.
-3. **Configure CPU threads** in `slurm.conf`.
-4. **Run Docker Setup Commands**:
+2. **在 `slurm.conf`中配置 CPU 线程数量。**
+
+3. **执行 Docker 集成命令：**
 
 ```bash
-# Pull the prebuilt SLICES Docker image
-docker pull xiaohang07/slices:v9
+# 从 Docker Hub 下载已经构建的 SLICES Docker 镜像
 
-# you can build your own docker image using the Dockerfile in this repo. Many thanks to Prof. Haidi Wang (https://haidi-ustc.github.io/about/) for the Dockerfile.
-# You can download the compressed docker image v9 at https://figshare.com/s/260701a1accd0192de20 if docker pull does not work. 
-# Then you can load this docker image using the following command: xz -dc slices_v9.tar.xz | docker load
+docker pull xiaohang07/slices:v10
 
-# Make scripts executable
-sudo chmod +x entrypoint_set_cpus_jupyter.sh ./slices/xtb_noring_nooutput_nostdout_noCN
+# 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v10。
 
-# Run Docker (replace [] with your absolute path)
-docker run -it -p 8888:8888 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v9 /crystal/entrypoint_set_cpus_jupyter.sh
+# 然后，使用以下命令加载此 docker 镜像：
+xz -dc slices_v10.tar.xz | docker load
+
+# 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
+
+# 使脚本具有执行权限
+sudo chmod +x entrypoint_set_cpus_gradio.sh ./slices/xtb_noring_nooutput_nostdout_noCN
+
+# 运行 Docker (将 [] 替换为您的绝对路径)
+docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v10 /crystal/entrypoint_set_cpus_gradio.sh
 ```
 
-5. **Access Jupyter Notebook**:
-   - Press `CTRL` (or `Command` on Mac) and click the `http://127.0.0.1` link in the terminal.
-   - Open the relevant tutorial notebook, e.g., `Tutorial_*.ipynb`.
+5. **访问图形界面**:
 
-**Best Practice:**
-Please note: The best way to run this project is using Docker on Windows 11, as this allows you to utilize GPU for model training directly within Docker containers. In contrast, when running Docker on Ubuntu, accessing GPU from within Docker containers has proven problematic (verified across multiple machines). Therefore, on Ubuntu systems, a hybrid approach is required: install PyTorch directly on the host machine for training MatterGPT models and generating SLICES, while other steps can be run in Docker. 
-请注意：在所有操作系统中，运行此项目的最佳方式是使用 Windows 11 的 Docker 环境，因为它能够让你在 Docker 容器内直接调用 GPU 来训练模型。相比之下，在 Ubuntu 系统中运行 Docker 时会遇到 GPU 调用的问题（经过多台计算机测试验证），因此在 Ubuntu 上需要采用混合方案：在本机直接安装 PyTorch 来训练 MatterGPT 模型和生成 SLICES，而其他步骤则可以在 Docker 容器中完成。
-- **Windows 11**: Use Docker with GPU support.
-- **Ubuntu**: Hybrid setup: Install PyTorch locally for model training; use Docker for other steps.
+   - 按住 `CTRL` (或 Mac 上的 `Command`)，然后点击端口中的 `http://localhost:7860`链接。
+
+---
+
+### 注意
+- **Windows 11**：使用完全支持 GPU 的 Docker 环境。
+
+- **Ubuntu**：使用本地安装更好，因为 nvidia-docker 比较难安装。
+
 
 ---
 
@@ -152,16 +178,11 @@ print('Unique Canonical SLICES:', len(canonical_slices))
 
 ---
 ## Tutorials
+### [MatterGPT脚本教程](./MatterGPT/tutorials_CN.sh)
 ### Tutorials for Docker Installation
 - **SLICES Video Tutorials**: [Bilibili](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4012344)
 - **MatterGPT Video Tutorials**: [Bilibili](https://www.bilibili.com/video/BV1agsLeUEAB)
-- **Jupyter Setup Instructions**: See [Docker Setup](#docker-installation-for-jupyter-backend)
-- **Jupyter Examples**:
-   - [Introductory Examples](./Tutorial_1.0_Intro_Example.ipynb)
-   - [Single-Property Material Design (eform)](./Tutorial_2.1_MatterGPT_eform.ipynb)
-   - [Single-Property Material Design (bandgap)](./Tutorial_2.2_MatterGPT_bandgap.ipynb)
-   - [Multi-Property Design](./Tutorial_2.3_MatterGPT_2props_bandgap_eform.ipynb)
-### [Tutorials for Local Installation](./local_MatterGPT_benchmark/Tutorials_local.md) 
+
 ---
 
 ## Documentation

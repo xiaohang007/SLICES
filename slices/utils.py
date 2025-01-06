@@ -18,7 +18,9 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 import math
-
+import shutil  # 用于检测 SLURM 命令是否存在
+import logging
+import subprocess
 @contextlib.contextmanager
 #temporarily change to a different working directory
 def temporaryWorkingDirectory(path):
@@ -34,51 +36,114 @@ def split_list(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 
+def is_slurm_available():
+    """
+    检测系统是否安装了 SLURM 作业管理系统。
+    返回: True 如果存在 SLURM, 否则 False
+    """
+    return shutil.which('sinfo') is not None or shutil.which('squeue') is not None
+
+
 def splitRun(filename,threads,skip_header=False):
+    """
+    分割并在本地运行任务，自动调整线程数以避免空任务分配。
+
+    Args:
+        filename (str): 包含任务列表的JSON文件路径。
+        threads (int): 期望的线程数。
+        skip_header (bool, optional): 是否跳过任务列表的头部。默认值为False。
+    """
+    # 清理之前的任务目录和结果
     os.system('rm -rf job_* structures_ori_opt ./result.csv')
+    
+    # 读取任务列表
     with open(filename, 'r') as f:
-        cifs=json.load(f)
+        try:
+            cifs = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"JSON解析错误: {e}")
+            return
+    
+    # 根据是否跳过头部调整任务列表
     if skip_header:
-        cifs_split=list(split_list(cifs[1:],threads))
+        tasks = cifs[1:]
     else:
-        cifs_split=list(split_list(cifs,threads))
+        tasks = cifs
+    
+    # 过滤掉任何空的任务条目（例如，None 或 空字典）
+    tasks = [task for task in tasks if task]
+    
+    total_tasks = len(tasks)
+    
+    # 如果任务数量小于线程数，调整线程数
+    actual_threads = min(threads, total_tasks) if total_tasks > 0 else 1
+    if actual_threads < threads:
+        print(f"任务数量 ({total_tasks}) 小于线程数 ({threads})，将使用 {actual_threads} 个线程。")
+    
+    # 分割任务列表
+    cifs_split = list(split_list(tasks, actual_threads))
+    use_slurm = is_slurm_available()
+    # 创建并提交每个子任务
     for i in range(len(cifs_split)):
-        os.mkdir('job_'+str(i))
-        os.system('cp -r ./workflow/. job_'+str(i))
-        with open('temp.json', 'w') as f:
+        job_dir = f'job_{i}'
+        os.mkdir(job_dir)
+        os.system('cp -r ./workflow/. ' + job_dir)
+        temp_json_path = os.path.join(job_dir, 'temp.json')
+        with open(temp_json_path, 'w') as f:
             json.dump(cifs_split[i], f)
-        os.system('mv temp.json job_'+str(i))
-        os.chdir('job_'+str(i))
-        if len(sys.argv)==2:
-            if sys.argv[1]=="test":
-                os.system('qsub 0_test.pbs')
-        else:
+        
+        # 提交任务
+        os.chdir(job_dir)
+        if use_slurm:
             os.system('qsub 0_run.pbs > /dev/null 2>&1')
+        else:
+            os.system('python 0_run.py > log.txt 2> error.txt &')
         os.chdir('..')
-    print("Computational tasks have been submitted.")
+    
+    print("计算任务已提交。")
 
 def splitRun_csv(filename,threads,skip_header=False):
+    # 清理之前的任务目录和结果
     os.system('rm -rf job_* structures_ori_opt ./result.csv')
+    
+    # 读取任务列表，并排除空行
     with open(filename, 'r') as f:
-        if skip_header:
-            cifs=f.readlines()[1:]
-        else:
-            cifs=f.readlines()
-    cifs_split=list(split_list(cifs,threads))
+        lines = f.readlines()
+    
+    if skip_header:
+        lines = lines[1:]
+    
+    # 过滤掉任何空行或仅包含空白字符的行
+    cifs = [line for line in lines if line.strip()]
+    
+    total_tasks = len(cifs)
+    
+    # 如果任务数量小于线程数，调整线程数
+    actual_threads = min(threads, total_tasks) if total_tasks > 0 else 1
+    if actual_threads < threads:
+        print(f"任务数量 ({total_tasks}) 小于线程数 ({threads})，将使用 {actual_threads} 个线程。")
+    
+    # 分割任务列表
+    cifs_split = list(split_list(cifs, actual_threads))
+    use_slurm = is_slurm_available()
+    # 创建并提交每个子任务
     for i in range(len(cifs_split)):
-        os.mkdir('job_'+str(i))
-        os.system('cp -r ./workflow/. job_'+str(i))
-        with open('temp.csv', 'w') as f:
+        job_dir = f'job_{i}'
+        os.mkdir(job_dir)
+        os.system('cp -r ./workflow/. ' + job_dir)
+        temp_csv_path = os.path.join(job_dir, 'temp.csv')
+        with open(temp_csv_path, 'w') as f:
             f.writelines(cifs_split[i])
-        os.system('mv temp.csv job_'+str(i))
-        os.chdir('job_'+str(i))
-        if len(sys.argv)==2:
-            if sys.argv[1]=="test":
-                os.system('qsub 0_test.pbs')
-        else:
+        
+        # 提交任务
+        os.chdir(job_dir)
+        if use_slurm:
             os.system('qsub 0_run.pbs > /dev/null 2>&1')
+        else:
+            os.system('python 0_run.py > log.txt 2> error.txt &')
         os.chdir('..')
-    print("Computational tasks have been submitted.")
+    
+    print("计算任务已提交。")
 
 def splitRun_sample(threads=8,sample_size=8000):
     config = configparser.ConfigParser()
@@ -98,41 +163,257 @@ def splitRun_sample(threads=8,sample_size=8000):
         os.chdir('..')
     print("Sampling tasks have been submitted.")
 
-def show_progress():
-    try:
-        countTask = 0
-        temp_dir = tempfile.TemporaryDirectory(dir="/tmp")
-        with tqdm(total=100, position=0, leave=True,bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}') as pbar:
-            while True:
-                countTask0 = countTask
-                os.system('qstat > ' + temp_dir.name + '/temp.log')  # Execute qstat and save output
-                log = open(temp_dir.name + '/temp.log').readlines()[2:]  # Read qstat output
-                countTask = 0
-                for i in log:
-                    if i.split()[4] == 'R' or i.split()[4] == 'Q':  # Count running or queued tasks
-                        countTask += 1
-                # Reset totalTask if new tasks are detected
-                if countTask0 < countTask:
-                    totalTask = countTask
-                    pbar.update(0)
-                # Update progress bar if the number of tasks decreases
-                if countTask0 > countTask:
-                    pbar.update((totalTask - countTask) / totalTask * 100)
-                # If all tasks are completed, update the progress bar to 100% before breaking
-                if (totalTask - countTask) == totalTask:
-                    pbar.n = pbar.total  # Update the progress bar to 100%
-                    #pbar.refresh()  # Refresh the display
-                    pbar.close()  # Properly close the progress bar
-                    temp_dir.cleanup()  # Clean up the temporary directory
-                    break
-                time.sleep(1)
-    except KeyboardInterrupt:
-        # press stop button will cancel all jobs
+def show_progress(total_jobs=None, check_interval=5):
+    use_slurm = is_slurm_available()
+    if use_slurm:
+        print("SLURM system detected. Using SLURM-based processing.")
+        try:
+            countTask = 0
+            temp_dir = tempfile.TemporaryDirectory(dir="/tmp")
+            with tqdm(total=100, position=0, leave=True,bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}') as pbar:
+                while True:
+                    countTask0 = countTask
+                    os.system('qstat > ' + temp_dir.name + '/temp.log')  # Execute qstat and save output
+                    log = open(temp_dir.name + '/temp.log').readlines()[2:]  # Read qstat output
+                    countTask = 0
+                    for i in log:
+                        if i.split()[4] == 'R' or i.split()[4] == 'Q':  # Count running or queued tasks
+                            countTask += 1
+                    # Reset totalTask if new tasks are detected
+                    if countTask0 < countTask:
+                        totalTask = countTask
+                        pbar.update(0)
+                    # Update progress bar if the number of tasks decreases
+                    if countTask0 > countTask:
+                        pbar.update((totalTask - countTask) / totalTask * 100)
+                    # If all tasks are completed, update the progress bar to 100% before breaking
+                    if (totalTask - countTask) == totalTask:
+                        pbar.n = pbar.total  # Update the progress bar to 100%
+                        #pbar.refresh()  # Refresh the display
+                        pbar.close()  # Properly close the progress bar
+                        temp_dir.cleanup()  # Clean up the temporary directory
+                        break
+                    time.sleep(1)
+        except KeyboardInterrupt:
+            # press stop button will cancel all jobs
+            os.system('scancel --user=root')
+            print("All jobs have been canceled")
+        finally:
+            temp_dir.cleanup()
+    else:
+        print("No SLURM system detected. Falling back to local processing.")
+        try:
+            # 如果未提供总任务数，自动检测 job_* 目录
+            if total_jobs is None:
+                job_dirs = glob.glob("job_*")
+                total_jobs = len(job_dirs)
+            
+            if total_jobs == 0:
+                print("未检测到任何任务需要监控。")
+                logging.info("未检测到任何任务需要监控。")
+                return
+            
+            with tqdm(total=total_jobs, position=0, leave=True, 
+                    bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}') as pbar:
+                completed = 0
+                while completed < total_jobs:
+                    completed = 0
+                    for i in range(total_jobs):
+                        job_dir = f'job_{i}'
+                        output_file1 = os.path.join(job_dir, 'output.json')
+                        output_file2 = os.path.join(job_dir, 'result.csv')
+                        if os.path.exists(output_file1) or os.path.exists(output_file2):
+                            completed += 1
+                    pbar.n = completed
+                    pbar.refresh()
+                    time.sleep(check_interval)
+                    pbar.update(completed - pbar.n)
+                pbar.n = pbar.total
+                pbar.refresh()
+        except KeyboardInterrupt:
+            print("\n检测到取消操作。正在终止所有 'pt_main_thread' 和 'python' 进程...")
+            logging.info("检测到取消操作。尝试终止所有 'pt_main_thread' 和 'python' 进程。")
+            try:
+                # 定义要查找的进程名称列表
+                process_names = ["pt_main_thread", "python"]
+                all_pids = []
+                for proc_name in process_names:
+                    try:
+                        # 使用 pgrep 查找精确匹配的进程名
+                        pgrep_output = subprocess.check_output(["pgrep", "-f", proc_name], stderr=subprocess.DEVNULL).decode().strip()
+                        pids = pgrep_output.split('\n') if pgrep_output else []
+                        pids = [pid for pid in pids if pid.isdigit()]
+                        all_pids.extend(pids)
+                    except subprocess.CalledProcessError:
+                        # 如果没有找到对应的进程，继续
+                        continue
+                
+                if not all_pids:
+                    print("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+                    logging.info("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+                else:
+                    unique_pids = list(set(all_pids))  # 移除重复的 PID
+                    print(f"找到以下 PID: {', '.join(unique_pids)}")
+                    logging.info(f"找到以下 PID: {', '.join(unique_pids)}")
+                    
+                    # 发送 SIGTERM 信号以温和终止进程
+                    print("正在发送 SIGTERM 信号...")
+                    logging.info("发送 SIGTERM 信号给进程。")
+                    try:
+                        subprocess.run(["kill"] + unique_pids, check=True)
+                    except subprocess.CalledProcessError as e:
+                        print(f"发送 SIGTERM 信号失败: {e}")
+                        logging.error(f"发送 SIGTERM 信号失败: {e}")
+                    
+                    # 等待 5 秒以允许进程优雅终止
+                    time.sleep(5)
+                    
+                    # 检查哪些进程仍在运行
+                    remaining_pids = []
+                    for proc_name in process_names:
+                        try:
+                            remaining_pgrep = subprocess.check_output(["pgrep", "-f", proc_name], stderr=subprocess.DEVNULL).decode().strip()
+                            rem_pids = remaining_pgrep.split('\n') if remaining_pgrep else []
+                            rem_pids = [pid for pid in rem_pids if pid.isdigit()]
+                            remaining_pids.extend(rem_pids)
+                        except subprocess.CalledProcessError:
+                            continue
+                    
+                    remaining_pids = list(set(remaining_pids))  # 移除重复的 PID
+                    
+                    if remaining_pids:
+                        print(f"以下进程未终止，正在发送 SIGKILL 信号: {', '.join(remaining_pids)}")
+                        logging.info(f"以下进程未终止，发送 SIGKILL 信号: {', '.join(remaining_pids)}")
+                        try:
+                            subprocess.run(["kill", "-9"] + remaining_pids, check=True)
+                            print("所有相关进程已被强制终止。")
+                            logging.info("所有相关进程已被强制终止。")
+                        except subprocess.CalledProcessError as e:
+                            print(f"发送 SIGKILL 信号失败: {e}")
+                            logging.error(f"发送 SIGKILL 信号失败: {e}")
+                    else:
+                        print("所有相关进程已成功终止。")
+                        logging.info("所有相关进程已成功终止。")
+            except subprocess.CalledProcessError:
+                print("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+                logging.info("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+            except Exception as e:
+                print(f"终止进程时发生错误: {e}")
+                logging.error(f"终止进程时发生错误: {e}")
+            
+            print("开始清理任务目录...")
+            logging.info("开始清理任务目录。")
+            # 清理 job_* 目录
+            job_dirs = glob.glob("job_*")
+            for job_dir in job_dirs:
+                try:
+                    if os.path.isdir(job_dir):
+                        shutil.rmtree(job_dir)
+                        print(f"已删除目录: {job_dir}")
+                        logging.info(f"已删除目录: {job_dir}")
+                except FileNotFoundError:
+                    print(f"目录不存在: {job_dir}")
+                    logging.warning(f"目录不存在: {job_dir}")
+                except Exception as e:
+                    print(f"无法删除目录 {job_dir}: {e}")
+                    logging.error(f"无法删除目录 {job_dir}: {e}")
+            
+            print("任务监控已结束。")
+            logging.info("任务监控已结束。")
+        finally:
+            print("任务监控已结束。")
+            logging.info("任务监控已结束。")      
+
+def cancel_all_jobs():
+    use_slurm = is_slurm_available()
+    if use_slurm:
         os.system('scancel --user=root')
         print("All jobs have been canceled")
-    finally:
-        temp_dir.cleanup()
+    else:
+        try:
+            # 定义要查找的进程名称列表
+            process_names = ["pt_main_thread", "python"]
+            all_pids = []
+            for proc_name in process_names:
+                try:
+                    # 使用 pgrep 查找精确匹配的进程名
+                    pgrep_output = subprocess.check_output(["pgrep", "-f", proc_name], stderr=subprocess.DEVNULL).decode().strip()
+                    pids = pgrep_output.split('\n') if pgrep_output else []
+                    pids = [pid for pid in pids if pid.isdigit()]
+                    all_pids.extend(pids)
+                except subprocess.CalledProcessError:
+                    # 如果没有找到对应的进程，继续
+                    continue
+            
+            if not all_pids:
+                print("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+                logging.info("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+            else:
+                unique_pids = list(set(all_pids))  # 移除重复的 PID
+                print(f"找到以下 PID: {', '.join(unique_pids)}")
+                logging.info(f"找到以下 PID: {', '.join(unique_pids)}")
+                
+                # 发送 SIGTERM 信号以温和终止进程
+                print("正在发送 SIGTERM 信号...")
+                logging.info("发送 SIGTERM 信号给进程。")
+                try:
+                    subprocess.run(["kill"] + unique_pids, check=True)
+                except subprocess.CalledProcessError as e:
+                    print(f"发送 SIGTERM 信号失败: {e}")
+                    logging.error(f"发送 SIGTERM 信号失败: {e}")
+                
+                # 等待 5 秒以允许进程优雅终止
+                time.sleep(5)
+                
+                # 检查哪些进程仍在运行
+                remaining_pids = []
+                for proc_name in process_names:
+                    try:
+                        remaining_pgrep = subprocess.check_output(["pgrep", "-f", proc_name], stderr=subprocess.DEVNULL).decode().strip()
+                        rem_pids = remaining_pgrep.split('\n') if remaining_pgrep else []
+                        rem_pids = [pid for pid in rem_pids if pid.isdigit()]
+                        remaining_pids.extend(rem_pids)
+                    except subprocess.CalledProcessError:
+                        continue
+                
+                remaining_pids = list(set(remaining_pids))  # 移除重复的 PID
+                
+                if remaining_pids:
+                    print(f"以下进程未终止，正在发送 SIGKILL 信号: {', '.join(remaining_pids)}")
+                    logging.info(f"以下进程未终止，发送 SIGKILL 信号: {', '.join(remaining_pids)}")
+                    try:
+                        subprocess.run(["kill", "-9"] + remaining_pids, check=True)
+                        print("所有相关进程已被强制终止。")
+                        logging.info("所有相关进程已被强制终止。")
+                    except subprocess.CalledProcessError as e:
+                        print(f"发送 SIGKILL 信号失败: {e}")
+                        logging.error(f"发送 SIGKILL 信号失败: {e}")
+                else:
+                    print("所有相关进程已成功终止。")
+                    logging.info("所有相关进程已成功终止。")
+        except subprocess.CalledProcessError:
+            print("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+            logging.info("未找到任何名为 'pt_main_thread' 或 'python' 的进程。")
+        except Exception as e:
+            print(f"终止进程时发生错误: {e}")
+            logging.error(f"终止进程时发生错误: {e}")
 
+        print("开始清理任务目录...")
+        logging.info("开始清理任务目录。")
+        # 清理 job_* 目录
+        job_dirs = glob.glob("job_*")
+        for job_dir in job_dirs:
+            try:
+                if os.path.isdir(job_dir):
+                    shutil.rmtree(job_dir)
+                    print(f"已删除目录: {job_dir}")
+                    logging.info(f"已删除目录: {job_dir}")
+            except FileNotFoundError:
+                print(f"目录不存在: {job_dir}")
+                logging.warning(f"目录不存在: {job_dir}")
+            except Exception as e:
+                print(f"无法删除目录 {job_dir}: {e}")
+                logging.error(f"无法删除目录 {job_dir}: {e}")
 
 def collect_json(output,glob_target,cleanup=True):
     data=[]               
