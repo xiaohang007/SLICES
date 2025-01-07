@@ -91,7 +91,7 @@ conda activate slices
 pip install gradio==4.44.1 slices
 ```
 安装完成！
-### 1.3 访问图形界面
+### 1.3 访问图形界面  注意访问图形界面必须安装slices>=2.0.7
 ```bash
 cd MatterGPT
 python app.py
