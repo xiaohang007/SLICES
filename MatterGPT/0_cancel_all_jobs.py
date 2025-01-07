@@ -5,7 +5,7 @@ import shutil
 import logging
 import warnings
 import time
-
+import getpass
 warnings.filterwarnings("ignore")
 def is_slurm_available():
     """
@@ -18,7 +18,8 @@ logging.info("检测到取消操作。尝试终止所有 'pt_main_thread' 和 'p
 
 use_slurm = is_slurm_available()
 if use_slurm:
-    os.system('scancel --user=root')
+    current_user = getpass.getuser()  # 使用 getpass 获取当前用户名
+    subprocess.run(['scancel', '-u', current_user], check=True)
     print("All jobs have been canceled")
 else:
     try:

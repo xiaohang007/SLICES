@@ -21,6 +21,7 @@ import math
 import shutil  # 用于检测 SLURM 命令是否存在
 import logging
 import subprocess
+import getpass
 @contextlib.contextmanager
 #temporarily change to a different working directory
 def temporaryWorkingDirectory(path):
@@ -95,7 +96,7 @@ def splitRun(filename,threads,skip_header=False):
         # 提交任务
         os.chdir(job_dir)
         if use_slurm:
-            os.system('qsub 0_run.pbs > /dev/null 2>&1')
+            os.system('sbatch 0_run.sh > /dev/null 2>&1')
         else:
             os.system('python 0_run.py > log.txt 2> error.txt &')
         os.chdir('..')
@@ -138,7 +139,7 @@ def splitRun_csv(filename,threads,skip_header=False):
         # 提交任务
         os.chdir(job_dir)
         if use_slurm:
-            os.system('qsub 0_run.pbs > /dev/null 2>&1')
+            os.system('sbatch 0_run.sh > /dev/null 2>&1')
         else:
             os.system('python 0_run.py > log.txt 2> error.txt &')
         os.chdir('..')
@@ -169,37 +170,56 @@ def show_progress(total_jobs=None, check_interval=5):
         print("SLURM system detected. Using SLURM-based processing.")
         try:
             countTask = 0
-            temp_dir = tempfile.TemporaryDirectory(dir="/tmp")
-            with tqdm(total=100, position=0, leave=True,bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}') as pbar:
+            totalTask = 0  # 初始化总任务数
+            current_user = getpass.getuser()  # 使用 getpass 获取当前用户名
+            with tqdm(total=100, position=0, leave=True,
+                      bar_format='{desc:<5.5}{percentage:3.0f}%|{bar:15}{r_bar}') as pbar:
+                pbar.set_description("Progress")
                 while True:
                     countTask0 = countTask
-                    os.system('qstat > ' + temp_dir.name + '/temp.log')  # Execute qstat and save output
-                    log = open(temp_dir.name + '/temp.log').readlines()[2:]  # Read qstat output
-                    countTask = 0
-                    for i in log:
-                        if i.split()[4] == 'R' or i.split()[4] == 'Q':  # Count running or queued tasks
-                            countTask += 1
-                    # Reset totalTask if new tasks are detected
+                    # 使用squeue命令获取当前用户的作业状态
+                    try:
+                        result = subprocess.run(
+                            ['squeue', '-u', current_user, '-h', '-o', '%T'],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True,
+                            check=True
+                        )
+                        log = result.stdout.splitlines()
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error executing squeue: {e.stderr}")
+                        break
+
+                    countTask = sum(1 for state in log if state in ['RUNNING', 'PENDING', 'CONFIGURING', 'SUSPENDED'])
+
+                    # 如果检测到新的任务数增加，重置进度条
                     if countTask0 < countTask:
                         totalTask = countTask
-                        pbar.update(0)
-                    # Update progress bar if the number of tasks decreases
-                    if countTask0 > countTask:
-                        pbar.update((totalTask - countTask) / totalTask * 100)
-                    # If all tasks are completed, update the progress bar to 100% before breaking
-                    if (totalTask - countTask) == totalTask:
-                        pbar.n = pbar.total  # Update the progress bar to 100%
-                        #pbar.refresh()  # Refresh the display
-                        pbar.close()  # Properly close the progress bar
-                        temp_dir.cleanup()  # Clean up the temporary directory
+                        pbar.reset(total=100)
+                        pbar.set_description("Progress")
+
+                    # 如果任务数减少，更新进度条
+                    if countTask0 > countTask and totalTask > 0:
+                        completed = (totalTask - countTask) / totalTask * 100
+                        pbar.update(completed - pbar.n)  # 更新到新的完成百分比
+
+                    # 如果所有任务完成，更新进度条到100%并退出
+                    if countTask == 0 and totalTask > 0:
+                        pbar.n = pbar.total
+                        pbar.refresh()
                         break
-                    time.sleep(1)
+
+                    time.sleep(check_interval)
         except KeyboardInterrupt:
-            # press stop button will cancel all jobs
-            os.system('scancel --user=root')
-            print("All jobs have been canceled")
-        finally:
-            temp_dir.cleanup()
+            # 用户中断时取消所有作业
+            try:
+                subprocess.run(['scancel', '-u', current_user], check=True)
+                print("\nAll jobs have been canceled")
+            except subprocess.CalledProcessError as e:
+                print(f"\nError cancelling jobs: {e.stderr}")
+        except EnvironmentError as env_err:
+            print(env_err)
     else:
         print("No SLURM system detected. Falling back to local processing.")
         try:
@@ -327,7 +347,8 @@ def show_progress(total_jobs=None, check_interval=5):
 def cancel_all_jobs():
     use_slurm = is_slurm_available()
     if use_slurm:
-        os.system('scancel --user=root')
+        current_user = getpass.getuser()  # 使用 getpass 获取当前用户名
+        subprocess.run(['scancel', '-u', current_user], check=True)
         print("All jobs have been canceled")
     else:
         try:
