@@ -15,7 +15,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
 
-VERSION = '2.0.7'
+VERSION = '2.0.8'
 DESCRIPTION = "SLICES"
 
 
