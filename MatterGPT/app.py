@@ -75,15 +75,16 @@ def process_dataset(csv_file, cif_col, *prop_cols):
     except Exception as e:
         yield f"数据集构建过程中发生异常: {str(e)}", None
 
-def train_model(run_name, batch_size, max_epochs, n_embd, n_layer, n_head, lr, *prop_cols):
+def train_model(run_name, batch_size, max_epochs, n_embd, n_layer, n_head, lr, n_visible, *prop_cols):
     """训练模型"""
     try:
         # Save n_head and prop_cols to config file
         model_dir = os.path.join(os.getcwd(), "1_train_generate/model")
         config_path = os.path.join(model_dir, f"{run_name}.ini")
         
-        # Filter out None values from prop_cols
-        valid_prop_cols = [col for col in prop_cols if col is not None]
+        # 只收集前 n_visible 个下拉菜单中的值
+        n_visible = int(n_visible)
+        valid_prop_cols = [col for col in prop_cols[:n_visible] if col is not None]
         
         with open(config_path, 'w') as f:
             json.dump({
@@ -462,6 +463,55 @@ def find_latest_generated_file():
         return os.path.splitext(generated_files[0])[0].replace("_generated", "")
     return "test_run"
 
+def update_train_tab_dropdowns(csv_file):
+    """当切换到训练标签页时更新性质列下拉菜单"""
+    try:
+        # 首先尝试从训练数据集读取列名
+        dataset_dir = os.path.join(os.getcwd(), "0_dataset")
+        train_data_path = os.path.join(dataset_dir, "train_data.csv")
+        
+        if os.path.exists(train_data_path):
+            # 如果训练数据集存在，使用其列名
+            df = pd.read_csv(train_data_path)
+            columns = df.columns.tolist()
+            # 排除 SLICES 列
+            available_props = [col for col in columns if col != "SLICES"]
+        else:
+            # 如果训练数据集不存在，尝试使用数据集页面的数据
+            if csv_file:
+                df = pd.read_csv(csv_file.name)
+                columns = df.columns.tolist()
+                # 排除已选择的CIF列
+                if cif_col_dropdown.value:
+                    available_props = [col for col in columns if col != cif_col_dropdown.value]
+                else:
+                    available_props = columns
+            else:
+                available_props = []
+        
+        return {dropdown: gr.Dropdown(choices=available_props) for dropdown in prop_dropdowns_train}
+    
+    except Exception as e:
+        print(f"Error updating train tab dropdowns: {str(e)}")
+        return {dropdown: gr.Dropdown(choices=[]) for dropdown in prop_dropdowns_train}
+
+def update_model_weight(run_name):
+    """根据训练标签页的运行名称更新模型权重文件名"""
+    return f"{run_name}.pt"
+
+def update_train_and_model(csv_file, run_name):
+    """处理顶层标签页切换时的更新"""
+    # 获取训练性质列的更新
+    dropdown_updates = update_train_tab_dropdowns(csv_file)
+    # 获取模型权重的更新
+    model_weight_update = update_model_weight(run_name)
+    
+    # 合并更新结果
+    return {
+        **dropdown_updates,
+        model_weight: model_weight_update
+    }
+
 # 创建Gradio界面
 with gr.Blocks() as demo:
     gr.Markdown(
@@ -567,8 +617,9 @@ with gr.Blocks() as demo:
             outputs=[log_output, result_preview]
         )
 
-    with gr.Tab("训练与生成"):
-        with gr.Tab("训练"):
+    train_generate_tab = gr.Tab("训练与生成")
+    with train_generate_tab:
+        with gr.Tab("训练", elem_id="train_tab") as train_tab:
             with gr.Row():
                 run_name = gr.Textbox(label="运行名称", value="test_run")
                 batch_size = gr.Number(label="Batch Size", value=20)
@@ -636,11 +687,18 @@ with gr.Blocks() as demo:
             
             train_btn.click(
                 train_model,
-                inputs=[run_name, batch_size, max_epochs, n_embd, n_layer, n_head, lr] + prop_dropdowns_train,
+                inputs=[run_name, batch_size, max_epochs, n_embd, n_layer, n_head, lr, n_visible_props_train] + prop_dropdowns_train,
                 outputs=[train_log, train_plot]
             )
             
-        with gr.Tab("生成"):
+            # 添加标签页切换事件，包含csv_input作为输入
+            train_tab.select(
+                update_train_tab_dropdowns,
+                inputs=[csv_input],
+                outputs=prop_dropdowns_train
+            )
+        
+        with gr.Tab("生成") as generate_tab:
             with gr.Row():
                 model_weight = gr.Textbox(label="模型权重文件", value="test_run.pt")
                 load_model_btn = gr.Button("加载模型")
@@ -683,7 +741,14 @@ with gr.Blocks() as demo:
                 inputs=[model_weight, prop_targets, gen_size, gen_batch],
                 outputs=[gen_log, gen_preview, gen_download]
             )
-    
+
+        # 为生成标签页添加切换事件
+        generate_tab.select(
+            update_model_weight,
+            inputs=[run_name],
+            outputs=[model_weight]
+        )
+
     with gr.Tab("解码与新颖性"):
         # 初始化时查找已存在的生成文件
         initial_run_name = find_latest_generated_file()
@@ -763,6 +828,17 @@ with gr.Blocks() as demo:
             inputs=[cif_col_dropdown] + prop_dropdowns,
             outputs=prop_dropdowns
         )
+
+    # 为顶层标签页添加切换事件，同时更新训练性质列和模型权重
+    train_generate_tab.select(
+        update_train_and_model,
+        inputs=[csv_input, run_name],
+        outputs=[
+            *prop_dropdowns_train,
+            model_weight
+        ]
+    )
+
 print(f"Running on local URL: http://localhost:7860")
 with suppress_output():
     demo.launch(server_name="0.0.0.0", server_port=7860)

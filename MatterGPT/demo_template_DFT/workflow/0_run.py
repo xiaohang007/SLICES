@@ -151,7 +151,7 @@ def main():
         original_dir = os.getcwd()
         for row in reader:
             with open("./temp.vasp","w") as fn:
-                fn.write(row[3])
+                fn.write(row[3].replace('\\n','\n'))
             with open("./result.csv","a") as fn: 
                 try:
                     opt_jobs = structure_optimization(vasp_cmd, structure_file="temp.vasp",directory="./relax")

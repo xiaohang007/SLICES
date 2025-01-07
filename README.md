@@ -4,8 +4,9 @@ The **Simplified Line-Input Crystal-Encoding System (SLICES)** is the first inve
 
 **Related Publications and Resources:**
 - **Nature Communications**: [Paper](https://www.nature.com/articles/s41467-023-42870-7)
-- **SLICES Video Introduction**: [Bilibili](https://www.bilibili.com/video/BV17H4y1W7aZ/)
-- **SLICES101**: [Bilibili](https://www.bilibili.com/video/BV1Yr42147dM/)
+- **MatterGPT 图形界面介绍**: [Bilibili](https://www.bilibili.com/video/BV15XrmYMEYU/)
+- **SLICES 晶体语言介绍**: [Bilibili](https://www.bilibili.com/video/BV17H4y1W7aZ/)
+- **SLICES 101**: [Bilibili](https://www.bilibili.com/video/BV1Yr42147dM/)
 - **Data and Results**: [Figshare](https://doi.org/10.6084/m9.figshare.22707472)
 - **MatterGPT Paper**: [arXiv](https://arxiv.org/abs/2408.07608)
 - **MatterGPT Demo**: [Huggingface](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU)
@@ -25,7 +26,8 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 [![IMAGE ALT TEXT](./docs/SLICES_demo.png)](https://huggingface.co/spaces/xiaohang07/SLICES "Online SLICES/CIF Convertor - Click to Try!")
 ### [[MatterGPT Online Demo]](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU)
 [![IMAGE ALT TEXT](./docs/huggingface_space.png)](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU "MatterGPT Online Demo - Click to Try!")
-
+### MatterGPT 图形界面 
+![IMAGE ALT TEXT](./docs/gui_snapshot.png)
 ---
 
 ## Table of Contents
@@ -37,9 +39,10 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
    - [Crystal to SLICES and SLICES to Crystal](#crystal-to-slices-and-slices-to-crystal)
    - [Augment SLICES and Canonicalize SLICES](#augment-slices-and-canonicalize-slices)
 3. [Tutorials](#tutorials)
-   - [本地安装MatterGPT教程](./Tutorials_local_CN.md)
-   - [Tutorials for Local Installation](./Tutorials_local.md) 
-   - [Tutorials for Docker Installation](#tutorials-for-docker-installation)
+    - **MatterGPT图形界面**: [Bilibili](https://www.bilibili.com/video/BV15XrmYMEYU/)
+    - [MatterGPT脚本教程](./MatterGPT/tutorials_CN.sh)
+
+    - **SLICES Video Tutorials**: [Bilibili](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4012344)(#tutorials-for-docker-installation)
 4. [Documentation](#documentation)
 5. [Reproducing Benchmarks](#reproducing-benchmarks)
 6. [Citation](#citation)
@@ -85,9 +88,17 @@ unzip slices_repo.zip
 cd SLICES-main
 conda env create --name slices --file=environments.yml
 conda activate slices
-pip install slices
+pip install gradio==4.44.1 slices
 ```
 安装完成！
+### 1.3 访问图形界面
+```bash
+cd MatterGPT
+python app.py
+```
+按住 `CTRL` (或 Mac 上的 `Command`)，然后点击terminal中的 `http://localhost:7860`链接来打开MatterGPT的图形界面。
+
+
 如果想用Docker来跑SLICES的环境，可以选择下面的安装方法：
 ### Docker Installation
 
@@ -108,13 +119,13 @@ docker pull xiaohang07/slices:v10
 
 # 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v10。
 
-# 然后，使用以下命令加载此 docker 镜像：
-xz -dc slices_v10.tar.xz | docker load
+# 然后，使用以下命令4线程并行解压缩以及加载此 docker 镜像：
+xz -T4 -dc dockerv10.tar.xz | docker load
 
 # 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
 
 # 使脚本具有执行权限
-sudo chmod +x entrypoint_set_cpus_gradio.sh ./slices/xtb_noring_nooutput_nostdout_noCN
+sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./slices/xtb_noring_nooutput_nostdout_noCN
 
 # 运行 Docker (将 [] 替换为您的绝对路径)
 docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v10 /crystal/entrypoint_set_cpus_gradio.sh
@@ -122,7 +133,7 @@ docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal
 
 5. **访问图形界面**:
 
-   - 按住 `CTRL` (或 Mac 上的 `Command`)，然后点击端口中的 `http://localhost:7860`链接。
+   - 按住 `CTRL` (或 Mac 上的 `Command`)，然后点击terminal中的 `http://localhost:7860`链接来打开MatterGPT的图形界面。
 
 ---
 
@@ -175,14 +186,6 @@ canonical_slices = list(set(backend.get_canonical_SLICES(s) for s in slices_list
 
 print('Unique Canonical SLICES:', len(canonical_slices))
 ```
-
----
-## Tutorials
-### [MatterGPT脚本教程](./MatterGPT/tutorials_CN.sh)
-### Tutorials for Docker Installation
-- **SLICES Video Tutorials**: [Bilibili](https://space.bilibili.com/398676911/channel/seriesdetail?sid=4012344)
-- **MatterGPT Video Tutorials**: [Bilibili](https://www.bilibili.com/video/BV1agsLeUEAB)
-
 ---
 
 ## Documentation

@@ -105,6 +105,7 @@ cp combined_results.png ../${RUN_NAME}_m3gnet.png
 
 # 在 PBE 水平评估重构晶体的形成能分布（需要工作站或 HPC 快速运行 VASP）
 print_separator
+# 读取${RUN_NAME}_novelty.csv中的晶体结构，需要把poscar的字符串做处理：.replace('\\n','\n')
 echo "使用 VASP 评估形成能分布..."
 echo "请确保 VASP 已安装并在您的工作站或 HPC 上正确配置。"
 echo "如有必要，请修改工作流程中的脚本..."
@@ -175,6 +176,7 @@ cp ${RUN_NAME}_novelty.csv ../${RUN_NAME}_novelty.csv
 
 # 在 PBE 水平评估重构晶体的带隙分布（需要工作站或 HPC 快速运行 VASP）
 print_separator
+# 读取${RUN_NAME}_novelty.csv中的晶体结构，需要把poscar的字符串做处理：.replace('\\n','\n')
 echo "使用 VASP 评估带隙分布..."
 echo "请确保 VASP 已安装并在您的工作站或 HPC 上正确配置。"
 echo "如有必要，请修改工作流程中的脚本..."
@@ -244,6 +246,7 @@ python run.py \
 cp ${RUN_NAME}_novelty.csv ../${RUN_NAME}_novelty.csv
 # 在 PBE 水平评估重构晶体的带隙和形成能分布（需要工作站或 HPC 快速运行 VASP）
 print_separator
+# 读取${RUN_NAME}_novelty.csv中的晶体结构，需要把poscar的字符串做处理：.replace('\\n','\n')
 echo "使用 VASP 评估带隙和形成能分布..."
 echo "请确保 VASP 已安装并在您的工作站或 HPC 上正确配置。"
 echo "如有必要，请修改工作流程中的脚本..."
