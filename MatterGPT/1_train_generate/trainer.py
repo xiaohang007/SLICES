@@ -12,6 +12,9 @@ from torch.optim.lr_scheduler import LambdaLR, ReduceLROnPlateau, CosineAnnealin
 from torch.utils.data.dataloader import DataLoader
 from torch.cuda.amp import GradScaler
 from tqdm import tqdm
+import os
+import csv
+import matplotlib.pyplot as plt
 
 from utils import *
 import re
@@ -64,6 +67,21 @@ class Trainer:
             self.device = torch.cuda.current_device()
             self.model = self.model.to(self.device)
 
+        # 添加日志跟踪
+        self.train_losses = []
+        self.val_losses = []
+        self.learning_rates = []
+        self.best_val_loss = float('inf')
+        self.patience_counter = 0
+        
+        # 初始化日志文件
+        if os.path.exists('train.log'):
+            os.remove('train.log')
+            
+        self.csvfile = open('train.log', 'w', newline='')
+        self.writer = csv.DictWriter(self.csvfile, fieldnames=['Epoch', 'Train Loss', 'Val Loss', 'Learning Rate'])
+        self.writer.writeheader()
+
         # 初始化优化器（注意：这里假设模型中实现了 configure_optimizers 方法）
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         self.optimizer = raw_model.configure_optimizers(config)
@@ -105,6 +123,20 @@ class Trainer:
         self.scaler = GradScaler()
 
 
+    def log_metrics(self, epoch, train_loss, val_loss, lr):
+        """记录训练指标并保存到日志文件"""
+        self.train_losses.append(train_loss)
+        self.val_losses.append(val_loss)
+        self.learning_rates.append(lr)
+        # 写入日志
+        self.writer.writerow({
+            'Epoch': epoch + 1,
+            'Train Loss': f"{train_loss:.4f}",
+            'Val Loss': f"{val_loss:.4f}",
+            'Learning Rate': f"{lr:.7f}"
+        })
+        self.csvfile.flush()  # 确保数据被写入文件
+        
     def save_checkpoint(self):
         # DataParallel 封装下真实模型在 module 属性中
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
@@ -173,6 +205,10 @@ class Trainer:
                         self.scheduler.step(val_loss)
                     else:
                         self.scheduler.step()
+            
+            # 获取当前学习率并记录指标
+            lr = self.optimizer.param_groups[0]['lr']
+            self.log_metrics(epoch, train_loss, val_loss, lr)
 
             # 提前停止：仅在有验证集时触发
             if self.val_dataset is not None:
@@ -192,6 +228,29 @@ class Trainer:
                 if config.ckpt_path is not None:
                     self.save_checkpoint()
                     print(f"Model saved at epoch {epoch + 1}")
+            
+            # 绘制损失和学习率曲线
+            fig, ax1 = plt.subplots(figsize=(10, 5))
 
+            ax1.set_xlabel('Epoch')
+            ax1.set_ylabel('Loss')
+            ax1.plot(range(1, len(self.train_losses)+1), self.train_losses, label='Train Loss', color='tab:blue')
+            if self.val_dataset is not None:
+                ax1.plot(range(1, len(self.val_losses)+1), self.val_losses, label='Val Loss', color='tab:orange')
+            ax1.tick_params(axis='y')
+            ax1.legend(loc='upper left')
+
+            ax2 = ax1.twinx()  # 创建共享x轴的第二个y轴
+            ax2.set_ylabel('Learning Rate')
+            ax2.plot(range(1, len(self.learning_rates)+1), self.learning_rates, label='Learning Rate', color='tab:green')
+            ax2.tick_params(axis='y')
+            ax2.legend(loc='upper right')
+
+            fig.tight_layout()
+            plt.savefig('loss_curves.png')
+            plt.close()
+
+        # 关闭日志文件
+        self.csvfile.close()
         return None
 
