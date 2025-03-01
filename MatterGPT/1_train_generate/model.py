@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# Yan Chen 2023.10
-# yanchen@xjtu.edu.com
 """
 GPT model:
 - the initial stem consists of a combination of token encoding and a positional encoding
@@ -11,12 +8,14 @@ GPT model:
 """
 
 import math
-
+from flash_attn import flash_attn_qkvpacked_func
+from einops import rearrange
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-class GPTConfig:
+
+class MatterGPTConfig:
     """ base GPT config, params common to all GPT versions """
     embd_pdrop = 0.1
     resid_pdrop = 0.1
@@ -25,71 +24,80 @@ class GPTConfig:
     def __init__(self, vocab_size, block_size, **kwargs):
         self.vocab_size = vocab_size
         self.block_size = block_size
+        self.sym_dim = kwargs.pop('sym_dim', 7)  # 默认为7维
         for k,v in kwargs.items():
             setattr(self, k, v)
 
-class GPT1Config(GPTConfig):
+class MatterGPT1Config(MatterGPTConfig):
     """ GPT-1 like network roughly 125M params """
     n_layer = 12
     n_head = 12
     n_embd = 768
 
-class CausalSelfAttention(nn.Module):
+class FlashCausalSelfAttention(nn.Module):
     """
-    A vanilla multi-head masked self-attention layer with a projection at the end.
-    It is possible to use torch.nn.MultiheadAttention here but I am including an
-    explicit implementation here to show that there is nothing too scary here.
+    A flash attention implementation of multi-head masked self-attention.
     """
-
     def __init__(self, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
-        # key, query, value projections for all heads
-        self.key = nn.Linear(config.n_embd, config.n_embd)
-        self.query = nn.Linear(config.n_embd, config.n_embd)
-        self.value = nn.Linear(config.n_embd, config.n_embd)
-        # regularization
+        
+        # Key, query, value projections into a single matrix
+        self.qkv = nn.Linear(config.n_embd, 3 * config.n_embd)
+        
+        # Regularization
         self.attn_drop = nn.Dropout(config.attn_pdrop)
         self.resid_drop = nn.Dropout(config.resid_pdrop)
-        # output projection
+        
+        # Output projection
         self.proj = nn.Linear(config.n_embd, config.n_embd)
-        # causal mask to ensure that attention is only applied to the left in the input sequence
-        num = int(bool(config.num_props))
-        # num = 1
-        self.register_buffer("mask", torch.tril(torch.ones(config.block_size + num, config.block_size + num))
-                                     .view(1, 1, config.block_size + num, config.block_size + num))
-
+        
+        # Store dimensions
         self.n_head = config.n_head
+        self.n_embd = config.n_embd
+        self.head_dim = config.n_embd // config.n_head
+
+        # Register causal mask buffer for inference
+        num = int(bool(config.num_props))
+        mask_len = config.block_size + num
+        self.register_buffer(
+            "mask",
+            torch.tril(torch.ones(mask_len, mask_len))
+            .view(1, 1, mask_len, mask_len)
+        )
 
     def forward(self, x, layer_past=None):
         B, T, C = x.size()
 
-        # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        k = self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        # 确保输入和权重使用相同的数据类型
+        qkv_dtype = self.qkv.weight.dtype
+        x = x.to(qkv_dtype)
+        
+        # 计算 QKV
+        qkv = self.qkv(x)  # (B, T, 3 * n_embd)
+        qkv = qkv.reshape(B, T, 3, self.n_head, self.head_dim)
 
-        # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        att = att.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
-        att = F.softmax(att, dim=-1)
-        attn_save = att
-        att = self.attn_drop(att)
-        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
+        # 使用 FlashAttention
+        out = flash_attn_qkvpacked_func(
+            qkv,
+            dropout_p=self.attn_drop.p if self.training else 0.0,
+            causal=True
+        )
 
-        # output projection
-        y = self.resid_drop(self.proj(y))
-        return y, attn_save
+        # 重塑输出并应用投影
+        out = rearrange(out, 'b s h d -> b s (h d)')
+        out = self.resid_drop(self.proj(out))
+        
+        return out, None
 
 class Block(nn.Module):
-    """ an unassuming Transformer block """
+    """ An unassuming Transformer block """
 
     def __init__(self, config):
         super().__init__()
         self.ln1 = nn.LayerNorm(config.n_embd)
         self.ln2 = nn.LayerNorm(config.n_embd)
-        self.attn = CausalSelfAttention(config)
+        self.attn = FlashCausalSelfAttention(config)  # Using FlashAttention version
         self.mlp = nn.Sequential(
             nn.Linear(config.n_embd, 4 * config.n_embd),
             nn.GELU(),
@@ -103,31 +111,34 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln2(x))
         return x, attn
 
-class GPT(nn.Module):
-    """  the full GPT language model, with a context size of block_size """
-
+class MatterGPT(nn.Module):
     def __init__(self, config):
         super().__init__()
-
-        # input embedding stem
         self.config = config
+        
+        # Basic embeddings
         self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
-        self.type_emb = nn.Embedding(2, config.n_embd)
+        self.type_emb = nn.Embedding(3, config.n_embd)
+        
+        # Properties embedding
         if config.num_props:
             self.prop_nn = nn.Linear(config.num_props, config.n_embd)
+        
+        # Crystal system embedding - 7 dims one-hot input
+        self.sym_nn = nn.Linear(7, config.n_embd)  # 7 types of Crystal systems
      
         self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
         self.drop = nn.Dropout(config.embd_pdrop)
-        # transformer
-        self.blocks = nn.Sequential(*[Block(config) for _ in range(config.n_layer)])
-        # decoder head
+        # transformer blocks
+        self.blocks_1 = nn.Sequential(*[Block(config) for _ in range(config.n_layer)])
+        self.blocks_2 = nn.Sequential(*[Block(config) for _ in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(config.n_embd)
+        # Add linear layer for feature fusion
+        self.linear = nn.Linear(2 * config.n_embd, config.n_embd)
         self.head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
-
         self.block_size = config.block_size
+                              
         self.apply(self._init_weights)
-
-        #logger.info("number of parameters: %e", sum(p.numel() for p in self.parameters()))
 
     def get_block_size(self):
         return self.block_size
@@ -187,57 +198,70 @@ class GPT(nn.Module):
         optimizer = torch.optim.AdamW(optim_groups, lr=train_config.learning_rate, betas=train_config.betas)
         return optimizer
 
-    def forward(self, idx, targets=None, prop = None):
-        b, t = idx.size()
+    def forward(self, x, targets=None, prop=None, sym=None):
+        b, t = x.size()
         assert t <= self.block_size, "Cannot forward, model block size is exhausted."
 
-        if self.config.num_props:
-            assert prop.size(-1) == self.config.num_props, "Num_props should be equal to last dim of property vector"           
-
-        # forward the GPT model
-        token_embeddings = self.tok_emb(idx) # each index maps to a (learnable) vector
-        position_embeddings = self.pos_emb[:, :t, :] # each position maps to a (learnable) vector
-        type_embeddings = self.type_emb(torch.ones((b,t), dtype = torch.long, device = idx.device))
-        x = self.drop(token_embeddings + position_embeddings + type_embeddings)
+        # Basic token embeddings
+        token_embeddings = self.tok_emb(x)
+        position_embeddings = self.pos_emb[:, :t, :]
+        type_embeddings = self.type_emb(torch.ones((b,t), dtype=torch.long, device=x.device))
+        x_embed = self.drop(token_embeddings + position_embeddings + type_embeddings)
         
-        embed = x
+        embed = x_embed
+        combined_embed = x_embed
+        
+        # Path 1: Property conditioning (现在总是执行)
+        x_1 = combined_embed
 
-        if self.config.num_props:
-            type_embd = self.type_emb(torch.zeros((b, 1), dtype = torch.long, device = idx.device))
-            if prop.ndim == 2:
-                p = self.prop_nn(prop.unsqueeze(1))    # for single property
-            else:
-                p = self.prop_nn(prop)    # for multiproperty
-            p += type_embd
-            x = torch.cat([p, x], 1)
-
-        # x = self.blocks(x)
-        attn_maps = []
-
-        for layer in self.blocks:
-            x, attn = layer(x)
-            attn_maps.append(attn)
-
-        x = self.ln_f(x)
-        logits = self.head(x)
-
-        if self.config.num_props:
-            num = int(bool(self.config.num_props))
+        type_embd = self.type_emb(torch.zeros((b, 1), dtype=torch.long, device=x.device))
+        if prop.ndim == 2:
+            p = self.prop_nn(prop.unsqueeze(1))
         else:
-            num = 0
+            p = self.prop_nn(prop)
+        p += type_embd
+        x_1 = torch.cat([p, x_1], 1)
 
-        logits = logits[:, num:, :]
 
-        # if we are given some desired targets also calculate the loss
+        # Path 2: Symmetry conditioning (现在总是执行)
+        x_2 = combined_embed
+        type_embd_sym = self.type_emb(2 * torch.ones((b, 1), dtype=torch.long, device=x.device))
+        s = self.sym_nn(sym)
+        s = s.unsqueeze(1)
+        s += type_embd_sym
+        x_2 = torch.cat([s, x_2], 1)
+
+
+        # Process through dual transformer blocks
+        attn_maps = []
+        
+        # Process path 1
+        for layer in self.blocks_1:
+            x_1, attn_1 = layer(x_1)
+            attn_maps.append(attn_1)
+        
+        # Process path 2
+        for layer in self.blocks_2:
+            x_2, attn_2 = layer(x_2)
+            attn_maps.append(attn_2)
+        
+        # Combine the two paths
+        x_concat = torch.cat([x_1, x_2], dim=-1)  # Concatenate along feature dimension
+        x = self.linear(x_concat)  # Fuse features using linear layer
+        x = self.ln_f(x)
+        x = self.head(x)
+        
+        x = x[:, 1:, :]
+
+        # Calculate loss if targets provided
         loss = None
         if targets is not None:
-            loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), targets.view(-1))
+            loss = F.cross_entropy(x.reshape(-1, x.size(-1)), targets.view(-1))
 
-        return logits, loss, attn_maps, embed # (num_layers, batch_size, num_heads, max_seq_len, max_seq_len)
-        
-        
+        return x, loss, attn_maps, embed
+
     @torch.no_grad()
-    def sample(self, x, steps, temperature=1.0, do_sample=False, top_k=None, top_p=None, prop=None):
+    def sample(self, x, steps, temperature=1.0, do_sample=False, top_k=None, top_p=None, prop=None, sym=None):
         """
         Take a conditioning sequence of indices in x (of shape (b,t)) and predict the next token in
         the sequence, feeding the predictions back into the model each time. Clearly the sampling
@@ -245,6 +269,20 @@ class GPT(nn.Module):
         of block_size, unlike an RNN that has an infinite context window.
         
         Most likely you'll want to make sure to be in model.eval() mode of operation for this.
+        Conditional sampling with property and crystal symmetry control.
+    
+        Args:
+              x: Input sequence
+              steps: Number of steps to sample for
+              temperature: Sampling temperature
+              do_sample: Whether to sample from the distribution
+              top_k: Top-k sampling parameter
+              top_p: Nucleus sampling parameter
+              prop: Property conditioning tensor (optional)
+              sym: Crystal system one-hot encoding (optional)
+                    Expected to be a 7-dimensional one-hot vector representing:
+                    [triclinic, monoclinic, orthorhombic, tetragonal, trigonal, hexagonal, cubic]
+
         """
         #model.eval()
         
@@ -278,13 +316,15 @@ class GPT(nn.Module):
                 logits[indices_to_remove] = filter_value
             return logits
         
-         
+        
         for k in range(steps):
             x_cond = x if x.size(1) <= self.block_size else x[:, -self.block_size:] # crop context if needed
 
             # forward the model to get the logits for the index in the sequence
-            logits, _, _, _ = self(x_cond, prop = prop) # for sampling, no target
-
+            logits, _, _, _ = self(x_cond, targets=None, prop=prop, sym=sym) # for sampling, no target
+            
+            #attn_maps_list.append(attn_maps) # save attention maps for visualization or analysis
+            
             # pluck the logits at the final step and scale by desired temperature
             logits = logits[:, -1, :] / temperature
 
@@ -308,3 +348,5 @@ class GPT(nn.Module):
             x = torch.cat((x, x_next), dim=1)
 
         return x[:, 1:]
+
+

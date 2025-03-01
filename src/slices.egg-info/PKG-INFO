@@ -1,0 +1,16 @@
+Metadata-Version: 2.2
+Name: slices
+Version: 2.0.10
+Author-email: Hang Xiao <xiaohang07@live.cn>
+Requires-Python: >=3.9
+License-File: LICENSE
+Requires-Dist: setuptools>=18.0
+Requires-Dist: numpy==1.26.4
+Requires-Dist: m3gnet==0.2.4
+Requires-Dist: scikit-learn==1.3.1
+Requires-Dist: smact==2.5.5
+Requires-Dist: chgnet==0.3.2
+Requires-Dist: tensorflow==2.15
+Requires-Dist: pymatgen==2023.11.12
+Requires-Dist: scipy==1.13.0
+Requires-Dist: ase==3.22.1

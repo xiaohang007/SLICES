@@ -1,40 +1,47 @@
-# -*- coding: utf-8 -*-
-# Yan Chen 2023.10
-# yanchen@xjtu.edu.com
 """
-Trainer for MatterGPT with xVal integration.
+Simple training loop; Boilerplate that could apply to any arbitrary neural network,
+with updated LR scheduling: if a validation dataset exists, use ReduceLROnPlateau (with patience for early stopping),
+otherwise use CosineAnnealingLR.
 """
 
 import math
-import os
-import csv
-from tqdm import tqdm
 import numpy as np
-
 import torch
 import torch.optim as optim
-from torch.optim.lr_scheduler import ReduceLROnPlateau  # 导入调度器
+from torch.optim.lr_scheduler import LambdaLR, ReduceLROnPlateau, CosineAnnealingLR
 from torch.utils.data.dataloader import DataLoader
 from torch.cuda.amp import GradScaler
-import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+from utils import *
+import re
+import pandas as pd
+
 
 class TrainerConfig:
-    # Optimization parameters
-    max_epochs = 35  # 根据你的训练日志，调整为实际需要的 epoch 数量
+    # optimization parameters
+    max_epochs = 10
     batch_size = 64
     learning_rate = 3e-4
     betas = (0.9, 0.95)
     grad_norm_clip = 1.0
-    weight_decay = 0.1  # Only applied on matmul weights
-    # Learning rate decay params: linear warmup followed by ReduceLROnPlateau
-    lr_decay = True  # 启用学习率衰减
-    warmup_epochs = 2  # 指定 Warmup 的 epoch 数量
-    warmup_start_lr = 1e-5  # Warmup 阶段的起始学习率
-    final_lr = 1e-5  # ReduceLROnPlateau 的最小学习率
-    # Checkpoint settings
-    ckpt_path = "best_model.pth"  # 确保指定一个保存路径
-    num_workers = 0  # For DataLoader
-    patience = 5  # Early Stopping 的 patience
+    weight_decay = 0.1  # only applied on matmul weights
+
+    # learning rate decay params: 如果 lr_decay 为 True，则采用调度器机制
+    lr_decay = True
+    # 以下参数用于新的调度器机制（不是基于 token 的调度）
+    warmup_epochs = 2
+    warmup_start_lr = 1e-5
+    final_lr = 1e-5   # CosineAnnealing 中的最低 lr，或 ReduceLROnPlateau 的 min_lr
+    patience = 5      # 如果有验证集，达到 patience 次数后触发早停
+
+    # 旧版 token-based 参数（如果不使用 lr_decay 可忽略）
+    warmup_tokens = 375e6
+    final_tokens = 260e9
+
+    # checkpoint settings
+    ckpt_path = None
+    num_workers = 0  # for DataLoader
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -43,203 +50,148 @@ class TrainerConfig:
 
 class Trainer:
 
-    def __init__(self, model, train_dataset, val_dataset, config, stoi, itos, num_props):
+    def __init__(self, model, train_dataset, val_dataset, config, stoi, itos):
         self.model = model
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.config = config
-
-        # Device configuration
-        self.device = 'cpu'
         self.stoi = stoi
         self.itos = itos
-        self.num_props = num_props
-        self.train_losses = []
-        self.val_losses = []
-        self.learning_rates = []
-        self.best_val_loss = float('inf')
-        self.patience_counter = 0
 
-        # 删除现有的 train.log 文件
-        if os.path.exists('train.log'):
-            os.remove('train.log')
-
-        # 打开 train.log 文件
-        self.csvfile = open('train.log', 'w', newline='')
-        self.writer = csv.DictWriter(self.csvfile, fieldnames=['Epoch', 'Train Loss', 'Val Loss', 'Learning Rate'])
-        self.writer.writeheader()
-
+        # 设备设置
+        self.device = 'cpu'
         if torch.cuda.is_available():
             self.device = torch.cuda.current_device()
             self.model = self.model.to(self.device)
 
-        # 初始化优化器和调度器
+        # 初始化优化器（注意：这里假设模型中实现了 configure_optimizers 方法）
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         self.optimizer = raw_model.configure_optimizers(config)
 
-        # 设置优化器的初始学习率为 warmup_start_lr
+        # 如果 lr_decay 为 True，则使用调度器调度学习率
         if config.lr_decay:
+            # 初始学习率设为 warmup_start_lr
+            initial_lr = getattr(config, "warmup_start_lr", config.learning_rate)
             for param_group in self.optimizer.param_groups:
-                param_group['lr'] = config.warmup_start_lr
+                param_group['lr'] = initial_lr
 
-            self.scheduler = ReduceLROnPlateau(
-                self.optimizer, 
-                mode='min', 
-                factor=0.1, 
-                patience=1,  # 可根据需要调整
-                verbose=True,
-                min_lr=config.final_lr
-            )
+            # 如果存在验证集，使用 ReduceLROnPlateau 调度器（带 patience 机制）
+            if self.val_dataset is not None:
+                self.scheduler = ReduceLROnPlateau(
+                    self.optimizer,
+                    mode='min',
+                    factor=0.1,
+                    patience=getattr(config, "patience", 1),
+                    verbose=True,
+                    min_lr=getattr(config, "final_lr", 1e-5)
+                )
+            else:
+                # 没有验证集，则使用 CosineAnnealingLR
+                warmup_epochs = getattr(config, "warmup_epochs", 0)
+                T_max = max(1, config.max_epochs - warmup_epochs)
+                self.scheduler = CosineAnnealingLR(
+                    self.optimizer,
+                    T_max=T_max,
+                    eta_min=getattr(config, "final_lr", 1e-5)
+                )
         else:
             self.scheduler = None
 
+        # 早停相关（仅在有验证集时使用）
+        self.best_val_loss = float('inf')
+        self.patience_counter = 0
+
+        # 混合精度训练的 scaler
         self.scaler = GradScaler()
 
-    def log_metrics(self, epoch, train_loss, val_loss, lr):
-        self.train_losses.append(train_loss)
-        self.val_losses.append(val_loss)
-        self.learning_rates.append(lr)
-        # 写入日志
-        self.writer.writerow({
-            'Epoch': epoch + 1,
-            'Train Loss': f"{train_loss:.4f}",
-            'Val Loss': f"{val_loss:.4f}",
-            'Learning Rate': f"{lr:.7f}"
-        })
-        self.csvfile.flush()  # 确保数据被写入文件
 
     def save_checkpoint(self):
-        # 保存模型权重
+        # DataParallel 封装下真实模型在 module 属性中
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         torch.save(raw_model.state_dict(), self.config.ckpt_path)
 
-    def train(self):
-        model, config = self.model, self.config
-        raw_model = model.module if hasattr(self.model, "module") else model
 
-        def run_epoch(split, epoch):
-            is_train = split == 'train'  # split == 'train' 表示训练
-            model.train(is_train)
-            data = self.train_dataset if is_train else self.val_dataset
-            loader = DataLoader(data, shuffle=is_train, pin_memory=True,
-                                batch_size=config.batch_size,
-                                num_workers=config.num_workers)
+    def run_epoch(self, split, epoch):
+        is_train = split == 'train'
+        self.model.train(is_train)
+        dataset = self.train_dataset if is_train else self.val_dataset
+        loader = DataLoader(dataset, shuffle=is_train, pin_memory=True,
+                            batch_size=self.config.batch_size,
+                            num_workers=self.config.num_workers)
 
-            total_loss = []
+        losses = []
+        pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
 
-            pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
-            for it, batch in pbar:
-                if self.num_props > 0:
-                    # 假设 batch = (x, y, p)
-                    x, y, p = batch
-                    x = x.to(self.device)
-                    y = y.to(self.device)
-                    p = p.to(self.device)
-                    
-                    with torch.cuda.amp.autocast():
-                        with torch.set_grad_enabled(is_train):
-                            # 调整为模型的 forward 方法
-                            logits, loss, _, _ = model(x, y, p)
-                else:
-                    # 假设 batch = (x, y)
-                    x, y = batch
-                    x = x.to(self.device)
-                    y = y.to(self.device)
-                    
-                    with torch.cuda.amp.autocast():
-                        with torch.set_grad_enabled(is_train):
-                            logits, loss, _, _ = model(x, y)
-
-                loss = loss.mean()
-                total_loss.append(loss.item())
-
-                if is_train:
-                    # backprop and update the parameters
-                    model.zero_grad()
-                    self.scaler.scale(loss).backward()
-                    self.scaler.unscale_(self.optimizer)
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
-                    self.scaler.step(self.optimizer)
-                    self.scaler.update()
-
-                    # 更新进度条描述
-                    pbar.set_description(f"Epoch {epoch+1} Iter {it}: Train Loss {loss.item():.5f}")
-
-            # 计算平均损失
-            avg_loss = float(np.mean(total_loss))
+        for it, (x, y, p, s) in pbar:
+            x = x.to(self.device)
+            y = y.to(self.device)
+            p = p.to(self.device)
+            s = s.to(self.device)
+            
+            with torch.cuda.amp.autocast():
+                with torch.set_grad_enabled(is_train):
+                    logits, loss, _, _ = self.model(x, y, p, s)
+            
+            loss = loss.mean()  # collapse losses from multiple GPUs if necessary
+            losses.append(loss.item())
 
             if is_train:
-                phase = "Train"
-            else:
-                phase = "Val"
-                
-            # 打印 epoch 总结
-            print(f"Epoch {epoch+1} {phase} - Loss: {avg_loss:.4f}")
+                self.model.zero_grad()
+                self.scaler.scale(loss).backward()
+                self.scaler.unscale_(self.optimizer)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.grad_norm_clip)
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
 
-            return avg_loss
+                pbar.set_description(f"Epoch {epoch+1} Iter {it}: Train Loss {loss.item():.5f}")
 
+        avg_loss = float(np.mean(losses))
+        print(f"Epoch {epoch+1} {split.capitalize()} - Loss: {avg_loss:.4f}")
+        return avg_loss
+
+
+    def train(self):
+        config = self.config
         for epoch in range(config.max_epochs):
-            train_loss = run_epoch('train', epoch)
+            train_loss = self.run_epoch('train', epoch)
             if self.val_dataset is not None:
-                val_loss = run_epoch('val', epoch)
-                print(f"Epoch {epoch + 1} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+                val_loss = self.run_epoch('val', epoch)
+            else:
+                val_loss = float('inf')
 
-                # Warmup 阶段：线性增加学习率
-                if epoch < config.warmup_epochs and config.lr_decay:
+            # 学习率更新
+            if config.lr_decay and self.scheduler is not None:
+                if epoch < getattr(config, "warmup_epochs", 0):
+                    # Warmup 阶段：线性增加学习率
                     warmup_lr = config.warmup_start_lr + (config.learning_rate - config.warmup_start_lr) * (epoch + 1) / config.warmup_epochs
                     for param_group in self.optimizer.param_groups:
                         param_group['lr'] = warmup_lr
                     print(f"Warmup Phase: Setting learning rate to {warmup_lr:.7f}")
-                elif config.lr_decay:
-                    # Warmup 结束后，使用 ReduceLROnPlateau 调度器
-                    self.scheduler.step(val_loss)
+                else:
+                    # 如果存在验证集，则 ReduceLROnPlateau 根据验证集 loss 调整 lr；否则 CosineAnnealing 直接 step()
+                    if self.val_dataset is not None:
+                        self.scheduler.step(val_loss)
+                    else:
+                        self.scheduler.step()
 
-                # Early Stopping 逻辑
+            # 提前停止：仅在有验证集时触发
+            if self.val_dataset is not None:
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.patience_counter = 0
-                    self.save_checkpoint()
-                    print(f"New best model saved with Val Loss: {val_loss:.4f}")
+                    if config.ckpt_path is not None:
+                        print(f"Saving at epoch {epoch+1} with best val loss {val_loss:.5f}")
+                        self.save_checkpoint()
                 else:
                     self.patience_counter += 1
                     print(f"No improvement in Val Loss. Patience: {self.patience_counter}/{config.patience}")
-
                 if self.patience_counter >= config.patience:
                     print(f"Early stopping triggered after {epoch + 1} epochs")
                     break
             else:
-                val_loss = float('inf')
-                print(f"Epoch {epoch + 1} - Train Loss: {train_loss:.4f}")
-                # 在没有 val_dataset 时，每个 epoch 保存一次模型
                 if config.ckpt_path is not None:
                     self.save_checkpoint()
                     print(f"Model saved at epoch {epoch + 1}")
 
-            # 获取当前学习率
-            lr = self.optimizer.param_groups[0]['lr']
-            self.log_metrics(epoch, train_loss, val_loss, lr)
-
-            # 可选的绘图代码：双Y轴显示损失和学习率
-            fig, ax1 = plt.subplots(figsize=(10, 5))
-
-            ax1.set_xlabel('Epoch')
-            ax1.set_ylabel('Loss')
-            ax1.plot(range(1, len(self.train_losses)+1), self.train_losses, label='Train Loss', color='tab:blue')
-            if self.val_losses:
-                ax1.plot(range(1, len(self.val_losses)+1), self.val_losses, label='Val Loss', color='tab:orange')
-            ax1.tick_params(axis='y')
-            ax1.legend(loc='upper left')
-
-            ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-            ax2.set_ylabel('Learning Rate')  # we already handled the x-label with ax1
-            ax2.plot(range(1, len(self.learning_rates)+1), self.learning_rates, label='Learning Rate', color='tab:green')
-            ax2.tick_params(axis='y')
-            ax2.legend(loc='upper right')
-
-            fig.tight_layout()  # otherwise the right y-label is slightly clipped
-            plt.savefig('loss_curves.png')
-            plt.close()
-
-        # 训练完成后关闭 train.log 文件
-        self.csvfile.close()
         return None
+

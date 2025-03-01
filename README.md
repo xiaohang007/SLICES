@@ -88,10 +88,12 @@ unzip slices_repo.zip
 cd SLICES-main
 conda env create --name slices --file=environments.yml
 conda activate slices
-pip install gradio==4.44.1 slices==2.0.8
+pip install gradio==4.44.1 slices
+pip install flash-attn --no-build-isolation
 ```
 安装完成！
-### 1.3 访问图形界面  注意访问图形界面必须安装slices>=2.0.8
+### 1.3 pip install flash-attn --no-build-isolation 这是安装Flash attention,能够将训练和推理提速2x, 如果不幸安装失败，那么就用MatterGPT_old文件夹进行计算就行。
+### 1.4 访问图形界面  注意访问图形界面必须安装slices>=2.0.8
 ```bash
 cd MatterGPT
 python app.py
@@ -115,7 +117,7 @@ python app.py
 ```bash
 # 从 Docker Hub 下载已经构建的 SLICES Docker 镜像
 
-docker pull xiaohang07/slices:v10
+docker pull xiaohang07/slices:v11
 
 # 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v10。
 
@@ -128,7 +130,7 @@ xz -T4 -dc dockerv10.tar.xz | docker load
 sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./slices/xtb_noring_nooutput_nostdout_noCN
 
 # 运行 Docker (将 [] 替换为您的绝对路径)
-docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v10 /crystal/entrypoint_set_cpus_gradio.sh
+docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v11 /crystal/entrypoint_set_cpus_gradio.sh
 ```
 
 5. **访问图形界面**:
