@@ -119,10 +119,10 @@ python app.py
 
 docker pull xiaohang07/slices:v11
 
-# 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v10。
+# 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v11。
 
 # 然后，使用以下命令4线程并行解压缩以及加载此 docker 镜像：
-xz -T4 -dc dockerv10.tar.xz | docker load
+xz -T4 -dc dockerv11.tar.xz | docker load
 
 # 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
 

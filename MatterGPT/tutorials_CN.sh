@@ -22,7 +22,7 @@ DECODE_DIR_EFORM=$MATTERGPT_DIR/demo_decode_novelty_check_eform_m3gnet
 STRUCTURE_JSON_FOR_NOVELTY_CHECK=$DATA_DIR/cifs_filtered.json
 TRAINING_FILE=$DATA_DIR/train_data.csv
 VAL_DATASET=$DATA_DIR/val_data.csv
-THREADS=16
+THREADS=8
 
 # 定义模型参数  
 # 下面的是快速测试用的参数，实际科研中建议使用至少 512 8 8，如果数据量足够可以用 768 12 12

@@ -27,10 +27,10 @@ os.system("rm result2.csv")  # to deal with slurm's twice execution bug
 with open('temp.csv', 'r') as f:
     slices_list=f.readlines()
 
-batch_size=100
+batch_size=10
 slices_split=list(split_list(slices_list,math.ceil(len(slices_list)/batch_size)))
 for i in range(len(slices_split)):
     with open('temp_splited.csv', 'w') as f:
         f.writelines(slices_split[i])
-    run_script(batch_size * 300)
+    run_script(batch_size * 120)
 os.system("mv result2.csv result.csv")
