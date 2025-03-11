@@ -4,11 +4,16 @@
 import os,sys,json,gc,math
 import subprocess
 def run_script(timeout_sec):
+    env = os.environ.copy()
+    env["OMP_NUM_THREADS"] = "1"
+    env["MKL_NUM_THREADS"] = "1"
+    env["OPENBLAS_NUM_THREADS"] = "1"
     try:
         result = subprocess.run(
             ["timeout", f"{timeout_sec}s", "python", "-B", "script.py"],
             capture_output=True,
-            check=True
+            check=True,
+            env=env
         )
         return result.stdout
     except subprocess.TimeoutExpired:

@@ -50,14 +50,14 @@ for cif in cifs:
                 temp_cif = f_cif.read()
             os.remove("temp.cif")
             
-            if num_ori_pri < num_ori:
+            if num_ori_pri < num_ori and num_ori_pri <21:
                 cif["cif"] = temp_cif
                 cifs_filtered.append(cif)
                 # 动态构建CSV行，添加晶系信息
                 property_values = [str(cif.get(key, '')) for key in property_keys]
                 csv_line = f"{CG.structure2SLICES(ori_pri)},{','.join(property_values)},{crystal_system}\n"
                 csv_lines.append(csv_line)
-            else:
+            elif num_ori <21:
                 ori.to("temp.cif", 'cif')
                 with open("temp.cif", 'r') as f_cif:
                     temp_cif = f_cif.read()
