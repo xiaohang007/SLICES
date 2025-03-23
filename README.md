@@ -7,10 +7,12 @@ The **Simplified Line-Input Crystal-Encoding System (SLICES)** is the first inve
 - **MatterGPT 图形界面介绍**: [Bilibili](https://www.bilibili.com/video/BV15XrmYMEYU/)
 - **SLICES 晶体语言介绍**: [Bilibili](https://www.bilibili.com/video/BV17H4y1W7aZ/)
 - **SLICES 101**: [Bilibili](https://www.bilibili.com/video/BV1Yr42147dM/)
-- **Data and Results**: [Figshare](https://doi.org/10.6084/m9.figshare.22707472)
 - **MatterGPT Paper**: [arXiv](https://arxiv.org/abs/2408.07608)
 - **MatterGPT Demo**: [Huggingface](https://huggingface.co/spaces/xiaohang07/MatterGPT_CPU)
 - **SLICES-PLUS Paper**: [arXiv](https://arxiv.org/abs/2410.22828)
+- **Data and Results**: [Figshare](https://doi.org/10.6084/m9.figshare.22707472)
+- **完整的Materials Project新颖性检查库和EAH计算竞争相库**: [Figshare](https://doi.org/10.6084/m9.figshare.28645331) 
+方便大家在整个MP数据库中进行新颖性检查和计算EAH！
 ---
 
 ## Main Functionalities
