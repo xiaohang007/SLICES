@@ -111,14 +111,19 @@ python app.py
 ---
 
 1. **下载仓库**，并解压文件。
+```bash
+wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
+unzip slices_repo.zip
+cd SLICES-main
+```
 
-2. **在 `slurm.conf`中配置 CPU 线程数量。**
-
+2. **在 `slurm.conf`中配置 CPU 线程数量。例如下面是设置为16**
+```bash
+sed -i 's/CPUs=8/CPUs=16/' slurm.conf
+```
 3. **执行 Docker 集成命令：**
-
 ```bash
 # 从 Docker Hub 下载已经构建的 SLICES Docker 镜像
-
 docker pull xiaohang07/slices:v11
 
 # 如果 docker pull 不管用，您可以在 https://figshare.com/s/260701a1accd0192de20 下载压缩的 docker 镜像 v11。
@@ -129,10 +134,10 @@ xz -T4 -dc dockerv11.tar.xz | docker load
 # 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
 
 # 使脚本具有执行权限
-sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./slices/xtb_noring_nooutput_nostdout_noCN
+sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./src/slices/xtb_noring_nooutput_nostdout_noCN
 
-# 运行 Docker (将 [] 替换为您的绝对路径)
-docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v /[]:/crystal xiaohang07/slices:v11 /crystal/entrypoint_set_cpus_gradio.sh
+# 运行 Docker
+docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v ./:/crystal xiaohang07/slices:v11 /crystal/entrypoint_set_cpus_gradio.sh
 ```
 
 5. **访问图形界面**:
