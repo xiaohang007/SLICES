@@ -108,6 +108,13 @@ python app.py
 
 请按照以下步骤使用 Docker 安装 SLICES:
 
+**Windows系统下的准备工作**：
+如果是win11的系统，需要先安装WSL2的ubuntu系统，然后安装Docker Desktop,并且在选项里面开启WSL2 ubuntu访问本机的docker，然后按照下图按住shift右键点击圆圈处，然后选择在此处打开linux shell
+
+![IMAGE ALT TEXT](./docs/win11_wsl2.png)
+
+**Linux系统下的准备工作**：安装docker就可以了。
+
 ---
 
 1. **下载仓库**，并解压文件。
