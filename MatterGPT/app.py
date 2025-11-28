@@ -10,7 +10,7 @@ import json
 from contextlib import contextmanager
 import traceback
 import configparser
-
+iface.launch(share=True)
 @contextmanager
 def suppress_output():
     with open(os.devnull, 'w') as devnull:
