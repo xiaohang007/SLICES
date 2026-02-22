@@ -14,6 +14,8 @@ from torch.cuda.amp import GradScaler
 from tqdm import tqdm
 import os
 import csv
+import matplotlib
+matplotlib.use("Agg")  # headless-safe backend to avoid Tkinter thread errors
 import matplotlib.pyplot as plt
 
 from utils import *
@@ -100,7 +102,6 @@ class Trainer:
                     mode='min',
                     factor=0.1,
                     patience=getattr(config, "patience", 1),
-                    verbose=True,
                     min_lr=getattr(config, "final_lr", 1e-5)
                 )
             else:
@@ -253,4 +254,3 @@ class Trainer:
         # 关闭日志文件
         self.csvfile.close()
         return None
-

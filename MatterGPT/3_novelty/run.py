@@ -1,200 +1,193 @@
-import shutil
-import math
 import os
 import csv
-import pickle
 import json
 import argparse
-from collections import defaultdict
+import sqlite3
+import glob
 from pymatgen.core.structure import Structure
-from slices.utils import *
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from slices.utils import splitRun_csv, show_progress, collect_csv
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
 
-def split_database(pkl_file="structure_database.pkl", shard_size=1000, output_dir="split_db"):
+
+def build_structure_database(structure_json_path, db_path):
     """
-    Split the structure_database.pkl into shards and save them to the specified directory.
+    Build a SQLite structure database from a JSON file containing CIFs.
 
-    Parameters:
-    - pkl_file (str): Path to the original pickle file.
-    - shard_size (int): Number of structures per shard.
-    - output_dir (str): Directory where shard files will be saved.
+    The database schema matches the demo workflow and supports novelty checks
+    by reduced formula composition and primitive CIF.
     """
-    # If output_dir exists, delete its contents; otherwise, create the directory
-    if os.path.exists(output_dir):
-        print(f"Clearing existing directory: {output_dir}")
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir)
-    print(f"Created new directory: {output_dir}")
+    print("开始构建结构数据库（structure_database.db）...")
+    print(
+        "提示：对于 Materials Project 全集（约 150,000 条结构），"
+        "构建过程通常需要 40-50 分钟（取决于 CPU 性能和 I/O 速度），初次构建后新颖性检查无需二次重复构建。"
+        "过程中会显示实时进度条，请耐心等待。"
+    )
 
-    # Load the original structure database
-    print(f"Loading structure data from {pkl_file}...")
-    with open(pkl_file, 'rb') as f:
-        structure_database = pickle.load(f)
-
-    total_structures = len(structure_database)
-    num_shards = math.ceil(total_structures / shard_size)
-    print(f"Total structures: {total_structures}. Splitting into {num_shards} shards with up to {shard_size} structures each.")
-
-    for shard_index in range(num_shards):
-        start_idx = shard_index * shard_size
-        end_idx = min(start_idx + shard_size, total_structures)
-        shard_data = structure_database[start_idx:end_idx]
-        shard_filename = os.path.join(output_dir, f"structure_database_shard_{shard_index + 1}.pkl")
-        with open(shard_filename, 'wb') as shard_file:
-            pickle.dump(shard_data, shard_file)
-        print(f"Saved shard {shard_index + 1}/{num_shards} to {shard_filename}")
-    
-    print("All shards have been successfully saved.")
-
-def load_and_save_structure_database(structure_json_path):
-    """
-    Load CIF data from a JSON file and save it as a pickle file.
-
-    Parameters:
-    - structure_json_path (str): Path to the JSON file containing CIF data.
-    """
-    with open(structure_json_path, 'r', encoding='utf-8') as f:
-        cifs = json.load(f)
-
-    structure_database = []
-    for i, cif_entry in enumerate(cifs):
-        cif_string = cif_entry.get("cif", "")
-        if not cif_string:
-            print(f"Missing CIF string in entry {i}. Skipping.")
-            continue
-        try:
-            stru = Structure.from_str(cif_string, "cif")
-            structure_database.append([stru, '1.0'])
-        except Exception as e:
-            print(f"Error parsing CIF in entry {i}: {e}")
-
-    with open('structure_database.pkl', 'wb') as f:
-        pickle.dump(structure_database, f)
-    print(f"Saved {len(structure_database)} structures to structure_database.pkl")
-
-def build_database_by_comp(pkl_file="structure_database.pkl"):
-    """
-    Load structures from a pickle file and build a composition index.
-
-    Parameters:
-    - pkl_file (str): Path to the pickle file containing structures.
-
-    Returns:
-    - defaultdict: A dictionary with reduced composition strings as keys and lists of structures as values.
-    """
-    with open(pkl_file, 'rb') as f:
-        structure_database = pickle.load(f)
-
-    database_by_comp = defaultdict(list)
-    for entry in structure_database:
-        struct = entry[0]
-        reduced_comp = struct.composition.reduced_composition
-        comp_str = str(reduced_comp)
-        database_by_comp[comp_str].append(struct)
-
-    return database_by_comp
-
-def prepare(args):
-    """
-    Prepare the structure database and split it into shards.
-
-    Parameters:
-    - args: Parsed command-line arguments.
-    """
-    # 1) Generate structure_database.pkl
-    #    (Uncomment if you need to regenerate the pickle file)
-    load_and_save_structure_database(args.structure_json_for_novelty_check)
-    
-    # 2) Split the database into shards
-    print("Starting to split structure_database.pkl into shards...")
-    split_database(pkl_file="structure_database.pkl", shard_size=10000, output_dir="split_db")
-
-    # 3) Build composition index
-    print("Loading structure_database.pkl and building composition index...")
-    database_by_comp = build_database_by_comp("structure_database.pkl")
-    print(f"database_by_comp size = {len(database_by_comp)}")
-
-    # 4) Pre-filter input CSV based on composition
-    print(f"Processing input CSV: {args.input_csv}")
-    with open(args.input_csv, 'r', encoding='utf-8') as fin, \
-         open("temp_novel.csv", 'w', encoding='utf-8', newline='') as fout_novel, \
-         open("temp_non_novel.csv", 'w', encoding='utf-8', newline='') as fout_non_novel:
-        
-        reader = csv.reader(fin)
-        writer_novel = csv.writer(fout_novel)
-        writer_non_novel = csv.writer(fout_non_novel)
-
-        header = next(reader, None)  # Read header
-        if header:
-            writer_non_novel.writerow(header)
-
-        for row_idx, row in enumerate(reader, start=1):
-            try:
-                # Assuming the last column contains the POSCAR string
-                poscar_input = row[-1].replace('\\n','\n')
-                query_struc = Structure.from_str(poscar_input, fmt="poscar")
-                reduced_comp_query = query_struc.composition.reduced_composition
-                comp_query = str(reduced_comp_query)
-
-                if comp_query in database_by_comp:
-                    # Potentially non-novel
-                    writer_non_novel.writerow(row)
-                else:
-                    # Novel structure
-                    writer_novel.writerow(row + ["1"])
-
-                if row_idx % 1000 == 0:
-                    print(f"Processed {row_idx} rows...")
-            except Exception as e:
-                print(f"Error parsing POSCAR in input.csv row {row_idx}: {e}")
-
-    print("Pre-filtering completed. Generated temp_novel.csv and temp_non_novel.csv.")
-
-def main_work(args):
-    """
-    Execute the main processing workflow.
-
-    Parameters:
-    - args: Parsed command-line arguments.
-    """
-    # 5) Process non-novel entries with multiple threads
-    print("Processing non-novel entries with splitRun_csv...")
-    splitRun_csv(filename='temp_non_novel.csv', threads=args.threads, skip_header=True)
-    show_progress()
-    csv_file_to_run = 'temp_non_novel.csv'
-
-    # 4) 查看输入 CSV 首行，以获取动态 header
     try:
-        with open(csv_file_to_run, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            header_in = next(reader)  # 读取 CSV 的第一行做 header
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS structures (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                composition TEXT,
+                spacegroup INTEGER,
+                primitive_cif TEXT
+            )
+            """
+        )
+        if cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='structures'"
+        ).fetchone():
+            print("表 'structures' 已存在，将追加或覆盖数据。")
+        else:
+            print("已创建新表 'structures'。")
+    except sqlite3.Error as e:
+        print(f"数据库连接或创建失败: {e}")
+        exit(1)
+
+    try:
+        with open(structure_json_path, 'r', encoding='utf-8') as f:
+            cifs = json.load(f)
     except FileNotFoundError:
-        print(f"Error: The input CSV file '{csv_file_to_run}' does not exist.")
+        print(f"Error: Structure JSON file '{structure_json_path}' does not exist.")
+        exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to parse JSON file '{structure_json_path}': {e}")
+        exit(1)
+
+    total = len(cifs)
+    print(f"JSON 文件加载完成，共 {total:,} 条结构记录。")
+    if total == 0:
+        print("警告：JSON 文件中没有结构数据，跳过数据库构建。")
+        conn.close()
+        return
+
+    processed = 0
+    failed = 0
+
+    if tqdm is None:
+        print("Error: tqdm not installed. Please install it to show progress, e.g., `pip install tqdm`.")
+        exit(1)
+
+    with tqdm(
+        total=total,
+        desc="构建数据库",
+        unit="结构",
+        bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+    ) as pbar:
+        for idx, cif_entry in enumerate(cifs, start=1):
+            cif_string = cif_entry.get("cif")
+            if not cif_string:
+                pbar.update(1)
+                continue
+            try:
+                stru = Structure.from_str(cif_string, "cif")
+                finder = SpacegroupAnalyzer(stru)
+                primitive_stru = finder.get_primitive_standard_structure()
+                spacegroup = finder.get_space_group_number()
+
+                composition = primitive_stru.composition.reduced_formula
+                primitive_cif = primitive_stru.to(fmt="cif")
+
+                cursor.execute(
+                    "INSERT INTO structures (composition, spacegroup, primitive_cif) VALUES (?, ?, ?)",
+                    (composition, spacegroup, primitive_cif),
+                )
+                processed += 1
+            except Exception as e:
+                failed += 1
+                if failed <= 10:
+                    print(f"\n警告：第 {idx} 条结构处理失败（已跳过）：{e}")
+
+            pbar.update(1)
+
+            if idx % 1000 == 0:
+                conn.commit()
+
+    conn.commit()
+    print("\n插入完成，正在创建索引以加速后续新颖性查询...")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_composition ON structures (composition)")
+    conn.commit()
+    conn.close()
+
+    print("\n结构数据库构建完成！")
+    print(f"   → 成功处理：{processed:,} 条")
+    if failed:
+        print(f"   → 处理失败：{failed:,} 条（已自动跳过）")
+    print(f"   → 数据库保存至：{db_path}")
+    print("   → 已创建 composition 索引，后续新颖性检查将显著加速（>100x）")
+
+
+def ensure_structure_database(structure_json_path, db_path):
+    if os.path.exists(db_path):
+        print(f"Found existing database '{db_path}'.")
+        return
+    build_structure_database(structure_json_path, db_path)
+
+
+def _read_csv_header(csv_path):
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            return next(reader)
+    except FileNotFoundError:
+        print(f"Error: The input CSV file '{csv_path}' does not exist.")
         exit(1)
     except Exception as e:
-        print(f"Error reading CSV file '{csv_file_to_run}': {e}")
+        print(f"Error reading CSV file '{csv_path}': {e}")
         exit(1)
-    
-    # 假设最后一列是 "SLICES"，前面若干列是各种属性名称
-    # 结果里要再添加 "poscar" 和 "novelty" 两列
+
+
+def process_data(input_csv, output_csv, threads):
+    print("Cleaning up old job directories...")
+    os.system("rm -rf job_*")
+
+    print("Splitting the input CSV into job files...")
+    splitRun_csv(filename=input_csv, threads=threads, skip_header=True)
+    show_progress()
+
+    header_in = _read_csv_header(input_csv)
     dynamic_header = header_in + ["novelty"]
-    # 变成字符串
     result_header_line = ",".join(dynamic_header) + "\n"
 
-    # 6) Collect results from job shards
-    print(f"Collecting results into {args.output_csv} and suspect_rows.csv...")
-    collect_csv(output=args.output_csv,
-               glob_target="./job_*/result.csv", cleanup=False,
-               header=result_header_line)
-    collect_csv(output="suspect_rows.csv",
-               glob_target="./job_*/suspect_rows.csv", cleanup=True,
-               header=result_header_line)
+    print(f"Collecting results into '{output_csv}'...")
+    collect_csv(
+        output=output_csv,
+        glob_target="./job_*/result.csv",
+        cleanup=False,
+        header=result_header_line,
+    )
 
-    # 6.1) 去重 suspect_rows.csv
+    suspect_files = glob.glob("./job_*/suspect_rows.csv")
+    if suspect_files:
+        print("Collecting suspect rows into 'suspect_rows.csv'...")
+        collect_csv(
+            output="suspect_rows.csv",
+            glob_target="./job_*/suspect_rows.csv",
+            cleanup=True,
+            header=result_header_line,
+        )
+        _dedup_suspect_rows("suspect_rows.csv")
+    else:
+        os.system("rm -rf job_*")
+        print("No suspect rows found.")
+
+    print(f"Results collected into '{output_csv}'.")
+
+
+def _dedup_suspect_rows(path):
+    if not os.path.exists(path):
+        return
     print("Removing duplicates from suspect_rows.csv...")
     unique_rows = set()
     temp_dedup_file = "suspect_rows_dedup.csv"
-    
-    with open("suspect_rows.csv", 'r', encoding='utf-8') as fin, \
+
+    with open(path, 'r', encoding='utf-8') as fin, \
          open(temp_dedup_file, 'w', encoding='utf-8', newline='') as fout:
         reader = csv.reader(fin)
         writer = csv.writer(fout)
@@ -206,53 +199,56 @@ def main_work(args):
             if row_tuple not in unique_rows:
                 unique_rows.add(row_tuple)
                 writer.writerow(row)
-    
-    # 用去重后的文件替换原始文件
-    os.replace(temp_dedup_file, "suspect_rows.csv")
+
+    os.replace(temp_dedup_file, path)
     print("Duplicates removed from suspect_rows.csv.")
 
-    # 7) Append novel entries to the final results
-    temp_novel_path = "temp_novel.csv"
-    results_path = args.output_csv
-
-    if os.path.exists(temp_novel_path):
-        print(f"Appending contents of {temp_novel_path} to {results_path}")
-        with open(temp_novel_path, "r", encoding="utf-8") as fin:
-            reader = csv.reader(fin)
-            with open(results_path, "a", encoding="utf-8", newline='') as fout:
-                writer = csv.writer(fout)
-                for row in reader:
-                    writer.writerow(row)
-        print(f"Successfully appended {temp_novel_path} to {results_path}")
-    else:
-        print(f"{temp_novel_path} does not exist; skipping append operation.")
 
 def parse_args():
-    """
-    Parse command-line arguments.
-
-    Returns:
-    - argparse.Namespace: Parsed arguments.
-    """
     parser = argparse.ArgumentParser(description="Process structure database and CSV files.")
-    parser.add_argument('--input_csv', type=str, required=True,
-                        help='Path to the input CSV file (e.g., ../2_inverse/results.csv).')
-    parser.add_argument('--structure_json_for_novelty_check', type=str, required=True,
-                        help='Path to the JSON file containing CIF data for novelty checks (e.g., cifs_filtered.json).')
-    parser.add_argument('--threads', type=int, default=8,
-                        help='Number of threads to use for processing (default: 8).')
-    parser.add_argument('--output_csv', type=str, default='results.csv',
-                        help='Path to the output CSV file (default: results.csv).')
+    parser.add_argument(
+        '--input_csv',
+        type=str,
+        required=True,
+        help='Path to the input CSV file (e.g., ../2_inverse/results.csv).'
+    )
+    parser.add_argument(
+        '--structure_json_for_novelty_check',
+        type=str,
+        required=True,
+        help='Path to the JSON file containing CIF data for novelty checks (e.g., cifs_filtered.json).'
+    )
+    parser.add_argument(
+        '--threads',
+        type=int,
+        default=8,
+        help='Number of threads to use for processing (default: 8).'
+    )
+    parser.add_argument(
+        '--output_csv',
+        type=str,
+        default='results.csv',
+        help='Path to the output CSV file (default: results.csv).'
+    )
     return parser.parse_args()
 
+
 def main():
-    """
-    Main function to execute the script.
-    """
     args = parse_args()
-    prepare(args)
-    main_work(args)
-    os.system("rm suspect_rows.csv temp_non_novel.csv temp_novel.csv")
+
+    if not os.path.isfile(args.input_csv):
+        print(f"Error: The input CSV file '{args.input_csv}' does not exist.")
+        exit(1)
+
+    if not os.path.isfile(args.structure_json_for_novelty_check):
+        print(f"Error: The structure JSON file '{args.structure_json_for_novelty_check}' does not exist.")
+        exit(1)
+
+    db_path = "structure_database.db"
+    ensure_structure_database(args.structure_json_for_novelty_check, db_path)
+
+    process_data(args.input_csv, args.output_csv, args.threads)
+
 
 if __name__ == "__main__":
     main()

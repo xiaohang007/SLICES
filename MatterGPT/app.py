@@ -10,6 +10,9 @@ import json
 from contextlib import contextmanager
 import traceback
 import configparser
+import os
+os.environ["NO_PROXY"] = "127.0.0.1,localhost,::1"
+os.environ["no_proxy"] = os.environ["NO_PROXY"]
 
 @contextmanager
 def suppress_output():
@@ -863,4 +866,10 @@ with gr.Blocks() as demo:
 
 print(f"Running on local URL: http://localhost:7860")
 with suppress_output():
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(
+    server_name="0.0.0.0",
+    server_port=7860,
+    debug=True,
+    show_error=True,
+    share=True,
+)

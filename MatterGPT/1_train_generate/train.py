@@ -49,6 +49,8 @@ if __name__ == '__main__':
                         help="path to the training dataset file")
     parser.add_argument('--val_dataset', type=str, default="../0_dataset/val_data.csv",
                         help="path to the validation dataset file")
+    parser.add_argument('--num_workers', type=int, default=0,
+                        help="DataLoader worker processes (set 0 to avoid multiprocessing issues)")
 
     args = parser.parse_args()
 
@@ -159,7 +161,7 @@ if __name__ == '__main__':
     tconf = TrainerConfig(max_epochs=args.max_epochs, batch_size=args.batch_size, learning_rate=args.learning_rate,
                             lr_decay=True, warmup_tokens=0.1*len(slices_list)*max_len,
                             final_tokens=args.max_epochs*len(slices_list)*max_len,
-                            num_workers=10, 
+                            num_workers=args.num_workers,
                             ckpt_path=f'./model/{args.run_name}.pt',
                             block_size=max_len, generate=False)
 
@@ -167,7 +169,6 @@ if __name__ == '__main__':
                         tconf, train_datasets.stoi, train_datasets.itos)
 
     df = trainer.train()
-
 
 
 

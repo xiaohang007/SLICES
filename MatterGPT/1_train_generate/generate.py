@@ -168,13 +168,19 @@ if __name__ == '__main__':
             
             results_df = pd.DataFrame(slices)
             all_results.append(results_df)
-            
+
             # 打印当前生成结果的晶系分布
+            if results_df.empty or 'crystal_system' not in results_df.columns:
+                print('\nGeneration Statistics:')
+                print('Valid ratio: ', np.round(0.0, 3))
+                print('Unique ratio: ', np.round(0.0, 3))
+                print('No valid structures generated for this prop condition.')
+                continue
+
             current_distribution = results_df['crystal_system'].value_counts(normalize=True)
             for sys, prob in current_distribution.items():
                 target_prob = train_distribution.get(sys, 0)
 
-            
             # 打印其他统计信息
             unique_slices = list(set(results_df['SLICES']))
             print('\nGeneration Statistics:')
@@ -185,11 +191,19 @@ if __name__ == '__main__':
     final_results = pd.concat(all_results, ignore_index=True)
     
     # 比较最终生成结果与训练集的分布差异
+    if final_results.empty or 'crystal_system' not in final_results.columns:
+        final_results.to_csv(args.output_csv, index=False)
+        total_attempts = args.batch_size * gen_iter * len(prop_conditions)
+        print('\nOverall Statistics:')
+        print('Total valid ratio: ', np.round(0.0, 3))
+        print('No valid structures generated overall.')
+        sys.exit(0)
+
     final_distribution = final_results['crystal_system'].value_counts(normalize=True)
     for sys in set(train_distribution.index) | set(final_distribution.index):
         train_prob = train_distribution.get(sys, 0)
         gen_prob = final_distribution.get(sys, 0)
-    
+
     final_results.to_csv(args.output_csv, index=False)
 
     # 打印总体统计信息
@@ -199,4 +213,3 @@ if __name__ == '__main__':
     total_attempts = args.batch_size * gen_iter * len(prop_conditions)
     print('\nOverall Statistics:')
     print('Total valid ratio: ', np.round(len(final_results)/total_attempts, 3))
-

@@ -79,9 +79,9 @@ pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/si
 python -m pip install --upgrade pip
 ```
 
-### 1.2 下载 SLICES 仓库并安装 Conda 子环境及 SLICES 包
+### 1.2.1 下载 SLICES 仓库并安装 Conda 子环境及 SLICES 包
 - 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
-- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖（环境配置文件是 `environments.yml`）。
+- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
 - 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
 
 ```bash
@@ -101,13 +101,51 @@ pip install numpy==1.26.4
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 pip install gradio==4.44.1
 pip install slices --no-deps
+python -m pip install einops
 wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
-pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
+pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
 ```
 安装完成！
 
-如果安装成功flash_attn，那么就用MatterGPT文件夹进行计算。如果不幸安装失败，那么就用MatterGPT_no_flash文件夹进行计算就行。
+MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
 
+
+### 1.2.2 50x系列新显卡的 PyTorch (cu128) 安装
+
+
+如果你的电脑是 50x 显卡，按 1.2.1 安装后可能无法调用显卡驱动。可按下面步骤将 PyTorch 调整为 `torch==2.7.0` / `cu128` 版本。
+- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
+- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
+- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
+
+```bash
+wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
+unzip slices_repo.zip
+cd SLICES-main
+conda create --name slices_50x python=3.9
+conda activate slices_50x
+pip install  tensorflow-cpu==2.13.0
+pip install --no-deps m3gnet
+pip install smact==2.5.5
+pip install ase==3.22.1
+pip install pymatgen==2024.8.9
+pip install scipy==1.13.0
+pip install scikit-learn==1.3.1
+pip install numpy==1.26.4
+python -m pip install \
+  torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
+  --index-url https://download.pytorch.org/whl/cu128
+pip install gradio==4.44.1
+pip install slices --no-deps
+python -m pip install einops
+python -m wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
+python -m pip install flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
+```
+安装完成！
+
+MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
+
+安装完成！
 
 ### 1.3 访问图形界面  注意访问图形界面必须安装slices>=2.0.8
 ```bash
@@ -281,4 +319,3 @@ Special thanks to the open-source projects and developers that inspired this wor
 - **Email**: [hangxiao@ln.edu.hk](mailto:hangxiao@ln.edu.hk)
 - **ResearchGate**: [Hang Xiao](https://www.researchgate.net/profile/Hang-Xiao-8)
 - **Start a Discussion**: [GitHub Discussions](https://github.com/xiaohang007/SLICES/discussions/categories/general)
-

@@ -1,15 +1,20 @@
 import os
 import csv
-import pickle
-import json
-import argparse  # Import argparse for command-line argument parsing
+import argparse
 from slices.utils import splitRun_csv, show_progress, collect_csv
-import pandas as pd
-import matplotlib.pyplot as plt
-from scipy.stats import norm
-import numpy as np
-import matplotlib.ticker as ticker
-from pymatgen.core.structure import Structure
+
+def _read_csv_header(csv_path):
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            return next(reader)
+    except FileNotFoundError:
+        print(f"Error: The input CSV file '{csv_path}' does not exist.")
+        exit(1)
+    except Exception as e:
+        print(f"Error reading CSV file '{csv_path}': {e}")
+        exit(1)
+
 
 def process_data(input_csv, output_csv, threads):
     """
@@ -29,20 +34,11 @@ def process_data(input_csv, output_csv, threads):
     csv_file_to_run = input_csv
 
     # 4) 查看输入 CSV 首行，以获取动态 header
-    try:
-        with open(csv_file_to_run, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            header_in = next(reader)  # 读取 CSV 的第一行做 header
-    except FileNotFoundError:
-        print(f"Error: The input CSV file '{csv_file_to_run}' does not exist.")
-        exit(1)
-    except Exception as e:
-        print(f"Error reading CSV file '{csv_file_to_run}': {e}")
-        exit(1)
+    header_in = _read_csv_header(csv_file_to_run)
     
     # 假设最后一列是 "SLICES"，前面若干列是各种属性名称
-    # 结果里要再添加 "poscar" 和 "novelty" 两列
-    dynamic_header = header_in + ["space_group_num","poscar"]
+    # 结果里要再添加 "eform_chgnet", "space_group_num", "poscar" 三列
+    dynamic_header = header_in + ["eform_chgnet", "space_group_num", "poscar"]
     # 变成字符串
     result_header_line = ",".join(dynamic_header) + "\n"
 
