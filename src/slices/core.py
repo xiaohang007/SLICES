@@ -178,21 +178,7 @@ class SLICES:
             StructureGraph: Pymatgen structure_graph object.
         """
         structure = Structure.from_str(string,'cif')
-        if self.graph_method == 'brunnernn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, BrunnerNN_reciprocal())
-        elif self.graph_method == 'econnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, EconNN())
-        elif self.graph_method == 'mininn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, MinimumDistanceNN())
-        elif self.graph_method == 'crystalnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
-                structure, CrystalNN(porous_adjustment=False,weighted_cn=True))
-        else:
-            print("ERROR - graph_method not implemented") 
-        return structure_graph,structure
+        return self.structure2structure_graph(structure),structure
 
     def structure2structure_graph(self,structure):
         """Convert a pymatgen structure to a structure_graph.
@@ -292,15 +278,7 @@ class SLICES:
 
         if strategy == 4:
             # Find first element symbol to determine where tokenized encoding ends
-            first_elem_idx = None
-            for i, token in enumerate(tokens):
-                try:
-                    Element(token)
-                    first_elem_idx = i
-                    break
-                except:
-                    continue
-                
+            first_elem_idx = self._first_element_index(tokens)
             if first_elem_idx is None:
                 # No element symbols found - invalid SLICES
                 raise Exception("Error: no valid element symbols found")
@@ -359,6 +337,17 @@ class SLICES:
         self.to_jimages=to_jimages
         self.atom_types=np.array([int(PERIODIC_DATA.loc[PERIODIC_DATA["symbol"]==i].values[0][0]) for i in self.atom_symbols])    
 
+    @staticmethod
+    def _first_element_index(tokens):
+        """Return the index of the first element symbol in tokens, or None if there is none."""
+        for i, token in enumerate(tokens):
+            try:
+                Element(token)
+                return i
+            except ValueError:
+                continue
+        return None
+
     def get_slices_by_strategy(self, strategy, atom_symbols, edge_indices, to_jimages, space_group_num):
         strategy_method_map = {
             1: self.get_slices1,
@@ -373,7 +362,7 @@ class SLICES:
             raise ValueError(f"Unknown strategy {strategy}")
 
     @staticmethod
-    def get_slices1(atom_symbols,edge_indices,to_jimages):
+    def get_slices1(atom_symbols,edge_indices,to_jimages,space_group_num=None):
         SLICES=""
         for i in range(len(edge_indices)):
             SLICES+=atom_symbols[edge_indices[i][0]]+' '+atom_symbols[edge_indices[i][1]]+' '+str(edge_indices[i][0])+' '+str(edge_indices[i][1])+' '
@@ -386,7 +375,7 @@ class SLICES:
                     SLICES+='+ '
         return SLICES
     @staticmethod
-    def get_slices2(atom_symbols,edge_indices,to_jimages):
+    def get_slices2(atom_symbols,edge_indices,to_jimages,space_group_num=None):
         atom_symbols_mod = [ (i+'_')[:2] for i in atom_symbols]
         SLICES=""
         for i in atom_symbols_mod:
@@ -402,7 +391,7 @@ class SLICES:
                     SLICES+='+'
         return SLICES
     @staticmethod
-    def get_slices3(atom_symbols,edge_indices,to_jimages):
+    def get_slices3(atom_symbols,edge_indices,to_jimages,space_group_num=None):
         SLICES=''
         for i in atom_symbols:
             SLICES+=i+' '
@@ -666,6 +655,10 @@ class SLICES:
         Returns:
             str: Chemical formula.
         """
+        tokens = SLICES.split()
+        first_elem_idx = self._first_element_index(tokens)
+        if first_elem_idx:   # skip the space group tokens of strategy 4
+            SLICES = " ".join(tokens[first_elem_idx:])
         match = re.search(r'^(.*?)(\d+)', SLICES)
         extracted_string = match.group(1)
         try:
@@ -675,9 +668,52 @@ class SLICES:
         except:
             print(SLICES,extracted_string)
 
+    @staticmethod
+    def to_primitive_if_smaller(structure):
+        """Return the primitive standard cell if it has fewer atoms, otherwise the input.
+
+        Falls back to the input structure if the conversion fails or the result
+        has a different reduced formula.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+
+        Returns:
+            Structure: The primitive cell, or the input object itself if no reduction applies.
+        """
+        try:
+            primitive = SpacegroupAnalyzer(structure).get_primitive_standard_structure()
+            if len(primitive) < len(structure):
+                if primitive.composition.reduced_formula == structure.composition.reduced_formula:
+                    return primitive
+                print("Warning: primitive cell changed the formula, using the input cell.")
+        except Exception as e:
+            print(f"Warning: primitive cell conversion failed, using the input cell: {e}")
+        return structure
+
+    def _run_with_primitive_fallback(self, structure, encode):
+        """Call encode on the reduced cell, retrying on the input cell if that fails.
+
+        Args:
+            structure (Structure): A pymatgen Structure.
+            encode (callable): Function that takes a Structure and returns a result.
+
+        Returns:
+            The value returned by encode.
+        """
+        primitive = self.to_primitive_if_smaller(structure)
+        if primitive is not structure:
+            try:
+                return encode(primitive)
+            except (ValueError, RuntimeError, ArithmeticError, LookupError) as e:
+                # Failures that depend on the cell; programming errors are not retried.
+                print(f"Warning: encoding the primitive cell failed, using the input cell: {e}")
+        return encode(structure)
+
     def structure2SLICES(self,structure,strategy=4):
         """Extract edge_indices, to_jimages and atom_types from a pymatgen structure object
-         then encode them into a SLICES string.
+         then encode them into a SLICES string. The structure is first reduced to its
+         primitive cell if that lowers the number of atoms.
 
         Args:
             structure (Structure): A pymatgen Structure.
@@ -685,19 +721,9 @@ class SLICES:
 
         Returns:
             str: A SLICES string.
-        """ 
-        structure_graph=self.structure2structure_graph(structure)
-        atom_types = np.array(structure.atomic_numbers)
+        """
+        atom_types,edge_indices,to_jimages,space_group_num = self.structure2crystal_graph_rep(structure)
         atom_symbols = [str(ElementBase.from_Z(i)) for i in atom_types]
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
-        edge_indices, to_jimages = [], []
-        analyzer = SpacegroupAnalyzer(structure)
-        space_group_num = analyzer.get_space_group_number()
-        for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
-            edge_indices.append([i, j])
-            to_jimages.append(to_jimage)
         return self.get_slices_by_strategy(strategy,atom_symbols,edge_indices,to_jimages,space_group_num)
         
     def structure2randomSLICES(self, structure, strategy=4, num=50,
@@ -708,6 +734,7 @@ class SLICES:
         """
         将 Structure 转换为随机增强的 SLICES 字符串，避免重复并提高生成效率。
         包含原始的 SLICES 字符串和增强的 SLICES 字符串。
+        如果原胞的原子数更少，则先转换为原胞。
         """
         # 提取晶体图表示
         crystal_graph_rep = self.structure2crystal_graph_rep(structure)
@@ -847,28 +874,34 @@ class SLICES:
 
     def from_cif(self, string):
         """Extract edge_indices, to_jimages and atom_types from a cif string.
+        The structure is first reduced to its primitive cell if that lowers the number of atoms.
 
         Args:
             string (str): String of a cif file.
         """
-        structure_graph,structure = self.cif2structure_graph(string)
+        structure_graph,structure = self._run_with_primitive_fallback(
+            Structure.from_str(string,'cif'),
+            lambda s: (self.structure2structure_graph(s), s))
         if self.check_results:
             structure_graph.draw_graph_to_file('sg.png',hide_image_edges = False,node_labels=True)
         self.atom_types = np.array(structure.atomic_numbers)
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)    # convert to MultiGraph (from MultiDiGraph) !MST can only deal with MultiGraph
+        try:
+            self.space_group_num = SpacegroupAnalyzer(structure).get_space_group_number()
+        except Exception:
+            self.space_group_num = None
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])
-            to_jimages.append(to_jimage)    
+            to_jimages.append(to_jimage)
         self.edge_indices = np.array(edge_indices)
         self.to_jimages = np.array(to_jimages)
 
     def structure2crystal_graph_rep(self, structure):
         """Convert a pymatgen structure object into the crystal graph representation:
-            atom_types, edge_indices, to_jimages.
-        
+            atom_types, edge_indices, to_jimages. The structure is first reduced to its
+            primitive cell if that lowers the number of atoms, so atom indices may not
+            match the input structure.
+
         Args:
             structure (Structure): A pymatgen Structure object.
 
@@ -879,6 +912,10 @@ class SLICES:
                 - np.array: Edge labels
                 - int: Space group number (or None if cannot be determined)
         """
+        return self._run_with_primitive_fallback(structure, self._crystal_graph_rep)
+
+    def _crystal_graph_rep(self, structure):
+        """Build the crystal graph representation without changing the cell."""
         structure_graph = self.structure2structure_graph(structure)
         if self.check_results:
             structure_graph.draw_graph_to_file('graph.png',hide_image_edges = False)
@@ -891,10 +928,6 @@ class SLICES:
             space_group_number = None
             
         atom_types = np.array(structure.atomic_numbers)
-        G = nx.MultiGraph()
-        G.add_nodes_from(structure_graph.graph.nodes)
-        G.add_edges_from(structure_graph.graph.edges)
-        
         edge_indices, to_jimages = [], []
         for i, j, to_jimage in structure_graph.graph.edges(data='to_jimage'):
             edge_indices.append([i, j])

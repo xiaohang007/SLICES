@@ -6,7 +6,7 @@ original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 # creating an instance of the InvCryRep Class (initialization)
 backend=SLICES(graph_method='econnn')
 # converting a crystal structure to its SLICES string and perform data augmentation (with random atom order) (5x)
-slices_list=backend.structure2SLICESAug_atom_order(structure=original_structure,strategy=4,num=50) 
+slices_list=backend.structure2randomSLICES(structure=original_structure,strategy=4,num=50,shuffle_bond_order=False,flip_bonds=False) 
 slices_list_unique=list(set(slices_list))
 #print(slices_list_unique)
 cannon_slices_list=[]

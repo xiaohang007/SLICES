@@ -249,7 +249,7 @@ original_structure = Structure.from_file(filename='Sr3Ru2O7.cif')
 backend = SLICES(graph_method='econnn')
 
 # Generate augmented SLICES
-slices_list = backend.structure2SLICESAug_atom_order(structure=original_structure, num=50)
+slices_list = backend.structure2randomSLICES(structure=original_structure, num=50, shuffle_bond_order=False, flip_bonds=False)
 canonical_slices = list(set(backend.get_canonical_SLICES(s) for s in slices_list))
 
 print('Unique Canonical SLICES:', len(canonical_slices))
