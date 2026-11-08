@@ -3,61 +3,42 @@
 
 ``SLICES.get_inner_p_target`` needs GFN-FF bond and angle parameters
 (``blist``, ``vbond``, ``alist``, ``vangl``) for the finite neighbor table that
-``SLICES.get_nbf_blist`` writes as ``testBonds_cut.top``. Two backends produce
-the same ``gfnff_lists.json`` payload:
+``SLICES.get_nbf_blist`` builds (the ``testBonds_cut.top`` text format). They
+come from the open-source GFN-FF library (pprcht/gfnff, LGPL-3.0-or-later) with
+the SLICES topology-export patch, bundled under ``slices/_vendor`` (portable
+manylinux2014 x86_64 build, loaded with ctypes, independent of the Python version).
 
-* ``xtb``: the legacy checked-in modified xtb binary (``XTB_MOD_PATH``).
-* ``vendor``: the open-source GFN-FF library (pprcht/gfnff, LGPL-3.0-or-later)
-  with the SLICES topology-export patch, bundled under ``slices/_vendor``. By
-  default it uses the legacy 86-element xtb parameter table, so elements
-  Z=1..86 follow the legacy helper; Z=87..103 use the library's own parameters.
+By default it uses the 86-element parameter table of the modified xtb helper that
+SLICES used before, so elements Z=1..86 follow that parametrisation and Z=87..103
+use the library's own parameters. ``SLICES_VENDOR_GFNFF_PARAM_MODE=modern`` uses
+the library's own parameters for all elements; ``SLICES_VENDOR_GFNFF_PARAM_FILE``
+points to another xtb-style parameter table.
 
-Select with ``SLICES_GFNFF_HELPER_BACKEND`` (``vendor``, the default, or ``xtb``).
-``SLICES_VENDOR_GFNFF_PARAM_MODE=modern`` switches the vendor backend to the
-library's own parameters for all elements.
-
-Why ``vendor`` is the default (MatterGPT MP-20 set, 2383 structures, CPU decode):
-the reconstruction targets are identical for 88% of structures. Where they differ,
-decoding with ``vendor`` matched the reference structure for 165/194 vs 79/194 with
-xtb and never did worse with the standard matcher: xtb returns non-finite targets
-for actinides and crashes outright on 39 inputs; lanthanides and the remaining
-structures match the reference equally often with either backend.
+This replaced the checked-in modified xtb binary. On the 2383 MatterGPT MP-20
+structures the reconstruction targets were identical for 88%; where they differed,
+decoding matched the reference structure for 165/194 vs 79/194 with xtb (xtb gave
+non-finite targets for actinides and crashed on 39 inputs). A 40k-structure
+benchmark of the same library in the symSLICES code showed the same picture
+(+262 net strict matches, -30 net loose matches out of 40000).
 
 Self-test: ``python -m slices.gfnff_helper``
 """
 import json
 import os
-import subprocess
 from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
 
-BACKEND_XTB = "xtb"
-BACKEND_VENDOR = "vendor"
-DEFAULT_BACKEND = BACKEND_VENDOR
-
 _VENDOR_DIR = Path(__file__).resolve().parent / "_vendor"
 LEGACY86_PARAM_FILE = _VENDOR_DIR / "gfnff_extra" / "param_gfnff_legacy86.xtb"
 
-_BACKEND_ALIASES = {
-    "": DEFAULT_BACKEND,
-    "xtb": BACKEND_XTB, "legacy": BACKEND_XTB, "legacy_xtb": BACKEND_XTB,
-    "vendor": BACKEND_VENDOR, "gfnff": BACKEND_VENDOR, "vendor_topology": BACKEND_VENDOR,
-}
 _PARAM_ALIASES = {
     "": "legacy86_overlay", "default": "legacy86_overlay",
     "legacy86": "legacy86_overlay", "legacy86_overlay": "legacy86_overlay",
     "modern": "modern", "internal": "modern", "none": "modern",
 }
 _SYMBOL_TO_Z = None
-
-
-def selected_backend():
-    name = os.environ.get("SLICES_GFNFF_HELPER_BACKEND", "").strip().lower()
-    if name not in _BACKEND_ALIASES:
-        raise ValueError(f"SLICES_GFNFF_HELPER_BACKEND must be 'xtb' or 'vendor', got {name!r}")
-    return _BACKEND_ALIASES[name]
 
 
 def _selected_params():
@@ -89,7 +70,7 @@ def _env_default(key, value):
 
 
 def parse_nbf_text(nbf_text):
-    """Parse ``testBonds_cut.top`` (nat, symbols, 20 neighbor rows) into (Z array, (20, nat) table)."""
+    """Parse ``testBonds_cut.top`` text (nat, symbols, 20 neighbor rows) into (Z array, (20, nat) table)."""
     global _SYMBOL_TO_Z
     if _SYMBOL_TO_Z is None:
         from pymatgen.core.periodic_table import Element
@@ -107,67 +88,46 @@ def parse_nbf_text(nbf_text):
     return np.array([_SYMBOL_TO_Z[s] for s in symbols], dtype=np.int32), nbf
 
 
-def run_vendor(nbf_text):
-    """Run the bundled GFN-FF library on an NBF table; returns the gfnff_lists.json payload."""
+def run_gfnff_helper(nbf_text):
+    """Run GFN-FF on an NBF table; returns {blist, vbond, alist, vangl, metadata} (1-based atom indices)."""
     from slices._vendor import gfnff
     numbers, nbf = parse_nbf_text(nbf_text)
     param_mode, param_file = _selected_params()
     with _env_default("SLICES_VENDOR_GFNFF_RAB_MODE", param_mode):
         data = gfnff.GFNFFTopology.from_nbf(numbers, nbf, printlevel=0, parametrisation=param_file).to_legacy_lists()
-    data.setdefault("metadata", {}).update({"backend": BACKEND_VENDOR, "param_mode": param_mode})
+    data.setdefault("metadata", {}).update({"param_mode": param_mode})
     return data
 
 
-def run_xtb(work_dir):
-    """Run the legacy xtb helper on ``work_dir/testBonds_cut.top``; returns the gfnff_lists.json payload."""
-    subprocess.call(os.environ["XTB_MOD_PATH"] + " --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl",
-                    cwd=work_dir, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    with open(os.path.join(work_dir, "gfnff_lists.json"), "r") as f:
-        txt = f.read().replace("********", "       0")  # xtb prints overflowing fields as asterisks
-    return json.loads(txt)
-
-
-def run_gfnff_helper(nbf_text, work_dir, backend=None):
-    """Write ``testBonds_cut.top`` into ``work_dir``, run the selected backend, and return
-    {blist, vbond, alist, vangl, ...}. ``work_dir/gfnff_lists.json`` holds the payload afterwards
-    for both backends, so ``check_results`` debugging copies keep working."""
-    backend = backend or selected_backend()
-    with open(os.path.join(work_dir, "testBonds_cut.top"), "w") as f:
+def write_debug_files(nbf_text, data, directory="."):
+    """Write the helper input and output (``testBonds_cut.top``, ``gfnff_lists.json``) for ``check_results``."""
+    with open(os.path.join(directory, "testBonds_cut.top"), "w") as f:
         f.write(nbf_text)
-    if backend == BACKEND_XTB:
-        return run_xtb(work_dir)
-    data = run_vendor(nbf_text)
-    with open(os.path.join(work_dir, "gfnff_lists.json"), "w") as f:
+    with open(os.path.join(directory, "gfnff_lists.json"), "w") as f:
         json.dump(data, f)
-    return data
 
 
 def _self_test():
-    """Methane topology plus a real SLICES (Na3MnCoNiO6) through both backends."""
+    """Methane topology plus a real SLICES (Na3MnCoNiO6) against stored reference targets."""
     methane = "5\nC H H H H\n2 1 1 1 1\n3 0 0 0 0\n4 0 0 0 0\n5 0 0 0 0\n" + "0 0 0 0 0\n" * 15 + "4 1 1 1 1\n"
-    data = run_vendor(methane)
+    data = run_gfnff_helper(methane)
     assert sorted(map(tuple, data["blist"])) == [(2, 1), (3, 1), (4, 1), (5, 1)], data["blist"]
     assert len(data["alist"]) == 6, len(data["alist"])
     print(f"methane: 4 bonds, 6 angles ({data['metadata']['param_mode']})")
 
     from slices.core import SLICES
+    # First structure of MatterGPT/0_dataset/mp20_eform_bandgap_nonmetal.csv
     example = ('o x a DDO j OOO o Na Na Na Mn Co Ni O O O O O O 0 8 oo- 0 10 o-o 0 10 -oo 0 6 o-- 0 6 -o- 0 11 '
                'ooo 1 6 ooo 1 11 +o+ 1 11 o++ 1 7 +oo 1 7 o+o 1 9 +++ 2 7 ooo 2 9 +o+ 2 9 o++ 2 8 +oo 2 8 o+o 2 '
                '10 oo+ 3 11 ooo 3 6 o-o 3 6 -oo 3 9 +oo 3 9 o+o 3 7 ooo 4 10 ooo 4 8 +oo 4 8 o+o 4 11 +oo 4 11 '
                'o+o 4 6 ooo 5 9 ooo 5 7 o-o 5 7 -oo 5 10 o-o 5 10 -oo 5 8 ooo')
     s = SLICES()
     s.from_SLICES(example)
-    results = {}
-    for backend in (BACKEND_VENDOR, BACKEND_XTB):
-        os.environ["SLICES_GFNFF_HELPER_BACKEND"] = backend
-        try:
-            results[backend] = s.get_inner_p_target()
-        finally:
-            os.environ.pop("SLICES_GFNFF_HELPER_BACKEND", None)
-    (ipv, civ, cwv), (ipx, cix, cwx) = results[BACKEND_VENDOR], results[BACKEND_XTB]
-    assert civ == cix and np.allclose(ipv, ipx, atol=1e-8) and np.allclose(cwv, cwx, atol=1e-8)
-    print(f"Na3MnCoNiO6: vendor and xtb targets agree "
-          f"(max |d inner_p| = {np.abs(np.asarray(ipv) - np.asarray(ipx)).max():.1e})")
+    inner_p, inds, weights = s.get_inner_p_target()
+    got = (float(np.trace(inner_p)), float(np.abs(inner_p).sum()), len(inds[0]), float(sum(weights)))
+    want = (178.74144, 178.74144, 126, 61.23)  # computed with the xtb-era code path (commit d40c909)
+    assert np.allclose(got, want, rtol=1e-6), (got, want)
+    print(f"Na3MnCoNiO6: reconstruction targets match the stored reference {want}")
 
 
 if __name__ == "__main__":

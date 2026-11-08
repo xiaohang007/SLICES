@@ -69,7 +69,6 @@ explicit = true
 [tool.setuptools.package-data]
 slices = [
     "nlopt.h",
-    "xtb_noring_nooutput_nostdout_noCN",
     "_vendor/gfnff/libgfnff.so*",
     "_vendor/gfnff.libs/*",
     "_vendor/gfnff_extra/*",

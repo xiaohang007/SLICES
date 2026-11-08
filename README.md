@@ -151,7 +151,7 @@ xz -T4 -dc dockerv12.tar.xz | docker load
 # 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
 
 # 使脚本具有执行权限
-sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./src/slices/xtb_noring_nooutput_nostdout_noCN
+sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh
 
 # 运行 Docker
 docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v ./:/crystal xiaohang07/slices:v12 /crystal/entrypoint_set_cpus_gradio.sh
@@ -267,6 +267,7 @@ If you use SLICES, MatterGPT or SLICES-PLUS, please cite the following works:
 Special thanks to the open-source projects and developers that inspired this work:
 - [tobascco](https://github.com/peteboyd/tobascco)
 - [xtb](https://github.com/grimme-lab/xtb)
+- [gfnff](https://github.com/pprcht/gfnff) (bundled GFN-FF library used for SLICES decoding, LGPL-3.0)
 - [m3gnet](https://github.com/materialsvirtuallab/m3gnet)
 - [chgnet](https://github.com/CederGroupHub/chgnet)
 - [molgpt](https://github.com/devalab/molgpt)

@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-import os,subprocess,random,warnings
+import os,random,warnings
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["XTB_MOD_PATH"] = os.path.abspath(os.path.dirname(__file__))+"/xtb_noring_nooutput_nostdout_noCN"
-# Checkouts and copies can drop the executable bit (git once stored it as 100644);
-# without it every decode fails with a missing gfnff_lists.json.
-if os.path.isfile(os.environ["XTB_MOD_PATH"]) and not os.access(os.environ["XTB_MOD_PATH"], os.X_OK):
-    try:
-        os.chmod(os.environ["XTB_MOD_PATH"], os.stat(os.environ["XTB_MOD_PATH"]).st_mode | 0o111)
-    except OSError:
-        warnings.warn(f"{os.environ['XTB_MOD_PATH']} is not executable; SLICES decoding will fail. Run: chmod +x {os.environ['XTB_MOD_PATH']}")
 os.environ["PYTHONWARNINGS"]="ignore" 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
@@ -30,10 +22,9 @@ from networkx.algorithms import tree
 import numpy as np
 from slices.tobascco_net import Net, SystreDB
 from slices.config import OFFSET, LJ_PARAMS_LIST, PERIODIC_DATA
-from slices.gfnff_helper import run_gfnff_helper
+from slices.gfnff_helper import run_gfnff_helper, write_debug_files
 from slices.utils_wyckoff import get_space_group_num_from_letter_enc, get_tokenized_enc
 import math
-import tempfile
 import json
 from scipy.optimize import fsolve,fmin_l_bfgs_b
 from collections import defaultdict, deque
@@ -937,7 +928,7 @@ class SLICES:
 
 
     def get_nbf_blist(self):
-        """ (1) Get nbf(neighbor list with atom types for xtb_mod).
+        """ (1) Get nbf(neighbor list with atom types for the GFN-FF helper).
             (2) Get blist(node indexes of the central unit cell edges in the 3*3*3 supercell). 
 
         Returns:
@@ -1021,7 +1012,7 @@ class SLICES:
                     column=column[:19]
                 for j in range(len(row)):
                     neighbor_list[j,i]=voltage_super_cut[row[j],1-column[j]] + 1   # nbf indexing starts with 1 instead of 0
-                neighbor_list[19,i]=len(row)  # listed neighbors (<=19); writing the full count made xtb read the count as a bogus neighbor index
+                neighbor_list[19,i]=len(row)  # listed neighbors (<=19), not the full count, which the 19-slot format cannot hold
 
             nbf=str(n_atom*27-len(no_neighbor_index))+'\n'+' '.join(atom_symbol_list_super)+'\n'
             for i in range(20):
@@ -1054,12 +1045,9 @@ class SLICES:
             list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
-        temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
-        data = run_gfnff_helper(nbf, temp_dir.name)  # blist,vbond,alist,vangl
+        data = run_gfnff_helper(nbf)  # blist,vbond,alist,vangl
         if self.check_results:
-            os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
-            os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-        temp_dir.cleanup()
+            write_debug_files(nbf, data)
         blist_original=blist
         blist_flip=np.flip(blist_original,1) # reverse the order
         bond_weight=[]
@@ -1152,13 +1140,10 @@ class SLICES:
             list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
-        temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
         try:
-            data = run_gfnff_helper(nbf, temp_dir.name)  # blist,vbond,alist,vangl
+            data = run_gfnff_helper(nbf)  # blist,vbond,alist,vangl
             if self.check_results:
-                os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
-                os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-            temp_dir.cleanup()
+                write_debug_files(nbf, data)
             blist_original=blist
             blist_flip=np.flip(blist_original,1) # reverse the order
             bond_weight=[]
@@ -1236,7 +1221,6 @@ class SLICES:
             return inner_p_target, colattice_inds, colattice_weights
         except Exception as e:
             print(e)
-            temp_dir.cleanup()
 
     def convert_graph(self):
         """Convert self.edge_indices, self.to_jimages into networkx format.
