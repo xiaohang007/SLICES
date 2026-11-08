@@ -30,6 +30,7 @@ from networkx.algorithms import tree
 import numpy as np
 from slices.tobascco_net import Net, SystreDB
 from slices.config import OFFSET, LJ_PARAMS_LIST, PERIODIC_DATA
+from slices.gfnff_helper import run_gfnff_helper
 from slices.utils_wyckoff import get_space_group_num_from_letter_enc, get_tokenized_enc
 import math
 import tempfile
@@ -1020,7 +1021,7 @@ class SLICES:
                     column=column[:19]
                 for j in range(len(row)):
                     neighbor_list[j,i]=voltage_super_cut[row[j],1-column[j]] + 1   # nbf indexing starts with 1 instead of 0
-                neighbor_list[19,i]=total
+                neighbor_list[19,i]=len(row)  # listed neighbors (<=19); writing the full count made xtb read the count as a bogus neighbor index
 
             nbf=str(n_atom*27-len(no_neighbor_index))+'\n'+' '.join(atom_symbol_list_super)+'\n'
             for i in range(20):
@@ -1054,18 +1055,10 @@ class SLICES:
         """
         nbf, blist = self.get_nbf_blist()
         temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
-        with open(temp_dir.name+'/testBonds_cut.top','w') as f:
-            f.write(nbf)
-        subprocess.call(os.environ["XTB_MOD_PATH"]+' --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl', \
-        cwd=temp_dir.name, shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        data = run_gfnff_helper(nbf, temp_dir.name)  # blist,vbond,alist,vangl
         if self.check_results:
             os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
             os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-        with open(temp_dir.name+'/gfnff_lists.json', 'r') as fgfn:
-            txt=fgfn.read()
-            txt=txt.replace("********","       0") # deal with the xtb output bug
-            data = json.loads(txt)  # read blist,vbond,alist,vangl
-            del(txt)
         temp_dir.cleanup()
         blist_original=blist
         blist_flip=np.flip(blist_original,1) # reverse the order
@@ -1161,18 +1154,10 @@ class SLICES:
         nbf, blist = self.get_nbf_blist()
         temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
         try:
-            with open(temp_dir.name+'/testBonds_cut.top','w') as f:
-                f.write(nbf)
-            subprocess.call(os.environ["XTB_MOD_PATH"]+' --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl', \
-            cwd=temp_dir.name, shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+            data = run_gfnff_helper(nbf, temp_dir.name)  # blist,vbond,alist,vangl
             if self.check_results:
                 os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
                 os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-            with open(temp_dir.name+'/gfnff_lists.json', 'r') as fgfn:
-                txt=fgfn.read()
-                txt=txt.replace("********","       0") # deal with the xtb output bug
-                data = json.loads(txt)  # read blist,vbond,alist,vangl
-                del(txt)
             temp_dir.cleanup()
             blist_original=blist
             blist_flip=np.flip(blist_original,1) # reverse the order

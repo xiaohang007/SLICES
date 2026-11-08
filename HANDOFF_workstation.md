@@ -8,6 +8,14 @@
 | `eb1f6c9` | 新增 `relax_model="auto"`（`src/slices/relax_backends.py`）：有 CUDA GPU 时用 NequIP-OAM-L 弛豫；没有 GPU 时用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量。模型在本机首次使用时编译并缓存到 `~/.cache/slices/nequip`；GPU 上的编译方式依次尝试 AOT + OpenEquivariance → AOT → TorchScript，失败自动降级 |
 | `119afaf` | 改用 uv 管理环境，Python 3.10，`uv.lock` 锁定版本；去掉 m3gnet、TensorFlow；MatterGPT 的注意力改用 PyTorch 自带的 `scaled_dot_product_attention`，不再需要 flash-attn；并行脚本在导入 numpy 前把数学库线程设为 1；修复 `generate.py` 里 `sys` 被覆盖的问题 |
 
+### 解码辅助程序：开源 GFN-FF 取代 xtb（工作站上完成）
+- `src/slices/gfnff_helper.py`：解码时生成键长/键角目标的 GFN-FF 辅助程序，默认改用打包在 `src/slices/_vendor/` 里的开源 GFN-FF（pprcht/gfnff + SLICES 拓扑导出补丁，LGPL-3.0，来自 `transferable/dual_core_recon_noLattice_chemfm` 的 portable wheel，与其 4 万条基准用的是同一个二进制）。它是 ctypes 加载的，与 Python 版本无关，3.10 直接可用，不需要重新编译。
+- 旧 xtb 仍可用：`SLICES_GFNFF_HELPER_BACKEND=xtb`。
+- `get_nbf_blist` 修复：原子超过 19 个邻居时，第 20 行写的是真实邻居数，xtb 会把这个数当成一个邻居编号读进去；现在写实际列出的邻居数（≤19），与 chemfm 仓库的修复一致。
+- 验证（MatterGPT MP-20 全部 2383 条，CPU）：88% 的结构两种后端的重构目标完全相同；在不同的 194 条上，用开源版解码与参考结构匹配 165 条，xtb 只有 79 条，开源版没有一条更差（标准匹配器）。差别来自 xtb 对锕系元素给出 inf/nan、以及 39 条输入 xtb 直接崩溃；镧系和其余元素两者匹配率相同。
+- 代价：辅助程序这一步慢一些（典型 0.5 s vs 0.12 s），整条解码中位数 1.59 s vs 1.37 s。
+- 自检：`python -m slices.gfnff_helper`
+
 ## 2. 笔记本上已经验证过的
 - 21 项力场选择/降级测试全部通过（包括强制 GPU 但不可用时自动降级到 CPU）。
 - 用新环境（numpy 2.2、pymatgen 2025.10）重新编码 MatterGPT 全部 2383 个结构：与仓库数据 0 个不同。

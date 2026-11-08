@@ -1,0 +1,2459 @@
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/include/gfnff_interface_c.h src/vendor/gfnff/upstream/include/gfnff_interface_c.h
+--- /tmp/gfnff_inspect/include/gfnff_interface_c.h	2026-06-25 10:34:25.583020612 +0800
++++ src/vendor/gfnff/upstream/include/gfnff_interface_c.h	2026-06-26 21:31:47.628837000 +0800
+@@ -20,6 +20,41 @@
+ c_gfnff_calculator_init(int nat, int *at, double (*xyz)[3],
+                         int ichrg, int printlevel, const char *solvent);
+ 
++// Declare the topology-only NBF initializer
++// nbf[nat][20]: rows 0-18 neighbor ids, row 19 degree in C row-major storage.
++extern c_gfnff_calculator
++c_gfnff_calculator_init_nbf(int nat, int *at, int (*nbf)[20],
++                            int ichrg, int printlevel);
++
++// Declare the topology-only NBF initializer with an external parameter file.
++// The file is read as an xtb-style 86-row legacy overlay on modern defaults.
++extern c_gfnff_calculator
++c_gfnff_calculator_init_nbf_param(int nat, int *at, int (*nbf)[20],
++                                  int ichrg, int printlevel,
++                                  const char *parametrisation);
++
++// Declare the topology-only periodic-edge initializer.
++// edge_i/edge_j are 1-based atom ids.
++// edge_shift[nedge][3] is the integer image of edge_j relative to edge_i.
++extern c_gfnff_calculator
++c_gfnff_calculator_init_periodic_edges(int nat, int *at, double (*xyz)[3],
++                                       int nedge, int *edge_i, int *edge_j,
++                                       int (*edge_shift)[3],
++                                       double lattice[3][3], int npbc,
++                                       int ichrg, int printlevel);
++
++// Declare the topology-only periodic-edge initializer with an external
++// parameter file. The file is read as an xtb-style 86-row legacy overlay on
++// modern defaults.
++extern c_gfnff_calculator
++c_gfnff_calculator_init_periodic_edges_param(
++    int nat, int *at, double (*xyz)[3],
++    int nedge, int *edge_i, int *edge_j,
++    int (*edge_shift)[3],
++    double lattice[3][3], int npbc,
++    int ichrg, int printlevel,
++    const char *parametrisation);
++
+ // Declare the PBC-aware initializer
+ // lattice[3][3]: three lattice vectors in Bohr (row-major in C)
+ // npbc: number of periodic dimensions (0-3)
+@@ -28,6 +63,13 @@
+                              int ichrg, int printlevel,
+                              double lattice[3][3], int npbc);
+ 
++// Declare the extended initializer
++extern c_gfnff_calculator
++c_gfnff_calculator_init_ex(int nat, int *at, double (*xyz)[3],
++                           int ichrg, int printlevel, const char *solvent,
++                           double (*lattice)[3], int npbc,
++                           int *fraglist, double *refq);
++
+ // Declare the deallocator
+ extern void c_gfnff_calculator_deallocate(c_gfnff_calculator *calculator);
+ 
+@@ -46,6 +88,44 @@
+ extern void c_gfnff_calculator_results(c_gfnff_calculator *calculator,
+                                        int iunit);
+ 
++// Query topology array sizes after calculator initialization.
++// iostat = 0 means topology is available.
++extern void c_gfnff_topology_sizes(c_gfnff_calculator *calculator,
++                                   int *nbond_blist,
++                                   int *nbond_vbond,
++                                   int *nangl,
++                                   int *iostat);
++
++// Copy topology arrays after calculator initialization.
++// Caller must allocate:
++//   blist[nbond_blist][2]
++//   vbond[nbond_vbond][6]
++//   alist[nangl][3]
++//   vangl[nangl][2]
++extern void c_gfnff_topology_copy(c_gfnff_calculator *calculator,
++                                  int (*blist)[2],
++                                  double (*vbond)[6],
++                                  int (*alist)[3],
++                                  double (*vangl)[2],
++                                  int *iostat);
++
++// Copy topology arrays with explicit PBC shifts after calculator initialization.
++// Caller must allocate:
++//   blist[nbond_blist][2]
++//   bshift[nbond_blist][3]
++//   vbond[nbond_vbond][6]
++//   alist[nangl][3]
++//   ashift[nangl][6]  // first and second angle-leg shifts
++//   vangl[nangl][2]
++extern void c_gfnff_topology_copy_pbc(c_gfnff_calculator *calculator,
++                                      int (*blist)[2],
++                                      int (*bshift)[3],
++                                      double (*vbond)[6],
++                                      int (*alist)[3],
++                                      int (*ashift)[6],
++                                      double (*vangl)[2],
++                                      int *iostat);
++
+ 
+ #ifdef __cplusplus
+ }
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/python/gfnff/__init__.py src/vendor/gfnff/upstream/python/gfnff/__init__.py
+--- /tmp/gfnff_inspect/python/gfnff/__init__.py	2026-06-25 10:34:25.583020612 +0800
++++ src/vendor/gfnff/upstream/python/gfnff/__init__.py	2026-06-25 11:07:52.125550200 +0800
+@@ -13,6 +13,7 @@
+ """
+ 
+ from .calculator import GFNFFCalculator
++from .topology import GFNFFTopology
+ 
+ try:
+     from .ase_calculator import GFNFF
+@@ -20,4 +21,4 @@
+     pass  # ASE not installed; GFNFF unavailable
+ 
+ __version__ = "0.0.1"
+-__all__ = ["GFNFFCalculator", "GFNFF"]
++__all__ = ["GFNFFCalculator", "GFNFF", "GFNFFTopology"]
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/python/gfnff/_lib.py src/vendor/gfnff/upstream/python/gfnff/_lib.py
+--- /tmp/gfnff_inspect/python/gfnff/_lib.py	2026-06-25 10:34:25.583020612 +0800
++++ src/vendor/gfnff/upstream/python/gfnff/_lib.py	2026-06-26 21:32:07.348157700 +0800
+@@ -3,7 +3,7 @@
+ """
+ ctypes loader and raw C API prototypes for libgfnff.
+ 
+-All five public functions from gfnff_interface_c.h are wrapped here.
++Public functions from gfnff_interface_c.h are wrapped here.
+ Units match the C API exactly: Bohr, Hartree, Eh/Bohr.
+ """
+ 
+@@ -64,6 +64,12 @@
+ # int at[nat]
+ _at_type = npct.ndpointer(dtype=np.int32, ndim=1, flags="C_CONTIGUOUS")
+ 
++# int matrix[n][m]
++_int_matrix_type = npct.ndpointer(dtype=np.int32, ndim=2, flags="C_CONTIGUOUS")
++
++# double matrix[n][m]
++_double_matrix_type = npct.ndpointer(dtype=np.float64, ndim=2, flags="C_CONTIGUOUS")
++
+ # double lattice[3][3]
+ _lattice_type = npct.ndpointer(dtype=np.float64, ndim=2, flags="C_CONTIGUOUS")
+ 
+@@ -85,6 +91,71 @@
+     ctypes.c_char_p, # solvent (null-terminated)
+ ]
+ 
++# c_gfnff_calculator c_gfnff_calculator_init_nbf(
++#     int nat, int *at, int (*nbf)[20],
++#     int ichrg, int printlevel);
++_lib.c_gfnff_calculator_init_nbf.restype = _CGFNFFCalculator
++_lib.c_gfnff_calculator_init_nbf.argtypes = [
++    ctypes.c_int,    # nat
++    _at_type,        # at[nat]
++    _int_matrix_type, # nbf[nat][20], C-contiguous
++    ctypes.c_int,    # ichrg
++    ctypes.c_int,    # printlevel
++]
++
++# c_gfnff_calculator c_gfnff_calculator_init_nbf_param(
++#     int nat, int *at, int (*nbf)[20],
++#     int ichrg, int printlevel, const char *parametrisation);
++_lib.c_gfnff_calculator_init_nbf_param.restype = _CGFNFFCalculator
++_lib.c_gfnff_calculator_init_nbf_param.argtypes = [
++    ctypes.c_int,     # nat
++    _at_type,         # at[nat]
++    _int_matrix_type, # nbf[nat][20], C-contiguous
++    ctypes.c_int,     # ichrg
++    ctypes.c_int,     # printlevel
++    ctypes.c_char_p,  # parameter file path
++]
++
++# c_gfnff_calculator c_gfnff_calculator_init_periodic_edges(
++#     int nat, int *at, double (*xyz)[3],
++#     int nedge, int *edge_i, int *edge_j, int (*edge_shift)[3],
++#     double lattice[3][3], int npbc, int ichrg, int printlevel);
++_lib.c_gfnff_calculator_init_periodic_edges.restype = _CGFNFFCalculator
++_lib.c_gfnff_calculator_init_periodic_edges.argtypes = [
++    ctypes.c_int,     # nat
++    _at_type,         # at[nat]
++    _xyz_type,        # xyz[nat][3]
++    ctypes.c_int,     # nedge
++    _at_type,         # edge_i[nedge]
++    _at_type,         # edge_j[nedge]
++    _int_matrix_type, # edge_shift[nedge][3], C-contiguous
++    _lattice_type,    # lattice[3][3]
++    ctypes.c_int,     # npbc
++    ctypes.c_int,     # ichrg
++    ctypes.c_int,     # printlevel
++]
++
++# c_gfnff_calculator c_gfnff_calculator_init_periodic_edges_param(
++#     int nat, int *at, double (*xyz)[3],
++#     int nedge, int *edge_i, int *edge_j, int (*edge_shift)[3],
++#     double lattice[3][3], int npbc, int ichrg, int printlevel,
++#     const char *parametrisation);
++_lib.c_gfnff_calculator_init_periodic_edges_param.restype = _CGFNFFCalculator
++_lib.c_gfnff_calculator_init_periodic_edges_param.argtypes = [
++    ctypes.c_int,     # nat
++    _at_type,         # at[nat]
++    _xyz_type,        # xyz[nat][3]
++    ctypes.c_int,     # nedge
++    _at_type,         # edge_i[nedge]
++    _at_type,         # edge_j[nedge]
++    _int_matrix_type, # edge_shift[nedge][3], C-contiguous
++    _lattice_type,    # lattice[3][3]
++    ctypes.c_int,     # npbc
++    ctypes.c_int,     # ichrg
++    ctypes.c_int,     # printlevel
++    ctypes.c_char_p,  # parameter file path
++]
++
+ # c_gfnff_calculator c_gfnff_calculator_init_pbc(
+ #     int nat, int *at, double (*xyz)[3],
+ #     int ichrg, int printlevel,
+@@ -148,6 +219,56 @@
+     ctypes.c_int,                        # iunit (6 = Fortran stdout)
+ ]
+ 
++# void c_gfnff_topology_sizes(
++#     c_gfnff_calculator *calculator,
++#     int *nbond_blist, int *nbond_vbond, int *nangl, int *iostat);
++_lib.c_gfnff_topology_sizes.restype = None
++_lib.c_gfnff_topology_sizes.argtypes = [
++    ctypes.POINTER(_CGFNFFCalculator),
++    ctypes.POINTER(ctypes.c_int),
++    ctypes.POINTER(ctypes.c_int),
++    ctypes.POINTER(ctypes.c_int),
++    ctypes.POINTER(ctypes.c_int),
++]
++
++# void c_gfnff_topology_copy(
++#     c_gfnff_calculator *calculator,
++#     int blist[nbond_blist][2],
++#     double vbond[nbond_vbond][6],
++#     int alist[nangl][3],
++#     double vangl[nangl][2],
++#     int *iostat);
++_lib.c_gfnff_topology_copy.restype = None
++_lib.c_gfnff_topology_copy.argtypes = [
++    ctypes.POINTER(_CGFNFFCalculator),
++    _int_matrix_type,
++    _double_matrix_type,
++    _int_matrix_type,
++    _double_matrix_type,
++    ctypes.POINTER(ctypes.c_int),
++]
++
++# void c_gfnff_topology_copy_pbc(
++#     c_gfnff_calculator *calculator,
++#     int blist[nbond_blist][2],
++#     int bshift[nbond_blist][3],
++#     double vbond[nbond_vbond][6],
++#     int alist[nangl][3],
++#     int ashift[nangl][6],
++#     double vangl[nangl][2],
++#     int *iostat);
++_lib.c_gfnff_topology_copy_pbc.restype = None
++_lib.c_gfnff_topology_copy_pbc.argtypes = [
++    ctypes.POINTER(_CGFNFFCalculator),
++    _int_matrix_type,
++    _int_matrix_type,
++    _double_matrix_type,
++    _int_matrix_type,
++    _int_matrix_type,
++    _double_matrix_type,
++    ctypes.POINTER(ctypes.c_int),
++]
++
+ # void c_gfnff_calculator_deallocate(c_gfnff_calculator *calculator);
+ _lib.c_gfnff_calculator_deallocate.restype = None
+ _lib.c_gfnff_calculator_deallocate.argtypes = [
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/python/gfnff/calculator.py src/vendor/gfnff/upstream/python/gfnff/calculator.py
+--- /tmp/gfnff_inspect/python/gfnff/calculator.py	2026-06-25 10:34:25.583020612 +0800
++++ src/vendor/gfnff/upstream/python/gfnff/calculator.py	2026-06-26 21:33:30.254602000 +0800
+@@ -144,6 +144,181 @@
+                 "Check printlevel > 0 for error details."
+             )
+         self._alive = True
++        self._topology_source = "xyz_initialized_stock_gfnff"
++        self._parametrisation = ""
++
++    # ------------------------------------------------------------------
++
++    @classmethod
++    def from_nbf(
++        cls,
++        numbers,
++        neighbor_table_1based,
++        *,
++        charge: int = 0,
++        printlevel: int = 0,
++        parametrisation: str = "",
++    ):
++        """Initialize from a topology-only legacy NBF neighbor table.
++
++        ``neighbor_table_1based`` must have shape ``(20, nat)``. Rows 0-18
++        contain 1-based neighbor ids and row 19 contains the per-atom degree.
++        No physical coordinates are accepted by this initializer.
++        """
++        at = np.asarray(numbers, dtype=np.int32)
++        nbf = np.asarray(neighbor_table_1based, dtype=np.int32)
++        if nbf.shape != (20, len(at)):
++            raise ValueError(
++                f"neighbor_table_1based must have shape (20, {len(at)}), got {nbf.shape}"
++            )
++        degrees = nbf[19]
++        if np.any(degrees < 0) or np.any(degrees > 19):
++            raise ValueError("NBF degree row must contain values in [0, 19]")
++        for atom_index, degree in enumerate(degrees):
++            listed = nbf[: int(degree), atom_index]
++            if np.any(listed < 1) or np.any(listed > len(at)):
++                raise ValueError(
++                    f"NBF neighbor ids for atom {atom_index + 1} must be 1-based and <= nat"
++                )
++
++        obj = cls.__new__(cls)
++        nat = ctypes.c_int(len(at))
++        # Fortran sees c_nbf(20,nat); C/Python provide row-major nbf[nat][20].
++        nbf_c = np.ascontiguousarray(nbf.T, dtype=np.int32)
++        param_path = str(parametrisation or "")
++        if param_path:
++            obj._handle = _lib.c_gfnff_calculator_init_nbf_param(
++                nat,
++                at,
++                nbf_c,
++                ctypes.c_int(charge),
++                ctypes.c_int(printlevel),
++                param_path.encode(),
++            )
++        else:
++            obj._handle = _lib.c_gfnff_calculator_init_nbf(
++                nat,
++                at,
++                nbf_c,
++                ctypes.c_int(charge),
++                ctypes.c_int(printlevel),
++            )
++        if obj._handle.ptr is None:
++            raise RuntimeError(
++                "GFN-FF topology-only NBF initialization failed. "
++                "Check printlevel > 0 for error details."
++            )
++        obj._alive = True
++        obj._topology_source = "topology_only_nbf_v1"
++        obj._parametrisation = param_path
++        return obj
++
++    # ------------------------------------------------------------------
++
++    @classmethod
++    def from_periodic_edges(
++        cls,
++        numbers,
++        edge_i_1based,
++        edge_j_1based,
++        edge_shift,
++        *,
++        positions_bohr=None,
++        lattice_bohr=None,
++        charge: int = 0,
++        printlevel: int = 0,
++        npbc: int = 3,
++        parametrisation: str = "",
++    ):
++        """Initialize from a topology-only periodic edge list.
++
++        The host-provided edges are the only topology source. ``edge_shift``
++        gives the integer lattice image of ``edge_j`` relative to ``edge_i``.
++        If no geometry is supplied, deterministic well-spaced coordinates and
++        a large orthogonal cell are used only to keep geometry-dependent setup
++        numerically defined.
++        """
++        at = np.asarray(numbers, dtype=np.int32)
++        edge_i = np.asarray(edge_i_1based, dtype=np.int32)
++        edge_j = np.asarray(edge_j_1based, dtype=np.int32)
++        shift = np.ascontiguousarray(edge_shift, dtype=np.int32)
++        if edge_i.shape != edge_j.shape:
++            raise ValueError("edge_i_1based and edge_j_1based must have the same shape")
++        if edge_i.ndim != 1:
++            raise ValueError("edge_i_1based and edge_j_1based must be 1D arrays")
++        if shift.shape != (len(edge_i), 3):
++            raise ValueError(
++                f"edge_shift must have shape ({len(edge_i)}, 3), got {shift.shape}"
++            )
++        if np.any(edge_i < 1) or np.any(edge_i > len(at)):
++            raise ValueError("edge_i_1based entries must be in [1, nat]")
++        if np.any(edge_j < 1) or np.any(edge_j > len(at)):
++            raise ValueError("edge_j_1based entries must be in [1, nat]")
++
++        if positions_bohr is None:
++            xyz = np.zeros((len(at), 3), dtype=np.float64)
++            side = max(1, int(np.ceil(len(at) ** (1.0 / 3.0))))
++            spacing = 4.0
++            for index in range(len(at)):
++                xyz[index, 0] = spacing * (index % side)
++                xyz[index, 1] = spacing * ((index // side) % side)
++                xyz[index, 2] = spacing * (index // (side * side))
++            xyz = np.ascontiguousarray(xyz, dtype=np.float64)
++        else:
++            xyz = np.ascontiguousarray(positions_bohr, dtype=np.float64)
++            if xyz.shape != (len(at), 3):
++                raise ValueError(
++                    f"positions_bohr must have shape ({len(at)}, 3), got {xyz.shape}"
++                )
++
++        if lattice_bohr is None:
++            lat = np.ascontiguousarray(np.eye(3, dtype=np.float64) * 100.0)
++        else:
++            lat = np.ascontiguousarray(lattice_bohr, dtype=np.float64)
++            if lat.shape != (3, 3):
++                raise ValueError(f"lattice_bohr must have shape (3, 3), got {lat.shape}")
++
++        obj = cls.__new__(cls)
++        nat = ctypes.c_int(len(at))
++        param_path = str(parametrisation or "")
++        if param_path:
++            obj._handle = _lib.c_gfnff_calculator_init_periodic_edges_param(
++                nat,
++                at,
++                xyz,
++                ctypes.c_int(len(edge_i)),
++                np.ascontiguousarray(edge_i, dtype=np.int32),
++                np.ascontiguousarray(edge_j, dtype=np.int32),
++                shift,
++                lat,
++                ctypes.c_int(npbc),
++                ctypes.c_int(charge),
++                ctypes.c_int(printlevel),
++                param_path.encode(),
++            )
++        else:
++            obj._handle = _lib.c_gfnff_calculator_init_periodic_edges(
++                nat,
++                at,
++                xyz,
++                ctypes.c_int(len(edge_i)),
++                np.ascontiguousarray(edge_i, dtype=np.int32),
++                np.ascontiguousarray(edge_j, dtype=np.int32),
++                shift,
++                lat,
++                ctypes.c_int(npbc),
++                ctypes.c_int(charge),
++                ctypes.c_int(printlevel),
++            )
++        if obj._handle.ptr is None:
++            raise RuntimeError(
++                "GFN-FF topology-only periodic-edge initialization failed. "
++                "Check printlevel > 0 for error details."
++            )
++        obj._alive = True
++        obj._topology_source = "topology_only_periodic_edges_v1"
++        obj._parametrisation = param_path
++        return obj
+ 
+     # ------------------------------------------------------------------
+ 
+@@ -223,6 +398,154 @@
+ 
+     # ------------------------------------------------------------------
+ 
++    def topology_sizes(self):
++        """Return sizes for internal GFN-FF topology arrays.
++
++        This exposes the existing xyz-initialized topology.  It does not create
++        or accept a topology-only neighbor-list input.
++        """
++        self._check_alive()
++        nbond_blist = ctypes.c_int(0)
++        nbond_vbond = ctypes.c_int(0)
++        nangl = ctypes.c_int(0)
++        iostat = ctypes.c_int(0)
++        _lib.c_gfnff_topology_sizes(
++            ctypes.byref(self._handle),
++            ctypes.byref(nbond_blist),
++            ctypes.byref(nbond_vbond),
++            ctypes.byref(nangl),
++            ctypes.byref(iostat),
++        )
++        if iostat.value != 0:
++            raise RuntimeError(
++                f"GFN-FF topology size query failed with iostat = {iostat.value}"
++            )
++        return {
++            "nbond_blist": int(nbond_blist.value),
++            "nbond_vbond": int(nbond_vbond.value),
++            "nangl": int(nangl.value),
++        }
++
++    # ------------------------------------------------------------------
++
++    def topology_lists(self):
++        """Return internal topology arrays in a legacy-list-compatible dict."""
++        sizes = self.topology_sizes()
++        nbond_blist = sizes["nbond_blist"]
++        nbond_vbond = sizes["nbond_vbond"]
++        nangl = sizes["nangl"]
++        topology_source = getattr(
++            self, "_topology_source", "xyz_initialized_stock_gfnff"
++        )
++        backend = (
++            "pprcht_gfnff_topology_only_nbf_export"
++            if topology_source == "topology_only_nbf_v1"
++            else "pprcht_gfnff_xyz_topology_export"
++        )
++
++        blist = np.zeros((max(nbond_blist, 1), 2), dtype=np.int32, order="C")
++        vbond = np.zeros((max(nbond_vbond, 1), 6), dtype=np.float64, order="C")
++        alist = np.zeros((max(nangl, 1), 3), dtype=np.int32, order="C")
++        vangl = np.zeros((max(nangl, 1), 2), dtype=np.float64, order="C")
++        iostat = ctypes.c_int(0)
++
++        _lib.c_gfnff_topology_copy(
++            ctypes.byref(self._handle),
++            blist,
++            vbond,
++            alist,
++            vangl,
++            ctypes.byref(iostat),
++        )
++        if iostat.value != 0:
++            raise RuntimeError(
++                f"GFN-FF topology copy failed with iostat = {iostat.value}"
++            )
++        return {
++            "blist": blist[:nbond_blist].tolist(),
++            "vbond": vbond[:nbond_vbond].tolist(),
++            "alist": alist[:nangl].tolist(),
++            "vangl": vangl[:nangl].tolist(),
++            "metadata": {
++                "backend": backend,
++                "topology_source": topology_source,
++                "bond_source": "neigh",
++                "angle_source": "topo",
++                "sizes": sizes,
++                "parametrisation": getattr(self, "_parametrisation", ""),
++                "parametrisation_source": (
++                    "external_file"
++                    if getattr(self, "_parametrisation", "")
++                    else "internal_modern"
++                ),
++            },
++        }
++
++    # ------------------------------------------------------------------
++
++    def topology_lists_pbc(self):
++        """Return topology arrays plus integer PBC shifts for bonds/angles."""
++        sizes = self.topology_sizes()
++        nbond_blist = sizes["nbond_blist"]
++        nbond_vbond = sizes["nbond_vbond"]
++        nangl = sizes["nangl"]
++        topology_source = getattr(
++            self, "_topology_source", "xyz_initialized_stock_gfnff"
++        )
++        if topology_source == "topology_only_nbf_v1":
++            backend = "pprcht_gfnff_topology_only_nbf_export"
++        elif topology_source == "topology_only_periodic_edges_v1":
++            backend = "pprcht_gfnff_topology_only_periodic_edges_export"
++        else:
++            backend = "pprcht_gfnff_xyz_topology_export"
++
++        blist = np.zeros((max(nbond_blist, 1), 2), dtype=np.int32, order="C")
++        bshift = np.zeros((max(nbond_blist, 1), 3), dtype=np.int32, order="C")
++        vbond = np.zeros((max(nbond_vbond, 1), 6), dtype=np.float64, order="C")
++        alist = np.zeros((max(nangl, 1), 3), dtype=np.int32, order="C")
++        ashift = np.zeros((max(nangl, 1), 6), dtype=np.int32, order="C")
++        vangl = np.zeros((max(nangl, 1), 2), dtype=np.float64, order="C")
++        iostat = ctypes.c_int(0)
++
++        _lib.c_gfnff_topology_copy_pbc(
++            ctypes.byref(self._handle),
++            blist,
++            bshift,
++            vbond,
++            alist,
++            ashift,
++            vangl,
++            ctypes.byref(iostat),
++        )
++        if iostat.value != 0:
++            raise RuntimeError(
++                f"GFN-FF PBC topology copy failed with iostat = {iostat.value}"
++            )
++        return {
++            "blist": blist[:nbond_blist].tolist(),
++            "blist_shift": bshift[:nbond_blist].tolist(),
++            "vbond": vbond[:nbond_vbond].tolist(),
++            "alist": alist[:nangl].tolist(),
++            "alist_shift": ashift[:nangl].tolist(),
++            "vangl": vangl[:nangl].tolist(),
++            "metadata": {
++                "backend": backend,
++                "topology_source": topology_source,
++                "bond_source": "neigh",
++                "angle_source": "topo",
++                "sizes": sizes,
++                "pbc_shift_export": True,
++                "parametrisation": getattr(self, "_parametrisation", ""),
++                "parametrisation_source": (
++                    "external_file"
++                    if getattr(self, "_parametrisation", "")
++                    else "internal_modern"
++                ),
++            },
++        }
++
++    # ------------------------------------------------------------------
++
+     def _check_alive(self):
+         if not self._alive or self._handle.ptr is None:
+             raise RuntimeError("GFNFFCalculator has already been deallocated.")
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/python/gfnff/topology.py src/vendor/gfnff/upstream/python/gfnff/topology.py
+--- /tmp/gfnff_inspect/python/gfnff/topology.py	1970-01-01 08:00:00.000000000 +0800
++++ src/vendor/gfnff/upstream/python/gfnff/topology.py	2026-06-26 21:33:51.249983500 +0800
+@@ -0,0 +1,116 @@
++# This file is part of gfnff.
++# SPDX-Identifier: LGPL-3.0-or-later
++"""Topology export helpers for the Python GFN-FF bindings.
++
++This module exports topology produced by the normal xyz-based GFN-FF
++initializer and by the experimental topology-only NBF initializer.
++"""
++
++from __future__ import annotations
++
++from dataclasses import dataclass
++
++from .calculator import GFNFFCalculator
++
++
++@dataclass
++class GFNFFTopology:
++    """Small wrapper around legacy-list-compatible topology arrays."""
++
++    blist: list
++    vbond: list
++    alist: list
++    vangl: list
++    metadata: dict
++    blist_shift: list | None = None
++    alist_shift: list | None = None
++
++    @classmethod
++    def from_calculator(cls, calculator: GFNFFCalculator) -> "GFNFFTopology":
++        payload = calculator.topology_lists()
++        return cls(
++            blist=payload["blist"],
++            vbond=payload["vbond"],
++            alist=payload["alist"],
++            vangl=payload["vangl"],
++            metadata=payload["metadata"],
++            blist_shift=payload.get("blist_shift"),
++            alist_shift=payload.get("alist_shift"),
++        )
++
++    @classmethod
++    def from_nbf(
++        cls,
++        numbers,
++        neighbor_table_1based,
++        *,
++        charge: int = 0,
++        printlevel: int = 0,
++        parametrisation: str = "",
++    ) -> "GFNFFTopology":
++        calculator = GFNFFCalculator.from_nbf(
++            numbers,
++            neighbor_table_1based,
++            charge=charge,
++            printlevel=printlevel,
++            parametrisation=parametrisation,
++        )
++        try:
++            return cls.from_calculator(calculator)
++        finally:
++            calculator.deallocate()
++
++    @classmethod
++    def from_periodic_edges(
++        cls,
++        numbers,
++        edge_i_1based,
++        edge_j_1based,
++        edge_shift,
++        *,
++        positions_bohr=None,
++        lattice_bohr=None,
++        charge: int = 0,
++        printlevel: int = 0,
++        npbc: int = 3,
++        parametrisation: str = "",
++    ) -> "GFNFFTopology":
++        calculator = GFNFFCalculator.from_periodic_edges(
++            numbers,
++            edge_i_1based,
++            edge_j_1based,
++            edge_shift,
++            positions_bohr=positions_bohr,
++            lattice_bohr=lattice_bohr,
++            charge=charge,
++            printlevel=printlevel,
++            npbc=npbc,
++            parametrisation=parametrisation,
++        )
++        try:
++            payload = calculator.topology_lists_pbc()
++            return cls(
++                blist=payload["blist"],
++                vbond=payload["vbond"],
++                alist=payload["alist"],
++                vangl=payload["vangl"],
++                metadata=payload["metadata"],
++                blist_shift=payload.get("blist_shift"),
++                alist_shift=payload.get("alist_shift"),
++            )
++        finally:
++            calculator.deallocate()
++
++    def to_legacy_lists(self) -> dict:
++        payload = {
++            "blist": self.blist,
++            "vbond": self.vbond,
++            "alist": self.alist,
++            "vangl": self.vangl,
++            "metadata": self.metadata,
++        }
++        if self.blist_shift is not None:
++            payload["blist_shift"] = self.blist_shift
++        if self.alist_shift is not None:
++            payload["alist_shift"] = self.alist_shift
++        return payload
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/C_interface.f90 src/vendor/gfnff/upstream/src/C_interface.f90
+--- /tmp/gfnff_inspect/src/C_interface.f90	2026-06-25 10:34:25.583020612 +0800
++++ src/vendor/gfnff/upstream/src/C_interface.f90	2026-06-26 21:31:29.689534400 +0800
+@@ -30,10 +30,17 @@
+   public :: c_gfnff_calculator
+   public :: c_gfnff_calculator_init
+   public :: c_gfnff_calculator_init_pbc
++  public :: c_gfnff_calculator_init_nbf
++  public :: c_gfnff_calculator_init_nbf_param
++  public :: c_gfnff_calculator_init_periodic_edges
++  public :: c_gfnff_calculator_init_periodic_edges_param
+   public :: c_gfnff_calculator_init_ex
+   public :: c_gfnff_calculator_deallocate
+   public :: c_gfnff_calculator_singlepoint
+   public :: c_gfnff_calculator_results
++  public :: c_gfnff_topology_sizes
++  public :: c_gfnff_topology_copy
++  public :: c_gfnff_topology_copy_pbc
+ 
+   !> C-compatible type containing a pointer to the original Fortran type
+   type,bind(C) :: c_gfnff_calculator
+@@ -105,6 +112,268 @@
+ 
+ !========================================================================================!
+ 
++!>--- C-compatible topology-only initialization function
++  function c_gfnff_calculator_init_nbf(c_nat,c_at,c_nbf,c_ichrg,c_printlevel) &
++    &                                  result(calculator) &
++    &                                  bind(C,name="c_gfnff_calculator_init_nbf")
++    !***********************************************************
++    !* Topology-only initializer for host-supplied NBF tables.
++    !*
++    !* INPUT:
++    !*   c_nat          - number of atoms
++    !*   c_at(c_nat)    - atomic numbers
++    !*   c_nbf[nat][20] - C row-major legacy NBF table. Fortran sees this as
++    !*                     nbf(20,nat): rows 1:19 neighbors, row 20 degree.
++    !*   c_ichrg        - total molecular charge
++    !*   c_printlevel   - verbosity (0=silent)
++    !*
++    !* No physical xyz coordinates are supplied.  A deterministic, well-spaced
++    !* dummy geometry is generated only to keep stock geometry-dependent setup
++    !* code numerically defined.  Neighbor topology comes from c_nbf.
++    !***********************************************************
++    implicit none
++    type(c_gfnff_calculator) :: calculator
++    integer(c_int),value,intent(in) :: c_nat
++    integer(c_int),target,intent(in) :: c_at(*)
++    integer(c_int),target,intent(in) :: c_nbf(20,*)
++    integer(c_int),value,intent(in) :: c_ichrg
++    integer(c_int),value,intent(in) :: c_printlevel
++    type(gfnff_data),pointer :: calc
++
++    integer :: nat
++    integer,pointer :: at(:)
++    integer,pointer :: nbf(:,:)
++    real(wp),allocatable :: xyz(:,:)
++    integer :: printlevel,iostatus,ichrg
++    integer :: i,idx,side
++    real(wp),parameter :: spacing = 4.0_wp
++
++    nat = c_nat
++    call c_f_pointer(c_loc(c_at),at,[nat])
++    call c_f_pointer(c_loc(c_nbf),nbf,[20,nat])
++    ichrg = c_ichrg
++    printlevel = c_printlevel
++
++    allocate (xyz(3,nat),source=0.0_wp)
++    side = max(1,ceiling(real(nat,wp)**(1.0_wp/3.0_wp)))
++    do i = 1,nat
++      idx = i-1
++      xyz(1,i) = spacing*real(mod(idx,side),wp)
++      xyz(2,i) = spacing*real(mod(idx/side,side),wp)
++      xyz(3,i) = spacing*real(idx/(side*side),wp)
++    end do
++
++    allocate (calc)
++    if (.not.allocated(calc%userinput)) allocate (calc%userinput)
++    calc%userinput%nbf = nbf
++    call calc%init(nat,at,xyz,ichrg=ichrg, &
++    &              printlevel=printlevel,iostat=iostatus)
++    if (iostatus == 0) then
++      calculator%ptr = c_loc(calc)
++    else
++      write (stderr,'(a,i0)') 'Error initializing GFN-FF topology-only NBF calculator. code ',iostatus
++      calculator%ptr = c_null_ptr
++      deallocate (calc)
++    end if
++  end function c_gfnff_calculator_init_nbf
++
++!========================================================================================!
++
++!>--- C-compatible topology-only initialization with an external parameter file
++  function c_gfnff_calculator_init_nbf_param(c_nat,c_at,c_nbf,c_ichrg,c_printlevel, &
++    &                                        c_parametrisation) &
++    &                                  result(calculator) &
++    &                                  bind(C,name="c_gfnff_calculator_init_nbf_param")
++    implicit none
++    type(c_gfnff_calculator) :: calculator
++    integer(c_int),value,intent(in) :: c_nat
++    integer(c_int),target,intent(in) :: c_at(*)
++    integer(c_int),target,intent(in) :: c_nbf(20,*)
++    integer(c_int),value,intent(in) :: c_ichrg
++    integer(c_int),value,intent(in) :: c_printlevel
++    character(kind=c_char),intent(in) :: c_parametrisation(*)
++    type(gfnff_data),pointer :: calc
++
++    integer :: nat
++    integer,pointer :: at(:)
++    integer,pointer :: nbf(:,:)
++    real(wp),allocatable :: xyz(:,:)
++    integer :: printlevel,iostatus,ichrg
++    integer :: i,idx,side
++    real(wp),parameter :: spacing = 4.0_wp
++
++    nat = c_nat
++    call c_f_pointer(c_loc(c_at),at,[nat])
++    call c_f_pointer(c_loc(c_nbf),nbf,[20,nat])
++    ichrg = c_ichrg
++    printlevel = c_printlevel
++
++    allocate (xyz(3,nat),source=0.0_wp)
++    side = max(1,ceiling(real(nat,wp)**(1.0_wp/3.0_wp)))
++    do i = 1,nat
++      idx = i-1
++      xyz(1,i) = spacing*real(mod(idx,side),wp)
++      xyz(2,i) = spacing*real(mod(idx/side,side),wp)
++      xyz(3,i) = spacing*real(idx/(side*side),wp)
++    end do
++
++    allocate (calc)
++    if (.not.allocated(calc%userinput)) allocate (calc%userinput)
++    calc%userinput%nbf = nbf
++    call set_parametrisation_from_c(calc,c_parametrisation)
++    call calc%init(nat,at,xyz,ichrg=ichrg, &
++    &              printlevel=printlevel,iostat=iostatus)
++    if (iostatus == 0) then
++      calculator%ptr = c_loc(calc)
++    else
++      write (stderr,'(a,i0)') 'Error initializing GFN-FF topology-only NBF calculator with parameter file. code ',iostatus
++      calculator%ptr = c_null_ptr
++      deallocate (calc)
++    end if
++  end function c_gfnff_calculator_init_nbf_param
++
++!========================================================================================!
++
++!>--- C-compatible topology-only periodic edge-list initializer
++  function c_gfnff_calculator_init_periodic_edges(c_nat,c_at,c_xyz,c_nedge, &
++    &                                             c_edge_i,c_edge_j,c_edge_shift, &
++    &                                             c_lattice,c_npbc,c_ichrg,c_printlevel) &
++    &                                  result(calculator) &
++    &                                  bind(C,name="c_gfnff_calculator_init_periodic_edges")
++    !***********************************************************
++    !* Topology-only initializer for host-supplied periodic edge lists.
++    !*
++    !* INPUT:
++    !*   c_nat              - number of atoms
++    !*   c_at(c_nat)        - atomic numbers
++    !*   c_xyz[nat][3]      - Cartesian coordinates (Bohr), C row-major
++    !*   c_nedge            - number of directed periodic edges
++    !*   c_edge_i[nedge]    - 1-based source atom ids
++    !*   c_edge_j[nedge]    - 1-based target atom ids
++    !*   c_edge_shift[nedge][3] - target image shift relative to source
++    !*   c_lattice[3][3]    - lattice vectors (Bohr), C row-major
++    !*   c_npbc             - number of periodic dimensions, normally 3
++    !*   c_ichrg            - total molecular charge
++    !*   c_printlevel       - verbosity (0=silent)
++    !*
++    !* The edge list is the only topology source; GFN-FF's distance-based
++    !* neighbor detection is bypassed.
++    !***********************************************************
++    implicit none
++    type(c_gfnff_calculator) :: calculator
++    integer(c_int),value,intent(in) :: c_nat
++    integer(c_int),target,intent(in) :: c_at(*)
++    real(c_double),target,intent(in) :: c_xyz(3,*)
++    integer(c_int),value,intent(in) :: c_nedge
++    integer(c_int),target,intent(in) :: c_edge_i(*)
++    integer(c_int),target,intent(in) :: c_edge_j(*)
++    integer(c_int),target,intent(in) :: c_edge_shift(3,*)
++    real(c_double),intent(in) :: c_lattice(3,3)
++    integer(c_int),value,intent(in) :: c_npbc
++    integer(c_int),value,intent(in) :: c_ichrg
++    integer(c_int),value,intent(in) :: c_printlevel
++    type(gfnff_data),pointer :: calc
++
++    integer :: nat,nedge,npbc
++    integer,pointer :: at(:)
++    integer,pointer :: edge_i(:)
++    integer,pointer :: edge_j(:)
++    integer,pointer :: edge_shift(:,:)
++    real(wp),pointer :: xyz(:,:)
++    integer :: printlevel,iostatus,ichrg
++
++    nat = c_nat
++    nedge = c_nedge
++    call c_f_pointer(c_loc(c_at),at,[nat])
++    call c_f_pointer(c_loc(c_xyz),xyz,[3,nat])
++    call c_f_pointer(c_loc(c_edge_i),edge_i,[nedge])
++    call c_f_pointer(c_loc(c_edge_j),edge_j,[nedge])
++    call c_f_pointer(c_loc(c_edge_shift),edge_shift,[3,nedge])
++    ichrg = c_ichrg
++    printlevel = c_printlevel
++    npbc = c_npbc
++
++    allocate(calc)
++    if (.not.allocated(calc%userinput)) allocate (calc%userinput)
++    calc%userinput%edge_i = edge_i
++    calc%userinput%edge_j = edge_j
++    calc%userinput%edge_shift = edge_shift
++    call calc%init(nat,at,xyz,ichrg=ichrg, &
++    &              printlevel=printlevel,iostat=iostatus, &
++    &              lattice=c_lattice,npbc=npbc)
++    if (iostatus == 0) then
++      calculator%ptr = c_loc(calc)
++    else
++      write(stderr,'(a,i0)') 'Error initializing GFN-FF periodic-edge calculator. code ',iostatus
++      calculator%ptr = c_null_ptr
++      deallocate(calc)
++    end if
++  end function c_gfnff_calculator_init_periodic_edges
++
++!========================================================================================!
++
++!>--- C-compatible topology-only periodic edge-list initializer with parameters
++  function c_gfnff_calculator_init_periodic_edges_param(c_nat,c_at,c_xyz,c_nedge, &
++    &                                                   c_edge_i,c_edge_j,c_edge_shift, &
++    &                                                   c_lattice,c_npbc,c_ichrg,c_printlevel, &
++    &                                                   c_parametrisation) &
++    &                                  result(calculator) &
++    &                                  bind(C,name="c_gfnff_calculator_init_periodic_edges_param")
++    implicit none
++    type(c_gfnff_calculator) :: calculator
++    integer(c_int),value,intent(in) :: c_nat
++    integer(c_int),target,intent(in) :: c_at(*)
++    real(c_double),target,intent(in) :: c_xyz(3,*)
++    integer(c_int),value,intent(in) :: c_nedge
++    integer(c_int),target,intent(in) :: c_edge_i(*)
++    integer(c_int),target,intent(in) :: c_edge_j(*)
++    integer(c_int),target,intent(in) :: c_edge_shift(3,*)
++    real(c_double),intent(in) :: c_lattice(3,3)
++    integer(c_int),value,intent(in) :: c_npbc
++    integer(c_int),value,intent(in) :: c_ichrg
++    integer(c_int),value,intent(in) :: c_printlevel
++    character(kind=c_char),intent(in) :: c_parametrisation(*)
++    type(gfnff_data),pointer :: calc
++
++    integer :: nat,nedge,npbc
++    integer,pointer :: at(:)
++    integer,pointer :: edge_i(:)
++    integer,pointer :: edge_j(:)
++    integer,pointer :: edge_shift(:,:)
++    real(wp),pointer :: xyz(:,:)
++    integer :: printlevel,iostatus,ichrg
++
++    nat = c_nat
++    nedge = c_nedge
++    call c_f_pointer(c_loc(c_at),at,[nat])
++    call c_f_pointer(c_loc(c_xyz),xyz,[3,nat])
++    call c_f_pointer(c_loc(c_edge_i),edge_i,[nedge])
++    call c_f_pointer(c_loc(c_edge_j),edge_j,[nedge])
++    call c_f_pointer(c_loc(c_edge_shift),edge_shift,[3,nedge])
++    ichrg = c_ichrg
++    printlevel = c_printlevel
++    npbc = c_npbc
++
++    allocate(calc)
++    if (.not.allocated(calc%userinput)) allocate (calc%userinput)
++    calc%userinput%edge_i = edge_i
++    calc%userinput%edge_j = edge_j
++    calc%userinput%edge_shift = edge_shift
++    call set_parametrisation_from_c(calc,c_parametrisation)
++    call calc%init(nat,at,xyz,ichrg=ichrg, &
++    &              printlevel=printlevel,iostat=iostatus, &
++    &              lattice=c_lattice,npbc=npbc)
++    if (iostatus == 0) then
++      calculator%ptr = c_loc(calc)
++    else
++      write(stderr,'(a,i0)') 'Error initializing GFN-FF periodic-edge calculator with parameter file. code ',iostatus
++      calculator%ptr = c_null_ptr
++      deallocate(calc)
++    end if
++  end function c_gfnff_calculator_init_periodic_edges_param
++
++!========================================================================================!
++
+ !>--- C-compatible initialization function with PBC support
+   function c_gfnff_calculator_init_pbc(c_nat,c_at,c_xyz,c_ichrg,c_printlevel, &
+     &                                  c_lattice,c_npbc) &
+@@ -368,6 +637,188 @@
+ 
+ !========================================================================================!
+ 
++  subroutine c_gfnff_topology_sizes(c_calculator,c_nbond_blist,c_nbond_vbond, &
++    &                               c_nangl,c_iostat) &
++    &   bind(C,name="c_gfnff_topology_sizes")
++    implicit none
++    type(c_gfnff_calculator),intent(in) :: c_calculator
++    integer(c_int),intent(out) :: c_nbond_blist
++    integer(c_int),intent(out) :: c_nbond_vbond
++    integer(c_int),intent(out) :: c_nangl
++    integer(c_int),intent(out) :: c_iostat
++    type(gfnff_data),pointer :: calc_ptr
++
++    c_nbond_blist = 0
++    c_nbond_vbond = 0
++    c_nangl = 0
++    c_iostat = 1
++
++    if (.not.c_associated(c_calculator%ptr)) return
++    call c_f_pointer(c_calculator%ptr,calc_ptr)
++    if (.not.associated(calc_ptr)) return
++
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%blist)) then
++      c_nbond_blist = int(calc_ptr%neigh%nbond_blist,c_int)
++    end if
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%vbond)) then
++      c_nbond_vbond = int(calc_ptr%neigh%nbond,c_int)
++    end if
++    if (allocated(calc_ptr%topo).and.allocated(calc_ptr%topo%alist) &
++    &   .and.allocated(calc_ptr%topo%vangl)) then
++      c_nangl = int(calc_ptr%topo%nangl,c_int)
++    end if
++    c_iostat = 0
++  end subroutine c_gfnff_topology_sizes
++
++!========================================================================================!
++
++  subroutine c_gfnff_topology_copy(c_calculator,c_blist,c_vbond,c_alist,c_vangl, &
++    &                              c_iostat) &
++    &   bind(C,name="c_gfnff_topology_copy")
++    implicit none
++    type(c_gfnff_calculator),intent(in) :: c_calculator
++    integer(c_int),intent(out) :: c_blist(2,*)
++    real(c_double),intent(out) :: c_vbond(6,*)
++    integer(c_int),intent(out) :: c_alist(3,*)
++    real(c_double),intent(out) :: c_vangl(2,*)
++    integer(c_int),intent(out) :: c_iostat
++    type(gfnff_data),pointer :: calc_ptr
++    integer :: nbond_blist
++    integer :: nbond_vbond
++    integer :: nangl
++
++    c_iostat = 1
++    if (.not.c_associated(c_calculator%ptr)) return
++    call c_f_pointer(c_calculator%ptr,calc_ptr)
++    if (.not.associated(calc_ptr)) return
++
++    nbond_blist = 0
++    nbond_vbond = 0
++    nangl = 0
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%blist)) then
++      nbond_blist = calc_ptr%neigh%nbond_blist
++    end if
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%vbond)) then
++      nbond_vbond = calc_ptr%neigh%nbond
++    end if
++    if (allocated(calc_ptr%topo).and.allocated(calc_ptr%topo%alist) &
++    &   .and.allocated(calc_ptr%topo%vangl)) then
++      nangl = calc_ptr%topo%nangl
++    end if
++
++    if (nbond_blist > 0) then
++      c_blist(1:2,1:nbond_blist) = int(calc_ptr%neigh%blist(1:2,1:nbond_blist),c_int)
++    end if
++    if (nbond_vbond > 0) then
++      if (allocated(calc_ptr%neigh%vbond_legacy)) then
++        c_vbond(1:6,1:nbond_vbond) = calc_ptr%neigh%vbond_legacy(1:6,1:nbond_vbond)
++      else
++        c_vbond(1:3,1:nbond_vbond) = calc_ptr%neigh%vbond(1:3,1:nbond_vbond)
++        c_vbond(4:6,1:nbond_vbond) = 0.0_c_double
++      end if
++    end if
++    if (nangl > 0) then
++      c_alist(1:3,1:nangl) = int(calc_ptr%topo%alist(1:3,1:nangl),c_int)
++      c_vangl(1:2,1:nangl) = calc_ptr%topo%vangl(1:2,1:nangl)
++    end if
++    c_iostat = 0
++  end subroutine c_gfnff_topology_copy
++
++!========================================================================================!
++
++  subroutine c_gfnff_topology_copy_pbc(c_calculator,c_blist,c_bshift,c_vbond, &
++    &                                  c_alist,c_ashift,c_vangl,c_iostat) &
++    &   bind(C,name="c_gfnff_topology_copy_pbc")
++    implicit none
++    type(c_gfnff_calculator),intent(in) :: c_calculator
++    integer(c_int),intent(out) :: c_blist(2,*)
++    integer(c_int),intent(out) :: c_bshift(3,*)
++    real(c_double),intent(out) :: c_vbond(6,*)
++    integer(c_int),intent(out) :: c_alist(3,*)
++    integer(c_int),intent(out) :: c_ashift(6,*)
++    real(c_double),intent(out) :: c_vangl(2,*)
++    integer(c_int),intent(out) :: c_iostat
++    type(gfnff_data),pointer :: calc_ptr
++    integer :: nbond_blist
++    integer :: nbond_vbond
++    integer :: nangl
++    integer :: i,iTr
++
++    c_iostat = 1
++    if (.not.c_associated(c_calculator%ptr)) return
++    call c_f_pointer(c_calculator%ptr,calc_ptr)
++    if (.not.associated(calc_ptr)) return
++
++    nbond_blist = 0
++    nbond_vbond = 0
++    nangl = 0
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%blist)) then
++      nbond_blist = calc_ptr%neigh%nbond_blist
++    end if
++    if (allocated(calc_ptr%neigh).and.allocated(calc_ptr%neigh%vbond)) then
++      nbond_vbond = calc_ptr%neigh%nbond
++    end if
++    if (allocated(calc_ptr%topo).and.allocated(calc_ptr%topo%alist) &
++    &   .and.allocated(calc_ptr%topo%vangl)) then
++      nangl = calc_ptr%topo%nangl
++    end if
++
++    if (nbond_blist > 0) then
++      c_blist(1:2,1:nbond_blist) = int(calc_ptr%neigh%blist(1:2,1:nbond_blist),c_int)
++      c_bshift(1:3,1:nbond_blist) = 0
++      if (allocated(calc_ptr%neigh%trVecInt)) then
++        do i = 1,nbond_blist
++          iTr = calc_ptr%neigh%blist(3,i)
++          if (iTr > 0.and.iTr <= size(calc_ptr%neigh%trVecInt,dim=2)) then
++            c_bshift(1:3,i) = int(calc_ptr%neigh%trVecInt(1:3,iTr),c_int)
++          end if
++        end do
++      end if
++    end if
++    if (nbond_vbond > 0) then
++      if (allocated(calc_ptr%neigh%vbond_legacy)) then
++        c_vbond(1:6,1:nbond_vbond) = calc_ptr%neigh%vbond_legacy(1:6,1:nbond_vbond)
++      else
++        c_vbond(1:3,1:nbond_vbond) = calc_ptr%neigh%vbond(1:3,1:nbond_vbond)
++        c_vbond(4:6,1:nbond_vbond) = 0.0_c_double
++      end if
++    end if
++    if (nangl > 0) then
++      c_alist(1:3,1:nangl) = int(calc_ptr%topo%alist(1:3,1:nangl),c_int)
++      c_ashift(1:6,1:nangl) = 0
++      if (allocated(calc_ptr%neigh%trVecInt)) then
++        do i = 1,nangl
++          iTr = calc_ptr%topo%alist(4,i)
++          if (iTr > 0.and.iTr <= size(calc_ptr%neigh%trVecInt,dim=2)) then
++            c_ashift(1:3,i) = int(calc_ptr%neigh%trVecInt(1:3,iTr),c_int)
++          end if
++          iTr = calc_ptr%topo%alist(5,i)
++          if (iTr > 0.and.iTr <= size(calc_ptr%neigh%trVecInt,dim=2)) then
++            c_ashift(4:6,i) = int(calc_ptr%neigh%trVecInt(1:3,iTr),c_int)
++          end if
++        end do
++      end if
++      c_vangl(1:2,1:nangl) = calc_ptr%topo%vangl(1:2,1:nangl)
++    end if
++    c_iostat = 0
++  end subroutine c_gfnff_topology_copy_pbc
++
++!========================================================================================!
++
++  subroutine set_parametrisation_from_c(calc,c_parametrisation)
++    implicit none
++    type(gfnff_data),intent(inout) :: calc
++    character(kind=c_char),intent(in) :: c_parametrisation(*)
++    character(len=:),allocatable :: parametrisation
++
++    parametrisation = c_string_to_fortran(c_parametrisation)
++    if (len_trim(parametrisation) > 0) then
++      calc%parametrisation = trim(parametrisation)
++    end if
++  end subroutine set_parametrisation_from_c
++
++!========================================================================================!
++
+   function c_string_to_fortran(c_str) result(f_str)
+     use iso_c_binding
+     implicit none
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_data_types.f90 src/vendor/gfnff/upstream/src/gfnff_data_types.f90
+--- /tmp/gfnff_inspect/src/gfnff_data_types.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_data_types.f90	2026-06-25 16:32:04.330775100 +0800
+@@ -58,6 +58,16 @@
+     !> Lets the host feed e.g. CEH charges to assign the correct charge to each
+     !> fragment instead of relying on GFN-FF's limited auto-detection.
+     real(wp),allocatable :: refq(:)
++    !> Host-supplied topology-only neighbor table, shape (20,nat). Rows 1:19
++    !> store 1-based neighbor indices and row 20 stores the per-atom degree.
++    !> This is the legacy modified-xtb NBF contract used by SLICES.
++    integer,allocatable :: nbf(:,:)
++    !> Host-supplied periodic edge list.  edge_i/edge_j are 1-based atom
++    !> indices and edge_shift(:,k) is the lattice translation applied to
++    !> edge_j(k) relative to edge_i(k).
++    integer,allocatable :: edge_i(:)
++    integer,allocatable :: edge_j(:)
++    integer,allocatable :: edge_shift(:,:)
+   end type TGFFUserInput
+ 
+ ! ══════════════════════════════════════════════════════════════════════════════
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_ini.f90 src/vendor/gfnff/upstream/src/gfnff_ini.f90
+--- /tmp/gfnff_inspect/src/gfnff_ini.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_ini.f90	2026-06-26 14:45:59.869439300 +0800
+@@ -80,7 +80,7 @@
+     integer,intent(in),optional :: printunit  !< output unit (default: stdout)
+ !--------------------------------------------------------------------------------------------------
+ 
+-    integer :: ati,atj,atk,i,j,k,l,nn,ii,jj,kk,ll,m,rings,ia,ja,ij,ix,nnn,idum,ip,ji,no,nbi
++    integer :: ati,atj,atk,i,j,k,kmax,l,nn,ii,jj,kk,ll,m,rings,ia,ja,ij,ix,nnn,idum,ip,ji,no,nbi
+     integer :: nni,nnj
+     integer :: ineig,jneig,nrot,bbtyp,ringtyp,nn1,nn2,hybi,hybj,pis,ka,nh,jdum,hcalc,nc
+     integer :: ringsi,ringsj,ringsk,ringl,npi,nelpi,picount,npiall,maxtors,rings4,nheav
+@@ -124,6 +124,7 @@
+     real(wp),allocatable :: dgam(:),dxi(:)
+     real(wp),allocatable :: mchar(:)
+     real(wp),allocatable :: rtmp(:)
++    real(wp),allocatable :: rab0(:),ra0(:),rb0(:)
+     real(wp),allocatable :: pbo(:)
+     real(wp),allocatable :: qtmp(:),dqa(:),qah(:)
+     real(wp),allocatable :: Api(:,:),S(:,:),Pold(:,:),pibo(:),occ(:),eps(:)
+@@ -133,14 +134,23 @@
+     type(TLatticePoint)  :: latPoint
+     real(wp) :: lattice(3,3)
+     integer :: boundaryCondition = 0
+-    integer,allocatable:: locarr(:,:),nbrngs(:,:)
++    integer,allocatable:: locarr(:,:),nbrngs(:,:),b3tmp(:,:)
+     integer :: cDbl(4,42),cd,cdi ! for checking double counting
+     logical :: tDbl
+ 
+     character(len=255) atmp
++    character(len=32) :: periodic_edge_target_cn_policy
++    character(len=32) :: periodic_edge_topology_contract
+     integer  :: ich,err,myunit
++    integer :: periodic_edge_target_cn_policy_len
++    integer :: periodic_edge_target_cn_policy_status
++    integer :: periodic_edge_topology_contract_len
++    integer :: periodic_edge_topology_contract_status
+     real(wp) :: dispthr,cnthr,repthr,hbthr1,hbthr2
+     logical :: exitRun,nb_call,adjLnAn,pr,pr2
++    logical :: periodic_edge_normcn_target
++    logical :: periodic_edge_legacy_topology_contract
++    logical :: legacy_topology_contract
+ 
+     real(wp),parameter :: pi = 3.1415926535897932385_wp
+ 
+@@ -155,6 +165,41 @@
+     pr  = printlevel >= 2
+     pr2 = printlevel >= 3
+ 
++    periodic_edge_target_cn_policy = ''
++    periodic_edge_topology_contract = ''
++    periodic_edge_target_cn_policy_len = 0
++    periodic_edge_target_cn_policy_status = 0
++    periodic_edge_topology_contract_len = 0
++    periodic_edge_topology_contract_status = 0
++    periodic_edge_normcn_target = .false.
++    periodic_edge_legacy_topology_contract = .false.
++    legacy_topology_contract = .false.
++    call get_environment_variable( &
++      & 'SLICES_VENDOR_PERIODIC_TARGET_CN_POLICY', &
++      & periodic_edge_target_cn_policy, &
++      & length=periodic_edge_target_cn_policy_len, &
++      & status=periodic_edge_target_cn_policy_status)
++    if (periodic_edge_target_cn_policy_status .eq. 0) then
++      periodic_edge_target_cn_policy = adjustl(periodic_edge_target_cn_policy)
++      if (trim(periodic_edge_target_cn_policy) .eq. 'normcn' .or. &
++        & trim(periodic_edge_target_cn_policy) .eq. 'legacy_normcn') then
++        periodic_edge_normcn_target = .true.
++      end if
++    end if
++    call get_environment_variable( &
++      & 'SLICES_VENDOR_PERIODIC_TOPOLOGY_CONTRACT', &
++      & periodic_edge_topology_contract, &
++      & length=periodic_edge_topology_contract_len, &
++      & status=periodic_edge_topology_contract_status)
++    if (periodic_edge_topology_contract_status .eq. 0) then
++      periodic_edge_topology_contract = adjustl(periodic_edge_topology_contract)
++      if (trim(periodic_edge_topology_contract) .eq. 'legacy_topology' .or. &
++        & trim(periodic_edge_topology_contract) .eq. 'legacy_topology_contract') then
++        periodic_edge_legacy_topology_contract = .true.
++        periodic_edge_normcn_target = .true.
++      end if
++    end if
++
+     call gfnff_thresholds(accuracy,dispthr,cnthr,repthr,hbthr1,hbthr2)
+ 
+ !> parameter for periodic setup
+@@ -306,6 +351,24 @@
+       ! and an EN cut-off function, used in neigbor routinen and for BS estimate
+     end do
+     deallocate (dcn)
++    legacy_topology_contract = allocated(neigh%user_nbf).or. &
++      & (periodic_edge_legacy_topology_contract.and.allocated(neigh%user_edge_i))
++    if (allocated(neigh%user_nbf)) then
++      ! Match the modified xtb topology helper contract: CN is an element-normal
++      ! target-length prior, not the finite NBF graph degree.
++      do i = 1,nat
++        cn(i) = dble(param%normcn(at(i)))
++      end do
++      mchar = 0.0d0
++    end if
++    if (periodic_edge_normcn_target.and.allocated(neigh%user_edge_i)) then
++      ! Diagnostic symSLICES helper mode: use the modified xtb target-length
++      ! prior while keeping the vendored native periodic-edge topology path.
++      do i = 1,nat
++        cn(i) = dble(param%normcn(at(i)))
++      end do
++      mchar = 0.0d0
++    end if
+ 
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ ! neighbor list, hyb and ring info
+@@ -358,50 +421,70 @@
+       ! Get number of bonds, all bonds should be paired
+       ! For bonds to other cells only cells with translation vectors
+       !    with "positive" sign (in direction of axes) are considered
+-      allocate (bdum(nat,nat,neigh%numctr),source=0)
+-      allocate (cdum(neigh%numnb,nat,neigh%numctr),source=0)
+-      k = 0
+-      do i = 1,nat
+-        do iTr = 1,neigh%numctr
+-          do j = 1,neigh%nb(neigh%numnb,i,iTr)
+-            ! go through all neighbors l
+-            l = neigh%nb(j,i,iTr)
+-            if (bdum(l,i,iTr) .eq. 0) then
+-              bdum(l,i,iTr) = 1
+-              bdum(i,l,neigh%iTrNeg(iTr)) = 1
+-              cdum(j,i,iTr) = 1
+-              k = k+1
++      if (allocated(neigh%user_edge_i)) then
++        neigh%nbond = size(neigh%user_edge_i)
++        neigh%nbond_blist = neigh%nbond
++        topo%nbond_blist = neigh%nbond
++        allocate (btyp(neigh%nbond),source=0)
++        allocate (pibo(neigh%nbond),source=0.0d0)
++        allocate (neigh%blist(3,neigh%nbond),source=0)
++        do k = 1,neigh%nbond
++          neigh%blist(1,k) = neigh%user_edge_j(k)
++          neigh%blist(2,k) = neigh%user_edge_i(k)
++          neigh%blist(3,k) = 1
++          do iTr = 1,neigh%numctr
++            if (all(neigh%trVecInt(:,iTr) == neigh%user_edge_shift(:,k))) then
++              neigh%blist(3,k) = iTr
++              exit
+             end if
+           end do
+         end do
+-      end do
+-      neigh%nbond = k
+-      neigh%nbond_blist = neigh%nbond
+-      topo%nbond_blist = neigh%nbond
+-      allocate (btyp(neigh%nbond),source=0)
+-      allocate (pibo(neigh%nbond),source=0.0d0)
+-      ! setup blist
+-      allocate (neigh%blist(3,neigh%nbond),source=0) !first dim now 3 for saving iTr
+-      k = 0
+-      do i = 1,nat
+-        do iTr = 1,neigh%numctr
+-          do j = 1,neigh%nb(neigh%numnb,i,iTr)
+-            !
+-            if (cdum(j,i,iTr) .eq. 1) then
++      else
++        allocate (bdum(nat,nat,neigh%numctr),source=0)
++        allocate (cdum(neigh%numnb,nat,neigh%numctr),source=0)
++        k = 0
++        do i = 1,nat
++          do iTr = 1,neigh%numctr
++            do j = 1,neigh%nb(neigh%numnb,i,iTr)
++              ! go through all neighbors l
++              l = neigh%nb(j,i,iTr)
++              if (bdum(l,i,iTr) .eq. 0) then
++                bdum(l,i,iTr) = 1
++                bdum(i,l,neigh%iTrNeg(iTr)) = 1
++                cdum(j,i,iTr) = 1
++                k = k+1
++              end if
++            end do
++          end do
++        end do
++        neigh%nbond = k
++        neigh%nbond_blist = neigh%nbond
++        topo%nbond_blist = neigh%nbond
++        allocate (btyp(neigh%nbond),source=0)
++        allocate (pibo(neigh%nbond),source=0.0d0)
++        ! setup blist
++        allocate (neigh%blist(3,neigh%nbond),source=0) !first dim now 3 for saving iTr
++        k = 0
++        do i = 1,nat
++          do iTr = 1,neigh%numctr
++            do j = 1,neigh%nb(neigh%numnb,i,iTr)
+               !
+-              k = k+1
+-              neigh%blist(1,k) = neigh%nb(j,i,iTr)
+-              neigh%blist(2,k) = i
+-              neigh%blist(3,k) = iTr
+-            end if
++              if (cdum(j,i,iTr) .eq. 1) then
++                !
++                k = k+1
++                neigh%blist(1,k) = neigh%nb(j,i,iTr)
++                neigh%blist(2,k) = i
++                neigh%blist(3,k) = iTr
++              end if
++            end do
+           end do
+         end do
+-      end do
+-      if (allocated(bdum)) deallocate (bdum)
+-      if (allocated(cdum)) deallocate (cdum)
+-      !check blist
+-      if (k .ne. neigh%nbond) then
+-        if (printlevel >= 1) write (myunit,'("**WARNING** ",a,1x,a)') "Setup of blist not as expected, check your results.",source
++        if (allocated(bdum)) deallocate (bdum)
++        if (allocated(cdum)) deallocate (cdum)
++        !check blist
++        if (k .ne. neigh%nbond) then
++          if (printlevel >= 1) write (myunit,'("**WARNING** ",a,1x,a)') "Setup of blist not as expected, check your results.",source
++        end if
+       end if
+ 
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@@ -808,33 +891,40 @@
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ ! get ring info (smallest ring size)
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-    allocate (nbrngs(neigh%numnb,nat),source=0)
+-    nbrngs = neigh%nbm(:,:,1)
+-    if (cell%npbc .ne. 0) then
+-      do i = 1,nat
+-        nni = neigh%nbm(neigh%numnb,i,1)
+-        do iTr = 2,neigh%numctr
+-          do j = 1,neigh%nbm(neigh%numnb,i,iTr)
+-            ! append neighbors from other cells to cell one
+-            nbrngs(nni+j,i) = neigh%nbm(j,i,iTr)
+-            ! adjust number of nb
+-            nbrngs(neigh%numnb,i) = nbrngs(neigh%numnb,i)+1
++    if (allocated(neigh%user_edge_i)) then
++      if (printlevel >= 2) write (myunit,'(10x,"rings skipped for topology-only periodic edges")')
++    else
++      allocate (nbrngs(neigh%numnb,nat),source=0)
++      nbrngs = neigh%nbm(:,:,1)
++      if (cell%npbc .ne. 0) then
++        do i = 1,nat
++          nni = neigh%nbm(neigh%numnb,i,1)
++          do iTr = 2,neigh%numctr
++            do j = 1,neigh%nbm(neigh%numnb,i,iTr)
++              ! append neighbors from other cells to cell one
++              if (nni+j <= neigh%numnb-1) then
++                nbrngs(nni+j,i) = neigh%nbm(j,i,iTr)
++                ! adjust number of nb
++                nbrngs(neigh%numnb,i) = nbrngs(neigh%numnb,i)+1
++              end if
++            end do
++            nni = nni+neigh%nbm(neigh%numnb,i,iTr)
+           end do
+-          nni = nni+neigh%nbm(neigh%numnb,i,iTr)
+         end do
+-      end do
+-    end if
+-    if (printlevel >= 2) write (myunit,'(10x,"rings ...")')
++      end if
++      if (printlevel >= 2) write (myunit,'(10x,"rings ...")')
+ !$omp parallel default(none) private(i,cr,sr) shared(nat,at,xyz,neigh,nbrngs,cring,sring)
+ !$omp do
+-    do i = 1,nat
+-      call getring36(nat,at,neigh%numnb,neigh%numctr,nbrngs,i,cr,sr)
+-      cring(1:10,1:20,i) = cr(1:10,1:20)
+-      sring(1:20,i) = sr(1:20)
+-    end do
++      do i = 1,nat
++        call getring36(nat,at,neigh%numnb,neigh%numctr,nbrngs,i,cr,sr)
++        cring(1:10,1:20,i) = cr(1:10,1:20)
++        sring(1:20,i) = sr(1:20)
++      end do
+ !$omp end do
+ !$omp end parallel
+-    deallocate (neigh%nbm,nbrngs)
++      deallocate (nbrngs)
++    end if
++    if (allocated(neigh%nbm)) deallocate (neigh%nbm)
+ 
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ ! bonded atom triples not included in
+@@ -853,6 +943,12 @@
+                 k = neigh%nb(m,j,iTr2)
+                 if ((i == k.or.j == k).and.iTr == 1.and.iTr2 == 1) cycle
+                 topo%nbatm = topo%nbatm+1
++                if (topo%nbatm > idum) then
++                  allocate (b3tmp(5,2*idum),source=0)
++                  b3tmp(:,1:idum) = topo%b3list(:,1:idum)
++                  call move_alloc(b3tmp,topo%b3list)
++                  idum = 2*idum
++                end if
+                 topo%b3list(1,topo%nbatm) = i                      !in central cell
+                 topo%b3list(2,topo%nbatm) = j
+                 topo%b3list(3,topo%nbatm) = k
+@@ -863,6 +959,12 @@
+                 k = neigh%nb(m,i,iTr2)
+                 if ((i == k.or.j == k).and.iTr == 1.and.iTr2 == 1) cycle
+                 topo%nbatm = topo%nbatm+1
++                if (topo%nbatm > idum) then
++                  allocate (b3tmp(5,2*idum),source=0)
++                  b3tmp(:,1:idum) = topo%b3list(:,1:idum)
++                  call move_alloc(b3tmp,topo%b3list)
++                  idum = 2*idum
++                end if
+                 topo%b3list(1,topo%nbatm) = i
+                 topo%b3list(2,topo%nbatm) = j
+                 topo%b3list(3,topo%nbatm) = k
+@@ -1212,6 +1314,21 @@
+     end if
+ !----------- end Hueckel
+ 
++    if (legacy_topology_contract) then
++      ! Topology-only SLICES NBF input has no physical coordinates.  Keep the
++      ! element-normal CN target and per-bond Hueckel shifts, but damp the
++      ! heteronuclear NBF shifts that are over-counted by the PBC topology
++      ! setup and suppress global pi flags that would otherwise feed
++      ! dummy-geometry angle/torsion side effects.
++      do i = 1,neigh%nbond
++        jj = neigh%blist(1,i)
++        ii = neigh%blist(2,i)
++        if (at(ii) .ne. at(jj)) pibo(i) = 0.5d0*pibo(i)
++      end do
++      pbo = 0.0d0
++      piadr = 0
++    end if
++
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ ! modify hyb due to pi assignment
+ ! and output
+@@ -1318,7 +1435,11 @@
+       ij = lin(ii,jj)
+       ia = at(ii)
+       ja = at(jj)
+-      call ringsbond(nat,ii,jj,cring,sring,rings)
++      if (legacy_topology_contract) then
++        rings = 0
++      else
++        call ringsbond(nat,ii,jj,cring,sring,rings)
++      end if
+       shift = 0.d0
+       fxh = 1.d0
+       ringf = 1.d0
+@@ -1375,15 +1496,17 @@
+         if (topo%hyb(ii) .eq. 0.and.topo%hyb(jj) .eq. 3) shift = shift-0.022         ! X-sp3
+         if (topo%hyb(ii) .eq. 1.and.topo%hyb(jj) .eq. 0) shift = shift+0.14          ! X-sp
+         if (topo%hyb(ii) .eq. 0.and.topo%hyb(jj) .eq. 1) shift = shift+0.14          ! X-sp
+-        if ((ia .eq. 1.and.ja .eq. 6)) then
+-          call ringsatom(nat,jj,cring,sring,ringsj)
+-          if (ringsj .eq. 3) fxh = 1.05    ! 3-ring CH
+-          if (ctype(nat,at,neigh%numnb,neigh%numctr,neigh%nb,piadr,jj) .eq. 1) fxh = 0.95    ! aldehyd CH
+-        end if
+-        if ((ia .eq. 6.and.ja .eq. 1)) then
+-          call ringsatom(nat,ii,cring,sring,ringsi)
+-          if (ringsi .eq. 3) fxh = 1.05    ! 3-ring CH
+-          if (ctype(nat,at,neigh%numnb,neigh%numctr,neigh%nb,piadr,ii) .eq. 1) fxh = 0.95    ! aldehyd CH
++        if (.not.legacy_topology_contract) then
++          if ((ia .eq. 1.and.ja .eq. 6)) then
++            call ringsatom(nat,jj,cring,sring,ringsj)
++            if (ringsj .eq. 3) fxh = 1.05    ! 3-ring CH
++            if (ctype(nat,at,neigh%numnb,neigh%numctr,neigh%nb,piadr,jj) .eq. 1) fxh = 0.95    ! aldehyd CH
++          end if
++          if ((ia .eq. 6.and.ja .eq. 1)) then
++            call ringsatom(nat,ii,cring,sring,ringsi)
++            if (ringsi .eq. 3) fxh = 1.05    ! 3-ring CH
++            if (ctype(nat,at,neigh%numnb,neigh%numctr,neigh%nb,piadr,ii) .eq. 1) fxh = 0.95    ! aldehyd CH
++          end if
+         end if
+         if ((ia .eq. 1.and.ja .eq. 5)) fxh = 1.10    ! BH
+         if ((ja .eq. 1.and.ia .eq. 5)) fxh = 1.10    !
+@@ -1515,10 +1638,23 @@
+ 
+ ! output
+       r0 = (rtmp(ij)+neigh%vbond(1,i))*0.529167
++      if (.not.allocated(neigh%vbond_legacy)) allocate (neigh%vbond_legacy(6,neigh%nbond),source=0.0d0)
++      neigh%vbond_legacy(1,i) = neigh%vbond(1,i)
++      neigh%vbond_legacy(2,i) = neigh%vbond(2,i)
++      neigh%vbond_legacy(3,i) = neigh%vbond(3,i)
++      neigh%vbond_legacy(4,i) = rtmp(ij)+neigh%vbond(1,i)
+       if (printlevel >= 3) write (myunit,'(2a3,2i5,2x,2i5,2x,6f8.3)') &
+   &   pse(at(ii)),pse(at(jj)),ii,jj,bbtyp,rings,0.529167*rab(ij),r0,pibo(i),fqq,neigh%vbond(3,i),neigh%vbond(2,i)
+     end do
+ 
++    if (allocated(neigh%vbond_legacy)) then
++      allocate (rab0(neigh%nbond),ra0(neigh%nbond),rb0(neigh%nbond),source=0.0d0)
++      rab0(:) = neigh%vbond(1,:)
++      call gfnffdrab2(nat,at,cn,neigh%nbond,neigh%blist,rab0,ra0,rb0)
++      neigh%vbond_legacy(4,1:neigh%nbond) = rab0(1:neigh%nbond)
++      deallocate (rab0,ra0,rb0)
++    end if
++
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ !     scale FC if bond is part of hydrogen bridge
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@@ -1583,7 +1719,12 @@
+       do iTr = 1,neigh%numctr
+         do j = 1,neigh%nb(neigh%numnb,i,iTr)
+           do iTr2 = 1,neigh%numctr !
+-            do k = 1,j !
++            if (allocated(neigh%user_edge_i)) then
++              kmax = neigh%nb(neigh%numnb,i,iTr2)
++            else
++              kmax = j
++            end if
++            do k = 1,kmax !
+               if (iTr .eq. iTr2.and.k .eq. j) cycle  !dont use same atom as both neighbors
+               jj = neigh%nb(j,i,iTr)
+               kk = neigh%nb(k,i,iTr2)
+@@ -1602,6 +1743,7 @@
+                 end if
+               end do
+               if (tDbl) cycle
++              if (cdi >= size(cDbl,dim=2)) cycle
+               cdi = cdi+1
+               cDbl(1,cdi) = jj
+               cDbl(2,cdi) = kk
+@@ -1633,9 +1775,14 @@
+       ii = i
+       ati = at(i)
+       do iTr = 1,neigh%numctr
+-        do j = 1,nn
++        do j = 1,neigh%nb(neigh%numnb,i,iTr)
+           do iTr2 = 1,neigh%numctr
+-            do k = 1,j
++            if (allocated(neigh%user_edge_i)) then
++              kmax = neigh%nb(neigh%numnb,i,iTr2)
++            else
++              kmax = j
++            end if
++            do k = 1,kmax
+               if (iTr .eq. iTr2.and.k .eq. j) cycle !dont use same atom as both neighbors
+               jj = neigh%nb(j,i,iTr)
+               kk = neigh%nb(k,i,iTr2)
+@@ -1654,13 +1801,16 @@
+                 end if
+               end do
+               if (tDbl) cycle
++              if (cdi >= size(cDbl,dim=2)) cycle
+               cdi = cdi+1
+               cDbl(1,cdi) = jj
+               cDbl(2,cdi) = kk
+               cDbl(3,cdi) = iTr
+               cDbl(4,cdi) = iTr2
+               call banglPBC(1,xyz,jj,i,kk,iTr,iTr2,neigh%transVec,phi)
+-              if (param%metal(ati) .gt. 0.and.phi*180./pi .lt. 60.) cycle ! skip eta cases even if CN < 6 (e.g. CaCp+)
++              if (.not.legacy_topology_contract) then
++                if (param%metal(ati) .gt. 0.and.phi*180./pi .lt. 60.) cycle ! skip eta cases even if CN < 6 (e.g. CaCp+)
++              end if
+               feta = 1.0d0
+               if (imetal(ii) .eq. 2.and.itag(jj) .eq. -1.and.piadr(jj) .gt. 0) feta = 0.3d0       ! eta coord.
+               if (imetal(ii) .eq. 2.and.itag(kk) .eq. -1.and.piadr(kk) .gt. 0) feta = feta*0.3d0  !
+@@ -1688,13 +1838,18 @@
+               npi = 0
+               if (piadr(jj) .ne. 0) npi = npi+1
+               if (piadr(kk) .ne. 0) npi = npi+1
++              if (topo%nangl >= topo%nangl_alloc) cycle
+               topo%nangl = topo%nangl+1
+               topo%alist(1,topo%nangl) = ii
+               topo%alist(2,topo%nangl) = jj  ! jj is shifted to iTr
+               topo%alist(3,topo%nangl) = kk  ! kk is shifted to iTr2
+               topo%alist(4,topo%nangl) = iTr
+               topo%alist(5,topo%nangl) = iTr2
+-              call ringsbend(nat,ii,jj,kk,cring,sring,rings)
++              if (legacy_topology_contract) then
++                rings = 0
++              else
++                call ringsbend(nat,ii,jj,kk,cring,sring,rings)
++              end if
+               triple = (topo%hyb(ii) .eq. 1.or.topo%hyb(jj) .eq. 1).or. &
+     &                (topo%hyb(ii) .eq. 1.or.topo%hyb(kk) .eq. 1)
+               if (imetal(ii) .eq. 0.and.imetal(jj) .eq. 0.and.imetal(kk) .eq. 0) then
+@@ -1729,7 +1884,9 @@
+               if (topo%hyb(i) .eq. 5) then
+                 r0 = 90.
+                 f2 = 0.11       ! not very important
+-                if (phi*180./pi .gt. gen%linthr) r0 = 180.       ! hypervalent coordination can be linear GEODEP
++                if (.not.legacy_topology_contract) then
++                  if (phi*180./pi .gt. gen%linthr) r0 = 180.       ! hypervalent coordination can be linear GEODEP
++                end if
+               end if
+ !!!!!!!!!!
+ ! B
+@@ -1750,7 +1907,7 @@
+                   triple = .false.   ! CO2
+                   f2 = 2.0
+                 end if
+-                if (topo%hyb(i) .eq. 3.and.nn .gt. 4) then
++                if (.not.legacy_topology_contract.and.topo%hyb(i) .eq. 3.and.nn .gt. 4) then
+                   if (phi*180./pi .gt. gen%linthr) r0 = 180.       ! hypervalent coordination can be linear GEODEP
+                 end if
+               end if
+@@ -1769,7 +1926,7 @@
+                 if (npi .eq. 2) then
+                   r0 = 109. ! e.g. Ph-O-Ph
+                 end if
+-                if (nmet .gt. 0.and.phi*180./pi .gt. gen%linthr) then
++                if (.not.legacy_topology_contract.and.nmet .gt. 0.and.phi*180./pi .gt. gen%linthr) then
+                   r0 = 180. ! metal coordination can be linear GEODEP
+                   f2 = 0.3
+                 end if
+@@ -1810,19 +1967,21 @@
+ !!!!!!!!!!
+ ! RING < 5
+ !!!!!!!!!!
+-              if (rings .eq. 3) r0 = 82. ! 60 gives too little strain
+-              if (rings .eq. 4) r0 = 96.
+-              if (rings .eq. 5.and.ati .eq. 6) r0 = 109.
++              if (.not.legacy_topology_contract) then
++                if (rings .eq. 3) r0 = 82. ! 60 gives too little strain
++                if (rings .eq. 4) r0 = 96.
++                if (rings .eq. 5.and.ati .eq. 6) r0 = 109.
+ !!!!!!!!!!
+ ! specials
+ !!!!!!!!!!
+ ! R-X in 3-rings e.g. cyclopropene
+-              if (rings .eq. 0) then
+-                call ringsatom(nat,i,cring,sring,idum)
+-                if (idum .eq. 3) then
+-                  call ringsatom(nat,jj,cring,sring,ringsj)
+-                  call ringsatom(nat,kk,cring,sring,ringsk)
+-                  if (ringsj+ringsk .eq. 102) r0 = r0+4.d0
++                if (rings .eq. 0) then
++                  call ringsatom(nat,i,cring,sring,idum)
++                  if (idum .eq. 3) then
++                    call ringsatom(nat,jj,cring,sring,ringsj)
++                    call ringsatom(nat,kk,cring,sring,ringsk)
++                    if (ringsj+ringsk .eq. 102) r0 = r0+4.d0
++                  end if
+                 end if
+               end if
+ 
+@@ -1831,7 +1990,8 @@
+                 f2 = 0.60d0  ! complex 7 in S30L makes artificial torsions if this is 0.4 which is
+                 ! slightly better for the phenylmethylethyne bending pot.
+                 if (atj .eq. 7.or.atk .eq. 7) f2 = 1.00d0
+-                if ((imetal(jj) .eq. 2.or.imetal(kk) .eq. 2).and.phi*180./pi .gt. gen%linthr) then
++                if (.not.legacy_topology_contract.and. &
++    &               (imetal(jj) .eq. 2.or.imetal(kk) .eq. 2).and.phi*180./pi .gt. gen%linthr) then
+                   if (ati .eq. 6.and.atj .eq. 6) f2 = 3.   ! M-CC
+                   if (ati .eq. 6.and.atk .eq. 6) f2 = 3.   ! M-CC
+                   if (ati .eq. 6.and.atj .eq. 7) f2 = 3.   ! M-CN
+@@ -1858,16 +2018,18 @@
+                 if (ati .eq. 17) r0 = 90.
+                 if (ati .eq. 35) r0 = 90.
+                 if (ati .eq. 53) r0 = 90.
+-                if (ati .gt. 9.and.phi*180./pi .gt. gen%linthr) r0 = 180. ! change to linear if linear coordinated, GEODEP
++                if (.not.legacy_topology_contract.and.ati .gt. 9.and.phi*180./pi .gt. gen%linthr) r0 = 180. ! change to linear if linear coordinated, GEODEP
+                 f2 = 0.6/dble(ati)**0.15
+               end if
+ ! PB or Sn can be pyramidal
+               if (topo%hyb(i) .eq. 3.and.param%group(ati) .eq. 4.and.ati .gt. 32.and.topo%qa(i) .gt. 0.4) then
+-                if (phi*180./pi .gt. 140.) then
+-                  r0 = 180. ! change to linear
+-                end if
+-                if (phi*180./pi .lt. 100.) then
+-                  r0 = 90.
++                if (.not.legacy_topology_contract) then
++                  if (phi*180./pi .gt. 140.) then
++                    r0 = 180. ! change to linear
++                  end if
++                  if (phi*180./pi .lt. 100.) then
++                    r0 = 90.
++                  end if
+                 end if
+                 f2 = 1.0
+               end if
+@@ -1880,7 +2042,9 @@
+                 if (topo%hyb(i) .eq. 1) r0 = 180.
+                 if (topo%hyb(i) .eq. 2) r0 = 120.
+                 if (topo%hyb(i) .eq. 3) r0 = 109.5
+-                if (phi*180./pi .gt. gen%linthr) r0 = 180. ! change to linear
++                if (.not.legacy_topology_contract) then
++                  if (phi*180./pi .gt. gen%linthr) r0 = 180. ! change to linear
++                end if
+               end if
+ 
+               fn = 1.0d0-2.36d0/dble(nn)**2
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_ini2.f90 src/vendor/gfnff/upstream/src/gfnff_ini2.f90
+--- /tmp/gfnff_inspect/src/gfnff_ini2.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_ini2.f90	2026-06-26 14:47:20.548769400 +0800
+@@ -68,11 +68,17 @@
+     integer,intent(in),optional :: printunit   !< output unit (default: stdout)
+ 
+     integer :: mylevel,myunit
++    character(len=32) :: periodic_edge_topology_contract
++    integer :: periodic_edge_topology_contract_len
++    integer :: periodic_edge_topology_contract_status
++    logical :: periodic_edge_legacy_topology_contract
++    logical :: legacy_topology_contract
+     logical :: etacoord,da,strange_iat,metal_iat
+     integer,allocatable :: nbdum(:,:,:),nbdum2(:,:),locarr(:,:)
+     real(wp),allocatable :: cn(:),rtmp(:)
+     integer :: iat,i,j,k,ni,ii,jj,kk,ll,ati,nb20i,nbdiff,hc_crit,nbmdiff,nnf,nni,nh,nm
+     integer :: ai,aj,nn,im,ncm,l,no,iTr,iTr2,numnbf,numnbm,numnb,idx,idxdum,idxdum2,numctr
++    integer :: edge,tail,head,iTrEdge,iTrNeg,pos
+     integer :: nat
+     real(wp) :: r,a1,f,f1,phi,f2,rco,fat(103)
+     real(wp),parameter :: pi = 3.1415926535897932384626433832795029_wp
+@@ -110,12 +116,139 @@
+       myunit = stdout
+     end if
+ 
++    periodic_edge_topology_contract = ''
++    periodic_edge_topology_contract_len = 0
++    periodic_edge_topology_contract_status = 0
++    periodic_edge_legacy_topology_contract = .false.
++    call get_environment_variable( &
++      & 'SLICES_VENDOR_PERIODIC_TOPOLOGY_CONTRACT', &
++      & periodic_edge_topology_contract, &
++      & length=periodic_edge_topology_contract_len, &
++      & status=periodic_edge_topology_contract_status)
++    if (periodic_edge_topology_contract_status .eq. 0) then
++      periodic_edge_topology_contract = adjustl(periodic_edge_topology_contract)
++      if (trim(periodic_edge_topology_contract) .eq. 'legacy_topology' .or. &
++        & trim(periodic_edge_topology_contract) .eq. 'legacy_topology_contract') then
++        periodic_edge_legacy_topology_contract = .true.
++      end if
++    end if
++    legacy_topology_contract = allocated(neigh%user_nbf).or. &
++      & (periodic_edge_legacy_topology_contract.and.allocated(neigh%user_edge_i))
++
+     nat = natoms
+     allocate (cn(natoms),rtmp(natoms*(natoms+1)/2),nbdum2(20,natoms))
+     rtmp = 0.0
+ 
+ ! determine the neighbor list
+-    if (makeneighbor) then
++    if (allocated(neigh%user_edge_i)) then
++      if (.not.allocated(neigh%nbf)) then
++        allocate (neigh%nbf(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nbf = 0
++      end if
++      if (.not.allocated(neigh%nb)) then
++        allocate (neigh%nb(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nb = 0
++      end if
++      if (.not.allocated(neigh%nbm)) then
++        allocate (neigh%nbm(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nbm = 0
++      end if
++      do edge = 1,size(neigh%user_edge_i)
++        tail = neigh%user_edge_i(edge)
++        head = neigh%user_edge_j(edge)
++        if (tail < 1.or.tail > natoms.or.head < 1.or.head > natoms) then
++          if (mylevel >= 1) write (myunit,'("**WARNING** ",a,1x,a,3i0)') &
++          & 'ignoring out-of-range user periodic edge',source,edge,tail,head
++          cycle
++        end if
++        iTrEdge = 0
++        do iTr = 1,neigh%numctr
++          if (all(neigh%trVecInt(:,iTr) == neigh%user_edge_shift(:,edge))) then
++            iTrEdge = iTr
++            exit
++          end if
++        end do
++        if (iTrEdge <= 0) then
++          if (mylevel >= 1) write (myunit,'("**WARNING** ",a,1x,a,4i0)') &
++          & 'ignoring user periodic edge outside central PBC image block', &
++          & source,edge,neigh%user_edge_shift(1,edge),neigh%user_edge_shift(2,edge), &
++          & neigh%user_edge_shift(3,edge)
++          cycle
++        end if
++        pos = neigh%nb(neigh%numnb,tail,iTrEdge)+1
++        if (pos <= neigh%numnb-1) then
++          neigh%nbf(pos,tail,iTrEdge) = head
++          neigh%nb(pos,tail,iTrEdge) = head
++          neigh%nbm(pos,tail,iTrEdge) = head
++          neigh%nbf(neigh%numnb,tail,iTrEdge) = pos
++          neigh%nb(neigh%numnb,tail,iTrEdge) = pos
++          neigh%nbm(neigh%numnb,tail,iTrEdge) = pos
++        else if (mylevel >= 1) then
++          write (myunit,'("**WARNING** ",a,1x,a,3i0)') &
++          & 'truncating user periodic edge degree for atom/image',source,tail,iTrEdge,pos
++        end if
++        iTrNeg = neigh%iTrNeg(iTrEdge)
++        if (iTrNeg > 0.and.iTrNeg <= neigh%numctr) then
++          pos = neigh%nb(neigh%numnb,head,iTrNeg)+1
++          if (pos <= neigh%numnb-1) then
++            neigh%nbf(pos,head,iTrNeg) = tail
++            neigh%nb(pos,head,iTrNeg) = tail
++            neigh%nbm(pos,head,iTrNeg) = tail
++            neigh%nbf(neigh%numnb,head,iTrNeg) = pos
++            neigh%nb(neigh%numnb,head,iTrNeg) = pos
++            neigh%nbm(neigh%numnb,head,iTrNeg) = pos
++          else if (mylevel >= 1) then
++            write (myunit,'("**WARNING** ",a,1x,a,3i0)') &
++            & 'truncating reverse user periodic edge degree for atom/image', &
++            & source,head,iTrNeg,pos
++          end if
++        end if
++      end do
++
++    else if (allocated(neigh%user_nbf)) then
++      if (.not.allocated(neigh%nbf)) then
++        allocate (neigh%nbf(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nbf = 0
++      end if
++      if (.not.allocated(neigh%nb)) then
++        allocate (neigh%nb(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nb = 0
++      end if
++      if (.not.allocated(neigh%nbm)) then
++        allocate (neigh%nbm(neigh%numnb,nat,neigh%numctr),source=0)
++      else
++        neigh%nbm = 0
++      end if
++      do i = 1,natoms
++        nn = neigh%user_nbf(20,i)
++        if (nn < 0) nn = 0
++        if (nn > min(19,neigh%numnb-2)) then
++          if (mylevel >= 1) write (myunit,'("**WARNING** ",a,1x,a,i0)') &
++          & 'truncating user NBF degree for atom',source,i
++          nn = min(19,neigh%numnb-2)
++        end if
++        do j = 1,nn
++          idx = neigh%user_nbf(j,i)
++          if (idx < 1.or.idx > natoms) then
++            if (mylevel >= 1) write (myunit,'("**WARNING** ",a,1x,a,2i0)') &
++            & 'ignoring out-of-range user NBF neighbor',source,i,idx
++            cycle
++          end if
++          neigh%nbf(j,i,1) = idx
++          neigh%nb(j,i,1) = idx
++          neigh%nbm(j,i,1) = idx
++        end do
++        neigh%nbf(neigh%numnb,i,1) = nn
++        neigh%nb(neigh%numnb,i,1) = nn
++        neigh%nbm(neigh%numnb,i,1) = nn
++      end do
++
++    else if (makeneighbor) then
+ 
+       do i = 1,natoms
+         cn(i) = dble(param%normcn(at(i)))
+@@ -210,8 +343,10 @@
+             do k = 1,neigh%nbf(neigh%numnb,i,iTr)  !
+               if (neigh%nbf(k,i,iTr) .ne. im) then ! all neighbors that are not the metal im
+                 kk = neigh%nbf(k,i,iTr)
+-                do l = 1,sum(neigh%nbf(neigh%numnb,kk,:))
+-                  if (neigh%nbf(l,kk,iTr) .eq. im) ncm = ncm+1 ! ncm=1 is alkyne, =2 is cp
++                do iTr2 = 1,numctr
++                  do l = 1,neigh%nbf(neigh%numnb,kk,iTr2)
++                    if (neigh%nbf(l,kk,iTr2) .eq. im) ncm = ncm+1 ! ncm=1 is alkyne, =2 is cp
++                  end do
+                 end do
+               end if
+             end do
+@@ -240,7 +375,7 @@
+       nh = 0
+       no = 0
+       do iTr = 1,numctr
+-        do j = 1,nb20i
++        do j = 1,nbdum(neigh%numnb,i,iTr)
+           if (nbdum(j,i,iTr) .eq. 0) cycle
+           if (at(nbdum(j,i,iTr)) .eq. 1) nh = nh+1
+           if (at(nbdum(j,i,iTr)) .eq. 8) no = no+1
+@@ -272,33 +407,40 @@
+         if (nb20i .gt. 4.and.ati .gt. 10.and.nbdiff .eq. 0) hyb(i) = 5
+         if (nb20i .eq. 3) hyb(i) = 2
+         if (nb20i .eq. 2) then
+-          ! get the right neighbors for bangl call
+-          call neigh%nbLoc(natoms,nbdum,i,locarr)
+-          if (size(locarr,dim=2) .eq. 1) then
+-            idxdum = locarr(1,1)
+-            idxdum2 = locarr(2,1)
+-            iTr = locarr(neigh%numnb,1)
+-            iTr2 = locarr(neigh%numnb,1)
+-            deallocate (locarr)
+-          elseif (size(locarr,dim=2) .eq. 2) then
+-            idxdum = locarr(1,1)
+-            idxdum2 = locarr(1,2)
+-            iTr = locarr(neigh%numnb,1)
+-            iTr2 = locarr(neigh%numnb,2)
+-            deallocate (locarr)
++          if (legacy_topology_contract) then
++            ! The legacy SLICES helper is topology-only and does not have
++            ! physical xyz angles.  Avoid dummy-coordinate carbene detection.
++            hyb(i) = 1
++            itag(i) = 0
+           else
+-            if (mylevel >= 1) write (myunit,'("**ERROR**",a,1x,a)') ' Hybridization failed. Neighbors could not be located.',source
+-          end if
+-          call banglPBC(1,xyz,idxdum,i,idxdum2,iTr,iTr2,neigh%transVec,phi)
+-          if (phi*180./pi .lt. 150.0) then                         ! geometry dep. setup! GEODEP
+-            hyb(i) = 2  ! otherwise, carbenes will not be recognized
+-            itag(i) = 1  ! tag for Hueckel and HB routines
+-          else
+-            hyb(i) = 1  ! linear triple bond etc
+-          end if
+-          if (topo%qa(i) .lt. -0.4) then
+-            hyb(i) = 2
+-            itag(i) = 0  ! tag for Hueckel and HB routines
++            ! get the right neighbors for bangl call
++            call neigh%nbLoc(natoms,nbdum,i,locarr)
++            if (size(locarr,dim=2) .eq. 1) then
++              idxdum = locarr(1,1)
++              idxdum2 = locarr(2,1)
++              iTr = locarr(neigh%numnb,1)
++              iTr2 = locarr(neigh%numnb,1)
++              deallocate (locarr)
++            elseif (size(locarr,dim=2) .eq. 2) then
++              idxdum = locarr(1,1)
++              idxdum2 = locarr(1,2)
++              iTr = locarr(neigh%numnb,1)
++              iTr2 = locarr(neigh%numnb,2)
++              deallocate (locarr)
++            else
++              if (mylevel >= 1) write (myunit,'("**ERROR**",a,1x,a)') ' Hybridization failed. Neighbors could not be located.',source
++            end if
++            call banglPBC(1,xyz,idxdum,i,idxdum2,iTr,iTr2,neigh%transVec,phi)
++            if (phi*180./pi .lt. 150.0) then                         ! geometry dep. setup! GEODEP
++              hyb(i) = 2  ! otherwise, carbenes will not be recognized
++              itag(i) = 1  ! tag for Hueckel and HB routines
++            else
++              hyb(i) = 1  ! linear triple bond etc
++            end if
++            if (topo%qa(i) .lt. -0.4) then
++              hyb(i) = 2
++              itag(i) = 0  ! tag for Hueckel and HB routines
++            end if
+           end if
+         end if
+         if (nb20i .eq. 1) hyb(i) = 1  ! CO
+@@ -2219,9 +2361,11 @@
+       do m = 1,numctr
+         if (pair(l,i,m) .eq. cval) then
+           ! number of 1st, 2nd, ... neighbors depending on cval
+-          nnbi = nnbi+1
+-          nbi(1,nnbi) = l  ! idx of nb,  j
+-          nbi(2,nnbi) = m  ! which cell, iTr
++          if (nnbi < numnb) then
++            nnbi = nnbi+1
++            nbi(1,nnbi) = l  ! idx of nb,  j
++            nbi(2,nnbi) = m  ! which cell, iTr
++          end if
+         end if
+       end do
+     end do
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_interface.f90 src/vendor/gfnff/upstream/src/gfnff_interface.f90
+--- /tmp/gfnff_inspect/src/gfnff_interface.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_interface.f90	2026-06-25 16:33:07.601223200 +0800
+@@ -312,6 +312,32 @@
+           & 'user fragment list size does not match nat, ignoring it.',source
+         end if
+       end if
++      if (allocated(dat%userinput%nbf)) then
++        if (size(dat%userinput%nbf,1) == 20.and.size(dat%userinput%nbf,2) == nat) then
++          dat%neigh%user_nbf = dat%userinput%nbf
++          if (mylevel >= 2) write (myunit,'(10x,a)') &
++          & 'using host-supplied topology-only NBF neighbor table'
++        else if (mylevel >= 1) then
++          write (myunit,'("**WARNING** ",a,1x,a)') &
++          & 'user NBF table shape does not match (20,nat), ignoring it.',source
++        end if
++      end if
++      if (allocated(dat%userinput%edge_i).and.allocated(dat%userinput%edge_j) &
++      &   .and.allocated(dat%userinput%edge_shift)) then
++        if (size(dat%userinput%edge_i) == size(dat%userinput%edge_j) &
++        &   .and.size(dat%userinput%edge_shift,1) == 3 &
++        &   .and.size(dat%userinput%edge_shift,2) == size(dat%userinput%edge_i)) then
++          dat%neigh%user_edge_i = dat%userinput%edge_i
++          dat%neigh%user_edge_j = dat%userinput%edge_j
++          dat%neigh%user_edge_shift = dat%userinput%edge_shift
++          if (mylevel >= 2) write (myunit,'(10x,a,i0,a)') &
++          & 'using host-supplied periodic edge topology (', &
++          & size(dat%userinput%edge_i), ' edges)'
++        else if (mylevel >= 1) then
++          write (myunit,'("**WARNING** ",a,1x,a)') &
++          & 'user periodic edge topology shapes are inconsistent, ignoring it.',source
++        end if
++      end if
+     end if
+ 
+ !> Periodic boundary conditions setup
+@@ -505,4 +531,3 @@
+ 
+ !========================================================================================!
+ end module gfnff_interface
+-
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_neighbor.f90 src/vendor/gfnff/upstream/src/gfnff_neighbor.f90
+--- /tmp/gfnff_inspect/src/gfnff_neighbor.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_neighbor.f90	2026-06-25 16:32:16.298686200 +0800
+@@ -59,6 +59,10 @@
+     integer,allocatable :: nr_hb(:)
+     !> holds 3 vectors for ebond calculation: 1-shift, 2-steepness, 3-tot prefactor
+     real(wp),allocatable :: vbond(:,:)
++    !> legacy topology-helper bond export:
++    !> 1-shift, 2-steepness, 3-prefactor, 4-equilibrium length in Bohr,
++    !> 5/6 reserved for compatibility with the old modified xtb JSON payload.
++    real(wp),allocatable :: vbond_legacy(:,:)
+     integer :: nTrans,iTrDim
+     integer,allocatable :: idTr(:) ! gives unique id of local iTr (translation vec index)
+     integer,allocatable :: Trid(:) ! gives local index for iteration from unique id
+@@ -69,6 +73,14 @@
+     ! no neighbor (and hence no bond) is created between atoms of different
+     ! fragments -> enforces a host-supplied fragmentation. See TGFFUserInput.
+     integer,allocatable :: user_fraglist(:)
++    ! optional topology-only NBF input, shape (20,nat). Rows 1:19 are
++    ! 1-based neighbor ids and row 20 is the degree row.
++    integer,allocatable :: user_nbf(:,:)
++    ! optional topology-only periodic edge list. edge_i/edge_j are 1-based
++    ! atom ids, edge_shift(:,k) is the lattice translation of edge_j(k).
++    integer,allocatable :: user_edge_i(:)
++    integer,allocatable :: user_edge_j(:)
++    integer,allocatable :: user_edge_shift(:,:)
+   contains
+     ! initialize neigh
+     procedure :: init_n
+@@ -695,4 +707,3 @@
+   end subroutine filliTrUsed
+ 
+ end module gfnff_neighbor
+-
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_param.f90 src/vendor/gfnff/upstream/src/gfnff_param.f90
+--- /tmp/gfnff_inspect/src/gfnff_param.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_param.f90	2026-06-26 21:29:58.703319300 +0800
+@@ -679,16 +679,21 @@
+     integer  :: i,nn
+     real(wp) :: xx(20)
+     character(len=256) :: atmp
++    logical :: exist
+ 
+-    call init(param,103)
+-
+-    param%en(:) = en
+-    param%rad(:) = rad
+-    param%rcov(:) = covalentRadD3(1:103)
+-    param%metal(:) = metal
+-    param%group(:) = group
+-    param%normcn(:) = normcn
+-    param%repz(:) = repz
++    ! Legacy xtb parameter files contain 86 rows.  Start from the modern
++    ! 103-element table, then overwrite Z=1:86 so Z>86 remains well defined.
++    call gfnff_load_param(gffVersion%angewChem2020_2,param,exist)
++    if (.not.exist) then
++      call init(param,103)
++      param%en(:) = en
++      param%rad(:) = rad
++      param%rcov(:) = covalentRadD3(1:103)
++      param%metal(:) = metal
++      param%group(:) = group
++      param%normcn(:) = normcn
++      param%repz(:) = repz
++    end if
+ 
+     do i = 1,86
+       read (iunit,'(a)') atmp
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_qm.f90 src/vendor/gfnff/upstream/src/gfnff_qm.f90
+--- /tmp/gfnff_inspect/src/gfnff_qm.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_qm.f90	2026-06-26 09:03:46.922337100 +0800
+@@ -201,6 +201,22 @@
+ 
+     bkt = boltz*t
+ 
++    if (nel <= 0) then
++      occ = 0.0_wp
++      fod = 0.0_wp
++      e_fermi = eig(1)
++      s = 0.0_wp
++      return
++    end if
++
++    if (nel >= norbs) then
++      occ = 1.0_wp
++      fod = 0.0_wp
++      e_fermi = eig(norbs)
++      s = 0.0_wp
++      return
++    end if
++
+     e_fermi = 0.5*(eig(nel)+eig(nel+1))
+     occt = nel
+ 
+@@ -260,29 +276,31 @@
+     foccb = 0
+ !>--- even nel
+     if (mod(nel,2) .eq. 0) then
+-      ihomo = nel/2
++      ihomo = min(nel/2,ndim)
+       do i = 1,ihomo
+         focc(i) = 2
+       end do
+-      if (2*ihomo .ne. nel) then
++      if (2*ihomo .ne. nel.and.ihomo .lt. ndim) then
+         ihomo = ihomo+1
+         focc(ihomo) = 1
+         if (nopen .eq. 0) nopen = 1
+       end if
+       if (nopen .gt. 1) then
+         do i = 1,nopen/2
+-          focc(ihomo-i+1) = focc(ihomo-i+1)-1
+-          focc(ihomo+i) = focc(ihomo+i)+1
++          if (ihomo-i+1 .ge. 1.and.ihomo+i .le. ndim) then
++            focc(ihomo-i+1) = focc(ihomo-i+1)-1
++            focc(ihomo+i) = focc(ihomo+i)+1
++          end if
+         end do
+       end if
+ !>--- odd nel
+     else
+       na = nel/2+(nopen-1)/2+1
+       nb = nel/2-(nopen-1)/2
+-      do i = 1,na
++      do i = 1,min(na,ndim)
+         focc(i) = focc(i)+1
+       end do
+-      do i = 1,nb
++      do i = 1,min(nb,ndim)
+         focc(i) = focc(i)+1
+       end do
+     end if
+diff -ruN '--exclude=.git' '--exclude=__pycache__' '--exclude=.pytest_cache' '--exclude=*.so' '--exclude=*.so.*' /tmp/gfnff_inspect/src/gfnff_rab.f90 src/vendor/gfnff/upstream/src/gfnff_rab.f90
+--- /tmp/gfnff_inspect/src/gfnff_rab.f90	2026-06-25 10:34:25.593020460 +0800
++++ src/vendor/gfnff/upstream/src/gfnff_rab.f90	2026-06-26 21:49:30.271790800 +0800
+@@ -27,7 +27,7 @@
+   implicit none
+   private
+ 
+-  public :: gfnffrab,gfnffdrab,itabrow6
++  public :: gfnffrab,gfnffdrab,gfnffdrab2,itabrow6
+ 
+ ! ══════════════════════════════════════════════════════════════════════════════
+   ! fitted on PBExa-3c geom set by SG,9/2018
+@@ -91,6 +91,13 @@
+   & 3.12000000,2.620000000,2.670000000,2.670000000,2.750000000,&
+   & 2.62000000]
+ 
++  ! Legacy modified xtb used the original 86-element lanthanide RAB radii.
++  ! All other Z=1:86 RAB en/r0/cnfak values match the modern table.
++  real(wp),parameter :: r0_legacy86_ln(15) = [ &
++  & 3.19903011_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp, &
++  & 2.80000000_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp, &
++  & 2.80000000_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp,2.80000000_wp]
++
+   real(wp),parameter :: cnfak(103) = [ &
+   & 0.17957827,0.25584045,-0.02485871,0.00374217,0.05646607, &
+   & 0.10514203,0.09753494,0.30470380,0.23261783,0.36752208,  &
+@@ -120,6 +127,28 @@
+ contains  !> MODULE PROCEDURES START HERE
+ ! ══════════════════════════════════════════════════════════════════════════════
+ 
++  function legacy86_rab_mode_active() result(active)
++    implicit none
++    logical :: active
++    character(len=64) :: mode
++    integer :: status
++
++    active = .false.
++    mode = ''
++    call get_environment_variable('SLICES_VENDOR_GFNFF_RAB_MODE',mode,status=status)
++    if (status /= 0) then
++      call get_environment_variable('SLICES_VENDOR_GFNFF_PARAM_MODE',mode,status=status)
++    end if
++    if (status /= 0) return
++
++    select case (trim(mode))
++    case ('legacy86','legacy86_overlay','legacy_86_overlay','legacy86_xtb','legacy')
++      active = .true.
++    end select
++  end function legacy86_rab_mode_active
++
++! ══════════════════════════════════════════════════════════════════════════════
++
+   subroutine gfnffdrab(n,at,cn,dcn,nsrb,srblist,rab,grab,rabdcn)
+     implicit none
+     integer n                 ! number of atoms
+@@ -138,6 +167,12 @@
+     real(wp) :: ra,rb,k1,k2,den,ff
+     real(wp) :: p(6,2)
+     real(wp) :: scaleF(103,103)
++    real(wp) :: r0_active(103)
++    logical :: legacy86_rab
++
++    r0_active = r0
++    legacy86_rab = legacy86_rab_mode_active()
++    if (legacy86_rab) r0_active(57:71) = r0_legacy86_ln(:)
+ 
+     ! setup factor for Fluorine-Ln or F-Ac bonds
+     scaleF = 1.0
+@@ -160,6 +195,7 @@
+     scaleF(89:103,53) = 1.0551948
+     scaleF(53,57:71) = 1.0551948
+     scaleF(53,89:103) = 1.0551948
++    if (legacy86_rab) scaleF(1:86,1:86) = 1.0_wp
+ 
+     ! global EN polynominal parameters x 10^3
+     p(1,1) = 29.84522887
+@@ -183,8 +219,8 @@
+       ir = itabrow6(ati)
+       jr = itabrow6(atj)
+       !--------
+-      ra = r0(ati)+cnfak(ati)*cn(i)
+-      rb = r0(atj)+cnfak(atj)*cn(j)
++      ra = r0_active(ati)+cnfak(ati)*cn(i)
++      rb = r0_active(atj)+cnfak(atj)*cn(j)
+       den = abs(en(ati)-en(atj))
+       k1 = 0.005d0*(p(ir,1)+p(jr,1))
+       k2 = 0.005d0*(p(ir,2)+p(jr,2))
+@@ -203,6 +239,88 @@
+ 
+ ! ══════════════════════════════════════════════════════════════════════════════
+ 
++  subroutine gfnffdrab2(n,at,cn,nsrb,srblist,rab,ra0,rb0)
++    implicit none
++    integer n                 ! number of atoms
++    integer at(n)             ! ordinal numbers
++    real(wp) :: cn(n)         ! D3 CN
++    integer nsrb              ! # of pairs
++    integer srblist(3,nsrb)   ! list of atom pairs, optional third row is PBC image id
++    real(wp) :: rab(nsrb)     ! output bond lengths estimates, input predetermined bond shifts
++    real(wp) :: ra0(nsrb)     ! output atom A radius contribution
++    real(wp) :: rb0(nsrb)     ! output atom B radius contribution
++
++    integer i,j,k,ati,atj,ir,jr
++
++    real(wp) :: ra,rb,k1,k2,den,ff
++    real(wp) :: p(6,2)
++    real(wp) :: scaleF(103,103)
++    real(wp) :: r0_active(103)
++    logical :: legacy86_rab
++
++    r0_active = r0
++    legacy86_rab = legacy86_rab_mode_active()
++    if (legacy86_rab) r0_active(57:71) = r0_legacy86_ln(:)
++
++    ! setup factor for Fluorine-Ln or F-Ac bonds
++    scaleF = 1.0
++    scaleF(57:71,9) = 0.93533568
++    scaleF(89:103,9) = 0.93533568
++    scaleF(9,57:71) = 0.93533568
++    scaleF(9,89:103) = 0.93533568
++    ! for Chlorine
++    scaleF(57:71,17) = 1.0190114
++    scaleF(89:103,17) = 1.0190114
++    scaleF(17,57:71) = 1.0190114
++    scaleF(17,89:103) = 1.0190114
++    ! for Bromine
++    scaleF(57:71,35) = 1.0425532
++    scaleF(89:103,35) = 1.0425532
++    scaleF(35,57:71) = 1.0425532
++    scaleF(35,89:103) = 1.0425532
++    ! for Iodine
++    scaleF(57:71,53) = 1.0551948
++    scaleF(89:103,53) = 1.0551948
++    scaleF(53,57:71) = 1.0551948
++    scaleF(53,89:103) = 1.0551948
++    if (legacy86_rab) scaleF(1:86,1:86) = 1.0_wp
++
++    ! global EN polynominal parameters x 10^3
++    p(1,1) = 29.84522887
++    p(2,1) = -1.70549806
++    p(3,1) = 6.54013762
++    p(4,1) = 6.39169003
++    p(5,1) = 6.00000000 ! handish downward extrapolated for GFN-FF
++    p(6,1) = 5.60000000
++    p(1,2) = -8.87843763
++    p(2,2) = 2.10878369
++    p(3,2) = 0.08009374
++    p(4,2) = -0.85808076
++    p(5,2) = -1.15000000
++    p(6,2) = -1.30000000
++
++    do k = 1,nsrb
++      j = srblist(1,k)
++      i = srblist(2,k)
++      ati = at(i)
++      atj = at(j)
++      ir = itabrow6(ati)
++      jr = itabrow6(atj)
++      ra = r0_active(ati)+cnfak(ati)*cn(i)
++      rb = r0_active(atj)+cnfak(atj)*cn(j)
++      den = abs(en(ati)-en(atj))
++      k1 = 0.005d0*(p(ir,1)+p(jr,1))
++      k2 = 0.005d0*(p(ir,2)+p(jr,2))
++      ff = 1.0d0-k1*den-k2*den**2
++      rab(k) = (ra+rb+rab(k))*ff*scaleF(ati,atj)
++      ra0(k) = ra
++      rb0(k) = rb
++    end do
++
++  end subroutine gfnffdrab2
++
++! ══════════════════════════════════════════════════════════════════════════════
++
+   INTEGER FUNCTION iTabRow6(i)
+     implicit none
+     INTEGER i
+@@ -238,6 +356,12 @@
+ 
+     real(wp) :: ra,rb,k1,k2,den,ff,p(6,2)
+     real(wp) :: scaleF(103,103)
++    real(wp) :: r0_active(103)
++    logical :: legacy86_rab
++
++    r0_active = r0
++    legacy86_rab = legacy86_rab_mode_active()
++    if (legacy86_rab) r0_active(57:71) = r0_legacy86_ln(:)
+ 
+     ! setup factor for Fluorine-Ln or F-Ac bonds
+     scaleF = 1.0
+@@ -260,6 +384,7 @@
+     scaleF(89:103,53) = 1.0551948
+     scaleF(53,57:71) = 1.0551948
+     scaleF(53,89:103) = 1.0551948
++    if (legacy86_rab) scaleF(1:86,1:86) = 1.0_wp
+ 
+     p(1,1) = 29.84522887
+     p(2,1) = -1.70549806
+@@ -281,8 +406,8 @@
+         atj = at(j)
+         ir = itabrow6(ati)
+         jr = itabrow6(atj)
+-        ra = r0(ati)+cnfak(ati)*cn(i)
+-        rb = r0(atj)+cnfak(atj)*cn(j)
++        ra = r0_active(ati)+cnfak(ati)*cn(i)
++        rb = r0_active(atj)+cnfak(atj)*cn(j)
+         den = abs(en(ati)-en(atj))
+         k1 = 0.005d0*(p(ir,1)+p(jr,1))
+         k2 = 0.005d0*(p(ir,2)+p(jr,2))
