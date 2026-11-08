@@ -4,11 +4,10 @@
 ``SLICES(relax_model=...)`` accepts:
 
 * ``"auto"`` (default): NequIP-OAM-L on a usable CUDA GPU. Without a GPU, relax with
-  NequIP-OAM-S and take the energy from a NequIP-OAM-L single point (about as fast as M3GNet
-  on CPU). Falls back to M3GNet when nequip is not installed.
+  NequIP-OAM-S and take the energy from a NequIP-OAM-L single point (about as fast as the
+  former M3GNet relaxer on CPU).
 * ``"nequip-l"``: relax with NequIP-OAM-L.
 * ``"nequip-s+l"`` / ``"nequip-m+l"``: relax with NequIP-OAM-S / -M, energy from NequIP-OAM-L.
-* ``"m3gnet"``: the original M3GNet relaxer (TensorFlow).
 * ``None`` or ``"none"``: no relaxer.
 
 All NequIP variants report the NequIP-OAM-L energy, so results from GPU and CPU machines are
@@ -16,7 +15,7 @@ on the same energy scale.
 
 Environment variables:
 
-* ``SLICES_RELAX_MODEL``: used when ``relax_model="auto"``, e.g. ``m3gnet`` or ``nequip-s+l``.
+* ``SLICES_RELAX_MODEL``: used when ``relax_model="auto"``, e.g. ``nequip-s+l`` or ``nequip-m+l``.
 * ``SLICES_DEVICE``: ``cpu`` or ``cuda``, overrides GPU detection.
 * ``SLICES_MODEL_CACHE``: directory for compiled NequIP models (default ``~/.cache/slices/nequip``).
 * ``SLICES_TORCH_THREADS``: PyTorch CPU threads per process (default ``OMP_NUM_THREADS`` or 1;
@@ -50,7 +49,7 @@ NEQUIP_PLANS = {
     "nequip-s+l": ("S", "L"),
     "nequip-m+l": ("M", "L"),
 }
-RELAX_MODELS = ("auto", "m3gnet", "none") + tuple(NEQUIP_PLANS)
+RELAX_MODELS = ("auto", "none") + tuple(NEQUIP_PLANS)
 OPTIMIZERS = ("BFGS", "LBFGS", "FIRE", "FIRE+BFGS")
 FIRE_PRESTEPS = 10  # FIRE steps before switching to BFGS in "FIRE+BFGS"
 
@@ -76,23 +75,8 @@ def nequip_available():
     return importlib.util.find_spec("torch") is not None and importlib.util.find_spec("nequip") is not None
 
 
-def m3gnet_available():
-    return importlib.util.find_spec("m3gnet") is not None
-
-
 def _nequip_install_hint():
-    if sys.version_info < (3, 10):
-        return (f"nequip needs Python >= 3.10, this is Python {sys.version_info.major}.{sys.version_info.minor}; "
-                "create the environment with python=3.10")
-    try:
-        import numpy
-        numpy2 = int(numpy.__version__.split(".")[0]) >= 2
-    except ImportError:
-        numpy2 = False
-    if numpy2:
-        return "install it with: pip install nequip==0.17.1"
-    # matscipy 1.0.0 is the last release that works with numpy < 2 (needed by TensorFlow/M3GNet)
-    return "install it with: pip install matscipy==1.0.0 nequip==0.17.1"
+    return "set up the environment with `uv sync --extra cpu` (or cu126 / cu128), see README"
 
 
 def choose_device():
@@ -114,17 +98,16 @@ def resolve_relax_model(relax_model):
     from_auto = name == "auto"
     if from_auto:
         name = os.environ.get("SLICES_RELAX_MODEL", "auto").strip().lower() or "auto"
+    if name == "m3gnet":
+        raise ValueError("M3GNet support has been removed; use relax_model='auto' or one of "
+                         f"{tuple(NEQUIP_PLANS)}")
     if name not in RELAX_MODELS:
         raise ValueError(f"Unknown relax_model {relax_model!r}; choose from {RELAX_MODELS}")
     if name == "auto":
-        if nequip_available():
-            device = choose_device()
-            return ("nequip-l" if device == "cuda" else "nequip-s+l"), device, True
-        if m3gnet_available():
-            _announce("relax_model='auto' falls back to M3GNet because nequip is not installed ("
-                      + _nequip_install_hint() + ")")
-            return "m3gnet", None, True
-        raise ImportError("relax_model='auto' needs nequip (recommended) or m3gnet to be installed")
+        if not nequip_available():
+            raise ImportError(f"relax_model='auto' needs torch and nequip ({_nequip_install_hint()})")
+        device = choose_device()
+        return ("nequip-l" if device == "cuda" else "nequip-s+l"), device, True
     if name in NEQUIP_PLANS:
         if not nequip_available():
             raise ImportError(f"relax_model={name!r} needs torch and nequip ({_nequip_install_hint()})")
@@ -137,8 +120,6 @@ def make_relaxer(relax_model="auto", optimizer="BFGS"):
     name, device, from_auto = resolve_relax_model(relax_model)
     if name == "none":
         return None, "none"
-    if name == "m3gnet":
-        return _make_m3gnet_relaxer(optimizer), "m3gnet"
     try:
         relaxer = NequIPRelaxer(name, device, optimizer)
     except Exception as exc:
@@ -149,29 +130,6 @@ def make_relaxer(relax_model="auto", optimizer="BFGS"):
         relaxer = NequIPRelaxer(name, device, optimizer)
     _announce(f"relax_model={name} on {device} ({relaxer.description})")
     return relaxer, name
-
-
-# ----------------------------------------------------------------------------- M3GNet
-
-def _make_m3gnet_relaxer(optimizer):
-    import tensorflow as tf
-    import m3gnet.models
-    from m3gnet.models import Relaxer
-
-    if not getattr(_make_m3gnet_relaxer, "_threads_set", False):
-        try:
-            tf.config.threading.set_inter_op_parallelism_threads(1)
-            tf.config.threading.set_intra_op_parallelism_threads(1)
-        except RuntimeError:  # TensorFlow already initialised by the caller
-            pass
-        _make_m3gnet_relaxer._threads_set = True
-    model_path = m3gnet.models.__path__[0] + "/MP-2021.2.8-EFS/"
-    if not os.path.isdir(model_path):
-        data_path = os.path.dirname(__file__) + "/MP-2021.2.8-EFS"
-        subprocess.call(["mkdir", "-p", model_path])
-        subprocess.call(["cp", data_path + "/checkpoint", data_path + "/m3gnet.data-00000-of-00001",
-                         data_path + "/m3gnet.index", data_path + "/m3gnet.json", model_path])
-    return Relaxer(optimizer=optimizer)
 
 
 # ----------------------------------------------------------------------------- NequIP
@@ -357,8 +315,8 @@ def _optimize(target, optimizer, fmax, steps):
 
 
 class NequIPRelaxer:
-    """Same interface as ``m3gnet.models.Relaxer.relax``: returns ``final_structure`` and a
-    ``trajectory`` whose ``energies[-1]`` is the total energy (eV) of the final structure."""
+    """``relax()`` returns ``final_structure`` and a ``trajectory`` whose ``energies[-1]`` is the
+    total energy (eV) of the final structure (the interface used by ``SLICES.relax``)."""
 
     def __init__(self, name, device, optimizer="BFGS"):
         if optimizer not in OPTIMIZERS:
@@ -395,8 +353,7 @@ def _main():
                         help="compile/cache the models and run a test relaxation")
     args = parser.parse_args()
 
-    print(f"python {sys.version.split()[0]}  nequip installed: {nequip_available()}  "
-          f"m3gnet installed: {m3gnet_available()}")
+    print(f"python {sys.version.split()[0]}  nequip installed: {nequip_available()}")
     if nequip_available():
         import torch
         cuda = torch.cuda.is_available()

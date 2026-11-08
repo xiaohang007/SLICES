@@ -3,6 +3,10 @@
 # Yan Chen 2023.10
 # yanchen@xjtu.edu.com
 import os,sys,json,gc,math
+# One math-library thread per worker process (many workers run in parallel);
+# must be set before numpy is imported to take effect.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_var] = "1"
 from slices.core import SLICES
 from pymatgen.core.structure import Structure
 import configparser
@@ -22,14 +26,6 @@ import sqlite3
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 import numpy as np
-os.environ["OMP_NUM_THREADS"] = "1"
-
-def clear_tf_session():
-    """Free TensorFlow memory when the M3GNet relaxer is used (no-op for NequIP)."""
-    tf = sys.modules.get("tensorflow")
-    if tf is not None:
-        tf.keras.backend.clear_session()
-
 
 def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> bool: 
     a, b, c = structure.lattice.abc        
@@ -70,7 +66,6 @@ def process_one_record(prop_values, slices_str):
             structure, energy_per_atom = CG.SLICES2structure(slices_str)
             if not find_abnormal_lattices(structure):
                 gc.collect()
-                clear_tf_session()
                 finder = SpacegroupAnalyzer(structure)
                 try:
                     primitive_standard_structure = finder.get_primitive_standard_structure()
@@ -122,7 +117,6 @@ def process_one_record(prop_values, slices_str):
         CG = SLICES(graph_method=graph_method, check_results=check)
         print(e)
         gc.collect()
-        clear_tf_session()
 
 
 with open('temp_splited.csv', 'r') as f:

@@ -56,120 +56,65 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 ## Installation
 可以选择 1.本地安装 **或者** 2.docker安装。
 ## Local Installation
-本地安装指南(Ubuntu或者win11的Ubuntu子系统)
-### 1.1 安装 Miniconda 并配置中国源 
-**如果你已经安装了 Miniconda 并配置好了中国镜像源，可以跳过这一步。**
-- 首先，更新 Ubuntu 系统的包索引并安装 `wget` 工具，用于下载文件。
-- 然后，你通过 `wget` 下载 Miniconda 安装脚本并执行安装，将 Miniconda 安装到 `~/miniconda3` 目录。
-- 在安装完成后，删除安装脚本，并配置了 `pip` 使用清华大学的镜像源，以提高下载速度。
+本地安装指南（Ubuntu 或者 Win11 的 WSL2 Ubuntu 子系统）。环境由 [uv](https://docs.astral.sh/uv/) 管理：Python 3.10 由 uv 自动下载，不需要 conda；所有依赖的确切版本锁定在 `uv.lock` 中，每台机器装出来的环境完全一致。PyPI 默认使用清华镜像（在 `pyproject.toml` 中配置），PyTorch 从官方源下载。
+
+### 1.1 安装 uv
+**如果已经装好 uv，可以跳过这一步。**
 
 ```bash
-sudo apt-get update
-sudo apt-get install wget
-mkdir -p ~/miniconda3
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-rm ~/miniconda3/miniconda.sh
-source ~/miniconda3/bin/activate
-conda init --all
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
-conda config --set show_channel_urls yes
-pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-python -m pip install --upgrade pip
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 如果上面的命令下载慢，也可以用已有的 pip 从清华镜像安装：
+# pip install uv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+安装后重新打开终端，运行 `uv --version` 确认安装成功。
 
-### 1.2.1 下载 SLICES 仓库并安装 Conda 子环境及 SLICES 包
-- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
-- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
-- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
+### 1.2 下载 SLICES 仓库并安装环境
+根据你的硬件选择一个 PyTorch 版本（三选一）：
+- `--extra cu128`：NVIDIA 显卡，**50 系显卡必须用这个**；
+- `--extra cu126`：NVIDIA 显卡，驱动较老、不支持 CUDA 12.8 时使用；
+- `--extra cpu`：没有 NVIDIA 显卡。
 
 ```bash
 wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
 unzip slices_repo.zip
 cd SLICES-main
-conda create --name slices python=3.10
-conda activate slices
-pip install  tensorflow-cpu==2.13.0
-pip install --no-deps m3gnet
-pip install smact==2.5.5
-pip install ase==3.22.1
-pip install pymatgen==2024.8.9
-pip install scipy==1.13.0
-pip install scikit-learn==1.3.1
-pip install numpy==1.26.4
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install matscipy==1.0.0 nequip==0.17.1   # NequIP 力场，需在 torch 之后安装
-pip install gradio==4.44.1
-pip install slices --no-deps
-python -m pip install einops
-wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
-pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl --no-deps
+uv sync --extra cu128              # 按上面的说明换成 cu126 或 cpu
+source .venv/bin/activate          # 激活环境；之后的命令都在这个环境里运行
+python -m slices.relax_backends --prepare   # 首次使用：下载并在本机编译 NequIP 力场模型
 ```
 安装完成！
 
-MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
+- 环境装在仓库目录下的 `.venv` 中。每次打开新终端后，进入仓库目录运行 `source .venv/bin/activate`；也可以不激活，在命令前加 `uv run`，例如 `uv run python app.py`。
+- 可以同时加多个可选组件，例如 `uv sync --extra cu128 --extra gui`（图形界面，见 1.4）或 `--extra oeq`（OpenEquivariance，NVIDIA 显卡上可进一步加速 NequIP）。
+- `uv sync` 会让环境与 `uv.lock` 完全一致，手动用 `uv pip install` 装的额外包会被移除；如需保留，用 `uv sync --inexact`。
+- flash-attn 不再随环境安装（目前没有适配 torch 2.9 的预编译包）。MatterGPT 检测不到 flash-attn 时会改用 PyTorch 自带的 `scaled_dot_product_attention`，结果相同。
+- 只有 CPU 时训练 MatterGPT 很耗内存：教程中 `batch_size=36` 约需 13 GB，16 GB 内存的电脑（包括 WSL）建议把 `BATCH_SIZE` 改为 8（约 5.5 GB），否则可能把系统内存耗尽。
 
-
-### 1.2.2 50x系列新显卡的 PyTorch (cu128) 安装
-
-
-如果你的电脑是 50x 显卡，按 1.2.1 安装后可能无法调用显卡驱动。可按下面步骤将 PyTorch 调整为 `torch==2.7.0` / `cu128` 版本。
-- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
-- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
-- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
-
-```bash
-wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
-unzip slices_repo.zip
-cd SLICES-main
-conda create --name slices_50x python=3.10
-conda activate slices_50x
-pip install  tensorflow-cpu==2.13.0
-pip install --no-deps m3gnet
-pip install smact==2.5.5
-pip install ase==3.22.1
-pip install pymatgen==2024.8.9
-pip install scipy==1.13.0
-pip install scikit-learn==1.3.1
-pip install numpy==1.26.4
-python -m pip install \
-  torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
-  --index-url https://download.pytorch.org/whl/cu128
-pip install matscipy==1.0.0 nequip==0.17.1   # NequIP 力场，需在 torch 之后安装
-pip install gradio==4.44.1
-pip install slices --no-deps
-python -m pip install einops
-python -m wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
-python -m pip install flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp310-cp310-linux_x86_64.whl --no-deps
-```
-安装完成！
-
-MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
-
-安装完成！
-
-### 1.2.3 NequIP 力场（解码最后一步的结构弛豫）
-
-上面的安装步骤已包含 NequIP（需要 Python 3.10 及以上）。`SLICES(relax_model="auto")`（默认）会自动选择力场：
+### 1.3 NequIP 力场（解码最后一步的结构弛豫）
+`SLICES(relax_model="auto")`（默认）会自动选择力场：
 - 检测到 CUDA GPU：用 NequIP-OAM-L 弛豫；
-- 没有 GPU：用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量，CPU 上速度与 M3GNet 相当；
-- 没有安装 nequip（例如 Python 3.9 环境）：回退到 M3GNet，并在日志中说明原因。
+- 没有 GPU：用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量，CPU 上速度与以前的 M3GNet 相当。
 
-所有 NequIP 方案的能量都来自 NequIP-OAM-L，因此 GPU 和 CPU 机器的结果可以直接比较。首次使用前在本机编译模型：
+所有方案的能量都来自 NequIP-OAM-L，因此 GPU 和 CPU 机器的结果可以直接比较。
 
-```bash
-python -m slices.relax_backends --prepare   # 下载并编译模型（CPU 约 3 分钟，GPU 可能更久），之后直接使用缓存
-```
-
-- `matscipy` 固定为 1.0.0，是为了不把 numpy 升级到 2.x（否则 TensorFlow/M3GNet 不可用）。
-- 编译好的模型与本机 GPU、CUDA、torch、nequip 版本绑定，缓存在 `~/.cache/slices/nequip`，换机器需要重新编译。
+- 编译好的模型与本机 GPU、CUDA、torch、nequip 版本绑定，缓存在 `~/.cache/slices/nequip`，换机器需要重新运行 `--prepare`。
 - 在开多个并行解码进程之前先运行一次 `--prepare`，避免第一次运行时等待编译。
-- 也可以显式指定 `relax_model="nequip-l"`、`"nequip-s+l"`、`"nequip-m+l"` 或 `"m3gnet"`，或者设置环境变量 `SLICES_RELAX_MODEL`、`SLICES_DEVICE=cpu|cuda`。完整说明见 `src/slices/relax_backends.py`。
+- 也可以显式指定 `relax_model="nequip-l"`、`"nequip-s+l"` 或 `"nequip-m+l"`，或者设置环境变量 `SLICES_RELAX_MODEL`、`SLICES_DEVICE=cpu|cuda`。完整说明见 `src/slices/relax_backends.py`。
+- M3GNet 已移除，不再安装 TensorFlow。
+
+### 1.4 访问图形界面
+```bash
+uv sync --extra cu128 --extra gui   # 安装图形界面所需的 gradio（cu128 换成你在 1.2 中的选择）
+cd MatterGPT
+python app.py
+```
+按住 `CTRL` (或 Mac 上的 `Command`)，然后点击terminal中的 `http://localhost:7860`链接来打开MatterGPT的图形界面。
 
 
 如果想用Docker来跑SLICES的环境，可以选择下面的安装方法：
 ### Docker Installation
+
+> 注意：Docker 镜像 v12 仍是旧环境（包含 M3GNet 的旧版 SLICES），还没有更新到上面的 uv 环境。
 
 请按照以下步骤使用 Docker 安装 SLICES:
 

@@ -1,30 +1,73 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "slices"
 version = "2.0.12"
 authors = [{name = "Hang Xiao", email = "xiaohang07@live.cn"}]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "setuptools>=18.0",
-    "m3gnet==0.2.4",
-    "smact==2.5.5",
-    # NequIP force fields used by relax_model="auto" (nequip >= 0.12 needs Python >= 3.10;
-    # on Python 3.9 SLICES falls back to M3GNet). matscipy 1.0.0 is the last release for numpy < 2,
-    # which TensorFlow/M3GNet environments need; newer releases are picked when numpy 2 is allowed.
-    "torch>=2.2; python_version >= '3.10'",
-    "nequip==0.17.1; python_version >= '3.10'",
-    "matscipy>=1.0.0; python_version >= '3.10'",
+    "numpy",
+    "scipy",
+    "pandas",
+    "matplotlib",
+    "networkx",
+    "sympy",
+    "pymatgen",
+    "scikit-learn",
+    "tqdm",
+    "einops",             # MatterGPT model
+    "ase",
+    # PyTorch + NequIP force fields for relax_model="auto". Pick the torch build with one of
+    # the extras below: uv sync --extra cpu | cu126 | cu128
+    "torch>=2.6,<2.10",   # 2.6+ for AOTInductor export; 2.9 is the tested version
+    "nequip==0.17.1",
+    "matscipy>=1.0.0",
 ]
+
+[project.optional-dependencies]
+cpu = ["torch>=2.6,<2.10"]
+cu126 = ["torch>=2.6,<2.10"]   # NVIDIA GPUs up to the RTX 40 series
+cu128 = ["torch>=2.6,<2.10"]   # also needed for RTX 50 series
+gui = ["gradio"]               # MatterGPT/app.py
+oeq = ["openequivariance"]     # optional faster NequIP kernels on NVIDIA GPUs
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "cu126" }, { extra = "cu128" }]]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu126", extra = "cu126" },
+    { index = "pytorch-cu128", extra = "cu128" },
+]
+
+# Tsinghua PyPI mirror as the default index, so uv.lock resolves the same everywhere without
+# extra settings. Users outside China can set UV_DEFAULT_INDEX=https://pypi.org/simple (uv then
+# re-resolves; use `uv sync --locked` to keep exactly the locked versions from the mirror).
+[[tool.uv.index]]
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.setuptools.package-data]
 slices = [
     "nlopt.h",
     "xtb_noring_nooutput_nostdout_noCN",
-    "MP-2021.2.8-EFS/checkpoint",
-    "MP-2021.2.8-EFS/m3gnet.data-00000-of-00001",
-    "MP-2021.2.8-EFS/m3gnet.index",
-    "MP-2021.2.8-EFS/m3gnet.json"
 ]

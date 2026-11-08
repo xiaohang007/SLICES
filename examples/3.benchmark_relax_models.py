@@ -8,7 +8,7 @@ dataset (computed like MatterGPT/2_decode, using chemPotMP.json).
 Run from the repository root, e.g.:
     python -m slices.relax_backends --prepare          # compile/cache the NequIP models first
     python examples/3.benchmark_relax_models.py --n 32
-    python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-s+l m3gnet
+    python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-s+l nequip-m+l
     SLICES_DEVICE=cpu python examples/3.benchmark_relax_models.py   # force the CPU path on a GPU machine
 
 The timing is for one process; MatterGPT decoding runs several such processes in parallel.
@@ -52,7 +52,7 @@ def main():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-atoms", type=int, default=20,
                         help="skip SLICES with more atoms (default 20, the fast relax() path)")
-    parser.add_argument("--models", nargs="+", default=["auto", "m3gnet"])
+    parser.add_argument("--models", nargs="+", default=["auto", "nequip-m+l"])
     parser.add_argument("--out", default=None, help="optional JSON file for per-structure results")
     args = parser.parse_args()
 

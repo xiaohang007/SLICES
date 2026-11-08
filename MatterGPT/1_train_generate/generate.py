@@ -117,8 +117,8 @@ if __name__ == '__main__':
     # 获取训练集的晶系分布
     train_distribution = get_crystal_system_distribution(args.train_dataset)
     print("\nTraining set crystal system distribution:")
-    for sys, prob in train_distribution.items():
-        print(f"{sys}: {prob:.3f}")
+    for crystal_sys, prob in train_distribution.items():
+        print(f"{crystal_sys}: {prob:.3f}")
 
 
 
@@ -178,8 +178,8 @@ if __name__ == '__main__':
                 continue
 
             current_distribution = results_df['crystal_system'].value_counts(normalize=True)
-            for sys, prob in current_distribution.items():
-                target_prob = train_distribution.get(sys, 0)
+            for crystal_sys, prob in current_distribution.items():
+                target_prob = train_distribution.get(crystal_sys, 0)
 
             # 打印其他统计信息
             unique_slices = list(set(results_df['SLICES']))
@@ -200,9 +200,9 @@ if __name__ == '__main__':
         sys.exit(0)
 
     final_distribution = final_results['crystal_system'].value_counts(normalize=True)
-    for sys in set(train_distribution.index) | set(final_distribution.index):
-        train_prob = train_distribution.get(sys, 0)
-        gen_prob = final_distribution.get(sys, 0)
+    for crystal_sys in set(train_distribution.index) | set(final_distribution.index):
+        train_prob = train_distribution.get(crystal_sys, 0)
+        gen_prob = final_distribution.get(crystal_sys, 0)
 
     final_results.to_csv(args.output_csv, index=False)
 

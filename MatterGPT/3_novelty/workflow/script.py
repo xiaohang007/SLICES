@@ -3,6 +3,10 @@
 # yanchen@xjtu.edu.com
 
 import os
+# One math-library thread per worker process (many workers run in parallel);
+# must be set before numpy is imported to take effect.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_var] = "1"
 import csv
 import gc
 import sqlite3
@@ -12,7 +16,6 @@ from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
-os.environ["OMP_NUM_THREADS"] = "1"
 
 # Matching tolerances
 ltol = 0.2

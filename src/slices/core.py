@@ -93,13 +93,10 @@ class SLICES:
             steps (int, optional): Max steps. Defaults to 100.
             relax_model (str, optional): Force field for the final relaxation. Defaults to "auto":
                 NequIP-OAM-L on a CUDA GPU, otherwise NequIP-OAM-S relaxation plus a NequIP-OAM-L
-                single-point energy on CPU, falling back to M3GNet if nequip is not installed.
-                Other values: "nequip-l", "nequip-s+l", "nequip-m+l", "m3gnet", or None for no
-                relaxer. See slices.relax_backends for details and environment variables.
+                single-point energy on CPU. Other values: "nequip-l", "nequip-s+l", "nequip-m+l",
+                or None for no relaxer. See slices.relax_backends for details and environment variables.
                 After construction, self.relax_model holds the resolved choice.
         """
-        if "tensorflow" in sys.modules:  # free memory held by earlier M3GNet instances
-            sys.modules["tensorflow"].keras.backend.clear_session()
         gc.collect()
         self.atom_types = atom_types
         self.edge_indices = edge_indices
@@ -1794,13 +1791,13 @@ class SLICES:
     def to_structures(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.00,vbond_param_ave=0.01,repul=True):        
         """The inverse transform of the crystal graph of a SLICES string to its crystal structure.
         Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
-        3 pymatgen structure objects and the energy per atom predicted with M3GNet.
+        3 pymatgen structure objects and the energy per atom predicted with the force field (relax_model).
 
         (1) barycentric embedding net with rescaled lattice based on the average bond scaling factors
          calculated with modified GFN-FF predicted geometry 
         (2) non-barycentric net embedding that matches bond lengths and bond angles predicted with
          modified GFN-FF
-        (3) non-barycentric net embedding undergone cell optimization using M3GNet IAPs
+        (3) non-barycentric net embedding undergone cell optimization using the force field (relax_model)
         if cell optimization failed, then output (1) and (2)
 
         Args:
@@ -1820,7 +1817,7 @@ class SLICES:
 
         Returns:
             list: [Rescaled Structure, ZL*-optimized Structure,  IAP-optimized Structure]
-            float: Energy per atom predicted with M3GNet.
+            float: Energy per atom predicted with the force field (relax_model).
         """
         x_dat, net_voltage = self.convert_graph()
         net = Net(x_dat,dim=3)
@@ -1941,7 +1938,7 @@ class SLICES:
 
         Returns:
             Structure: A pymatgen Structure object.
-            float: Energy per atom predicted with M3GNet.
+            float: Energy per atom predicted with the force field (relax_model).
         """
         self.from_SLICES(SLICES,strategy,fix_duplicate_edge)
         structures,final_energy_per_atom = self.to_structures()
@@ -1951,7 +1948,7 @@ class SLICES:
         """
         Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
         a pymatgen structure object: non-barycentric net embedding undergone cell optimization 
-        using M3GNet IAPs.
+        using the force field (relax_model).
         If cell optimization failed, then raise error.
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
@@ -1974,15 +1971,15 @@ class SLICES:
 
     @function_timeout(seconds=360)
     def relax(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 60 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 60 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            Structure: Optimized pymatgen Structure object.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
@@ -1995,15 +1992,15 @@ class SLICES:
 
     @function_timeout(seconds=720)
     def relax_large_cell1(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 360 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 360 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            Structure: Optimized pymatgen Structure object.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
@@ -2016,16 +2013,16 @@ class SLICES:
 
     @function_timeout(seconds=2000)
     def relax_large_cell2(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 1000 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 1000 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
+            Structure: Optimized pymatgen Structure object.
 
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc)

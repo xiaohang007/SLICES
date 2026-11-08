@@ -2,24 +2,18 @@
 # Yan Chen 2023.10
 # yanchen@xjtu.edu.com
 import os
+# One math-library thread per worker process (many workers run in parallel);
+# must be set before numpy is imported to take effect.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_var] = "1"
 import csv
 import gc
 import json
-import sys
 import configparser
 from slices.core import SLICES
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-# 设置环境变量
-os.environ["OMP_NUM_THREADS"] = "1"
-
-
-def clear_tf_session():
-    """Free TensorFlow memory when the M3GNet relaxer is used (no-op for NequIP)."""
-    tf = sys.modules.get("tensorflow")
-    if tf is not None:
-        tf.keras.backend.clear_session()
 
 
 def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> bool:
@@ -96,4 +90,3 @@ with open("temp_splited.csv", "r", encoding="utf-8") as f:
             del CG
             CG = SLICES(graph_method=graph_method, check_results=check)
             gc.collect()
-            clear_tf_session()
