@@ -8,7 +8,6 @@ from pymatgen.core.structure import Structure
 import configparser
 import time
 import os,csv,glob
-import tensorflow as tf
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.composition import Composition
@@ -24,6 +23,13 @@ from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 import numpy as np
 os.environ["OMP_NUM_THREADS"] = "1"
+
+def clear_tf_session():
+    """Free TensorFlow memory when the M3GNet relaxer is used (no-op for NequIP)."""
+    tf = sys.modules.get("tensorflow")
+    if tf is not None:
+        tf.keras.backend.clear_session()
+
 
 def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> bool: 
     a, b, c = structure.lattice.abc        
@@ -47,7 +53,7 @@ config.read('./settings.ini')
 graph_method = config.get("Settings","graph_method")
 
 check=False
-CG=SLICES(graph_method=graph_method, check_results=check, relax_model="m3gnet")
+CG=SLICES(graph_method=graph_method, check_results=check)
 results=[]
 
 sm = StructureMatcher(ltol, stol, angle_tol, primitive_cell=True, \
@@ -64,7 +70,7 @@ def process_one_record(prop_values, slices_str):
             structure, energy_per_atom = CG.SLICES2structure(slices_str)
             if not find_abnormal_lattices(structure):
                 gc.collect()
-                tf.keras.backend.clear_session()
+                clear_tf_session()
                 finder = SpacegroupAnalyzer(structure)
                 try:
                     primitive_standard_structure = finder.get_primitive_standard_structure()
@@ -113,10 +119,10 @@ def process_one_record(prop_values, slices_str):
                     )
     except Exception as e:
         del CG
-        CG = SLICES(graph_method=graph_method, check_results=check, relax_model="m3gnet")
+        CG = SLICES(graph_method=graph_method, check_results=check)
         print(e)
         gc.collect()
-        tf.keras.backend.clear_session()
+        clear_tf_session()
 
 
 with open('temp_splited.csv', 'r') as f:

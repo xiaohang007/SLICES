@@ -32,17 +32,13 @@ from collections import defaultdict, deque
 from io import StringIO
 import pandas as pd
 import matplotlib.pyplot as plt
-from m3gnet.models import Relaxer
 import logging
-import tensorflow as tf
 import signal,gc
 from contextlib import contextmanager
 from functools import wraps
 import itertools
 import copy,sys
-import m3gnet.models
-tf.config.threading.set_inter_op_parallelism_threads(1)
-tf.config.threading.set_intra_op_parallelism_threads(1)
+from slices.relax_backends import make_relaxer
 def function_timeout(seconds: int):
     """Define a decorator that sets a time limit for a function call.
 
@@ -78,7 +74,7 @@ def function_timeout(seconds: int):
 class SLICES:
     """Invertible Crystal Representation (SLICES and labeled quotient graph)
     """    
-    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="m3gnet"):
+    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="auto"):
         """__init__
 
         Args:
@@ -89,12 +85,21 @@ class SLICES:
                 to generate labeled quotient graphs. Defaults to 'econnn'.
             check_results (bool, optional): Flag to indicate whether to output intermediate results for 
                 debugging purposes. Defaults to False.
-            optimizer (str, optional): Optimizer used in M3GNet_IAP optimization. Defaults to "BFGS".
-            fmax (float, optional): Convergence criterion of maximum allowable force on each atom. 
+            optimizer (str, optional): Optimizer for the final cell relaxation. Defaults to "BFGS".
+                NequIP force fields also accept "LBFGS", "FIRE" and "FIRE+BFGS" (10 FIRE steps,
+                then BFGS; more robust for strongly distorted inputs).
+            fmax (float, optional): Convergence criterion of maximum allowable force on each atom.
                 Defaults to 0.2.
             steps (int, optional): Max steps. Defaults to 100.
-        """        
-        tf.keras.backend.clear_session()
+            relax_model (str, optional): Force field for the final relaxation. Defaults to "auto":
+                NequIP-OAM-L on a CUDA GPU, otherwise NequIP-OAM-S relaxation plus a NequIP-OAM-L
+                single-point energy on CPU, falling back to M3GNet if nequip is not installed.
+                Other values: "nequip-l", "nequip-s+l", "nequip-m+l", "m3gnet", or None for no
+                relaxer. See slices.relax_backends for details and environment variables.
+                After construction, self.relax_model holds the resolved choice.
+        """
+        if "tensorflow" in sys.modules:  # free memory held by earlier M3GNet instances
+            sys.modules["tensorflow"].keras.backend.clear_session()
         gc.collect()
         self.atom_types = atom_types
         self.edge_indices = edge_indices
@@ -106,18 +111,8 @@ class SLICES:
         self.unstable_graph = False  # unstable graph flag
         self.fmax=fmax
         self.steps=steps
-        self.relax_model=relax_model
         self.space_group_num = None
-
-        # copy m3gnet model file?
-        if self.relax_model=="m3gnet":
-            model_path=m3gnet.models.__path__[0]+'/MP-2021.2.8-EFS/'
-            if not os.path.isdir(model_path):
-                data_path=os.path.dirname(__file__)+'/MP-2021.2.8-EFS'
-                subprocess.call(['mkdir','-p', model_path])
-                subprocess.call(['cp',data_path+'/checkpoint',data_path+'/m3gnet.data-00000-of-00001',\
-                data_path+'/m3gnet.index',data_path+'/m3gnet.json',model_path])
-            self.relaxer = Relaxer(optimizer=optimizer)
+        self.relaxer, self.relax_model = make_relaxer(relax_model, optimizer)
 
     @contextmanager
     def suppress_output(self):

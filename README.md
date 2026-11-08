@@ -88,7 +88,7 @@ python -m pip install --upgrade pip
 wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
 unzip slices_repo.zip
 cd SLICES-main
-conda create --name slices python=3.9
+conda create --name slices python=3.10
 conda activate slices
 pip install  tensorflow-cpu==2.13.0
 pip install --no-deps m3gnet
@@ -99,11 +99,12 @@ pip install scipy==1.13.0
 pip install scikit-learn==1.3.1
 pip install numpy==1.26.4
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install matscipy==1.0.0 nequip==0.17.1   # NequIP 力场，需在 torch 之后安装
 pip install gradio==4.44.1
 pip install slices --no-deps
 python -m pip install einops
-wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
-pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
+wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
+pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl --no-deps
 ```
 安装完成！
 
@@ -122,7 +123,7 @@ MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention�
 wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
 unzip slices_repo.zip
 cd SLICES-main
-conda create --name slices_50x python=3.9
+conda create --name slices_50x python=3.10
 conda activate slices_50x
 pip install  tensorflow-cpu==2.13.0
 pip install --no-deps m3gnet
@@ -135,11 +136,12 @@ pip install numpy==1.26.4
 python -m pip install \
   torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
   --index-url https://download.pytorch.org/whl/cu128
+pip install matscipy==1.0.0 nequip==0.17.1   # NequIP 力场，需在 torch 之后安装
 pip install gradio==4.44.1
 pip install slices --no-deps
 python -m pip install einops
-python -m wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
-python -m pip install flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
+python -m wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
+python -m pip install flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp310-cp310-linux_x86_64.whl --no-deps
 ```
 安装完成！
 
@@ -147,12 +149,23 @@ MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention�
 
 安装完成！
 
-### 1.3 访问图形界面  注意访问图形界面必须安装slices>=2.0.8
+### 1.2.3 NequIP 力场（解码最后一步的结构弛豫）
+
+上面的安装步骤已包含 NequIP（需要 Python 3.10 及以上）。`SLICES(relax_model="auto")`（默认）会自动选择力场：
+- 检测到 CUDA GPU：用 NequIP-OAM-L 弛豫；
+- 没有 GPU：用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量，CPU 上速度与 M3GNet 相当；
+- 没有安装 nequip（例如 Python 3.9 环境）：回退到 M3GNet，并在日志中说明原因。
+
+所有 NequIP 方案的能量都来自 NequIP-OAM-L，因此 GPU 和 CPU 机器的结果可以直接比较。首次使用前在本机编译模型：
+
 ```bash
-cd MatterGPT
-python app.py
+python -m slices.relax_backends --prepare   # 下载并编译模型（CPU 约 3 分钟，GPU 可能更久），之后直接使用缓存
 ```
-按住 `CTRL` (或 Mac 上的 `Command`)，然后点击terminal中的 `http://localhost:7860`链接来打开MatterGPT的图形界面。
+
+- `matscipy` 固定为 1.0.0，是为了不把 numpy 升级到 2.x（否则 TensorFlow/M3GNet 不可用）。
+- 编译好的模型与本机 GPU、CUDA、torch、nequip 版本绑定，缓存在 `~/.cache/slices/nequip`，换机器需要重新编译。
+- 在开多个并行解码进程之前先运行一次 `--prepare`，避免第一次运行时等待编译。
+- 也可以显式指定 `relax_model="nequip-l"`、`"nequip-s+l"`、`"nequip-m+l"` 或 `"m3gnet"`，或者设置环境变量 `SLICES_RELAX_MODEL`、`SLICES_DEVICE=cpu|cuda`。完整说明见 `src/slices/relax_backends.py`。
 
 
 如果想用Docker来跑SLICES的环境，可以选择下面的安装方法：

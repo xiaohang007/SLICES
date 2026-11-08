@@ -11,6 +11,12 @@ dependencies = [
     "setuptools>=18.0",
     "m3gnet==0.2.4",
     "smact==2.5.5",
+    # NequIP force fields used by relax_model="auto" (nequip >= 0.12 needs Python >= 3.10;
+    # on Python 3.9 SLICES falls back to M3GNet). matscipy 1.0.0 is the last release for numpy < 2,
+    # which TensorFlow/M3GNet environments need; newer releases are picked when numpy 2 is allowed.
+    "torch>=2.2; python_version >= '3.10'",
+    "nequip==0.17.1; python_version >= '3.10'",
+    "matscipy>=1.0.0; python_version >= '3.10'",
 ]
 
 [tool.setuptools.package-data]

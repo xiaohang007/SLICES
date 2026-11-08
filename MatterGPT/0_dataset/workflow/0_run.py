@@ -30,7 +30,7 @@ else:
     sys.exit(1)
 
 cifs_filtered = []
-CG = SLICES(graph_method=graph_method, relax_model="m3gnet")
+CG = SLICES(graph_method=graph_method, relax_model=None)  # encoding only, no force field needed
 csv_lines = []
 
 for cif in cifs:
