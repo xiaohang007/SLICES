@@ -8,6 +8,13 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["XTB_MOD_PATH"] = os.path.abspath(os.path.dirname(__file__))+"/xtb_noring_nooutput_nostdout_noCN"
+# Checkouts and copies can drop the executable bit (git once stored it as 100644);
+# without it every decode fails with a missing gfnff_lists.json.
+if os.path.isfile(os.environ["XTB_MOD_PATH"]) and not os.access(os.environ["XTB_MOD_PATH"], os.X_OK):
+    try:
+        os.chmod(os.environ["XTB_MOD_PATH"], os.stat(os.environ["XTB_MOD_PATH"]).st_mode | 0o111)
+    except OSError:
+        warnings.warn(f"{os.environ['XTB_MOD_PATH']} is not executable; SLICES decoding will fail. Run: chmod +x {os.environ['XTB_MOD_PATH']}")
 os.environ["PYTHONWARNINGS"]="ignore" 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
