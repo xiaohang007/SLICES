@@ -2,7 +2,6 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,random,warnings
-os.environ["CUDA_VISIBLE_DEVICES"]=""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
