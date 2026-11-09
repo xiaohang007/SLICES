@@ -54,13 +54,22 @@ _SUBMITTED_SLURM_JOBS = []
 
 def _submit_slurm_job(script='0_run.sh'):
     """sbatch ``script`` in the current directory and remember its job ID."""
+    # the job script runs "${SLICES_PYTHON:-python}", so jobs use this interpreter's environment
+    env = dict(os.environ, SLICES_PYTHON=sys.executable)
     result = subprocess.run(['sbatch', '--parsable', script], stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, text=True)
+                            stderr=subprocess.PIPE, text=True, env=env)
     job_id = result.stdout.strip().split(';')[0]
     if result.returncode == 0 and job_id:
         _SUBMITTED_SLURM_JOBS.append(job_id)
     else:
         print(f"sbatch failed in {os.getcwd()}: {result.stderr.strip()}")
+
+
+def _run_local_job(script='0_run.py'):
+    """Start ``script`` in the background in the current directory (no SLURM), with this interpreter."""
+    env = dict(os.environ, SLICES_PYTHON=sys.executable)
+    with open('log.txt', 'w') as out, open('error.txt', 'w') as err:
+        subprocess.Popen([sys.executable, script], stdout=out, stderr=err, env=env)
 
 
 def splitRun(filename,threads,skip_header=False):
@@ -117,7 +126,7 @@ def splitRun(filename,threads,skip_header=False):
         if use_slurm:
             _submit_slurm_job()
         else:
-            os.system('python 0_run.py > log.txt 2> error.txt &')
+            _run_local_job()
         os.chdir('..')
     
     print("计算任务已提交。")
@@ -161,7 +170,7 @@ def splitRun_csv(filename,threads,skip_header=False):
         if use_slurm:
             _submit_slurm_job()
         else:
-            os.system('python 0_run.py > log.txt 2> error.txt &')
+            _run_local_job()
         os.chdir('..')
     
     print("计算任务已提交。")

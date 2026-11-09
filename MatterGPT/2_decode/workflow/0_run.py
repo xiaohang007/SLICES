@@ -10,7 +10,7 @@ def run_script(timeout_sec):
     env["OPENBLAS_NUM_THREADS"] = "1"
     try:
         result = subprocess.run(
-            ["timeout", f"{timeout_sec}s", "python", "-B", "script.py"],
+            ["timeout", f"{timeout_sec}s", sys.executable, "-B", "script.py"],
             capture_output=True,
             check=True,
             env=env

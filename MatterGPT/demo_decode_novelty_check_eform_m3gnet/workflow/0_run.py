@@ -2,6 +2,7 @@
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
 import os,sys,json,gc,math
+import subprocess
 
 
 
@@ -16,7 +17,7 @@ os.system("rm result2.csv")  # to deal with slurm's twice execution bug
 with open('temp.csv', 'r') as f:
     slices_list = f.readlines()
 
-batch_size=1
+batch_size=10  # SLICES per script.py process; each process loads the force fields once (~4 s)
 header = None
 if slices_list:
     first = slices_list[0].strip()
@@ -33,5 +34,5 @@ else:
             if header:
                 f.write(header)
             f.writelines(slices_split[i])
-        os.system("timeout "+str(batch_size* 120)+"s python -B script.py")
+        subprocess.run(["timeout", f"{batch_size * 120}s", sys.executable, "-B", "script.py"])
 os.system("mv result2.csv result.csv")

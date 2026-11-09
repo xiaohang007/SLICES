@@ -8,11 +8,10 @@
 
 echo "Begin time: $(date)"
 
-# 设置Conda环境路径并激活环境
-export PATH=/opt/conda/env/chgnet/bin:$PATH
-source activate chgnet
 
 # 执行Python脚本
-python 0_run.py
+# SLICES_PYTHON: the interpreter that submitted the job (set by slices.utils), so the job
+# uses the same environment even if it is not on PATH
+"${SLICES_PYTHON:-python}" 0_run.py
 
 echo "End time: $(date)"
