@@ -236,7 +236,8 @@ def _load_calculator(path, device):
     from nequip.integrations.ase import NequIPCalculator
     if "aotinductor-oeq" in os.path.basename(path):
         import openequivariance  # noqa: F401  registers the libtorch_tp_jit ops the package calls
-    return NequIPCalculator.from_compiled_model(path, device=device)
+    # OAM type names are element symbols, so the identity map is correct (and silences nequip's warning)
+    return NequIPCalculator.from_compiled_model(path, device=device, chemical_species_to_atom_type_map=True)
 
 
 def get_calculator(size, device):
