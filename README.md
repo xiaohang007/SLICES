@@ -64,6 +64,7 @@ uv pip install slices --torch-backend=auto   # 自动选择 CPU 或与显卡驱�
 ```
 - 仅支持 Linux x86_64（包括 Win11 的 WSL2），Python ≥ 3.10。
 - 第一次解码时会自动下载 NequIP 力场权重并在本机编译（约 1–2 分钟），之后直接使用缓存。
+- 权重从 nequip.net（文件在 Zenodo）下载，网络不稳定时会自动重试；仍然失败时，报错里会给出下载地址，可以用浏览器下载后设置 `SLICES_NEQUIP_MODEL_S` / `SLICES_NEQUIP_MODEL_L` 指向下载的文件。
 - MatterGPT 的训练、生成和教程脚本不在 PyPI 包里，需要按下面的方式下载仓库并安装环境。
 
 ## Local Installation

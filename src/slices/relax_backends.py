@@ -178,13 +178,87 @@ def _model_source(size):
     override = os.environ.get(f"SLICES_NEQUIP_MODEL_{size}")
     if override:
         return override
-    model_ref = "nequip.net:" + NEQUIP_MODEL_IDS[size]
-    try:  # resolve to the cached .nequip.zip so download problems surface here, not as compile failures
-        from nequip.model.saved_models.load_utils import _get_model_file_path
-        with _get_model_file_path(model_ref) as path:
-            return str(path)
-    except ImportError:
-        return model_ref
+    try:
+        return _download_model(size)
+    except ImportError:  # nequip internals moved: let nequip-compile fetch the model itself
+        return "nequip.net:" + NEQUIP_MODEL_IDS[size]
+
+
+# Waits (s) before the 2nd, 3rd and 4th download attempt. The weights come from nequip.net
+# (which points to Zenodo); international connections sometimes drop or stall mid-download.
+DOWNLOAD_RETRY_WAITS = (5, 15, 30)
+DOWNLOAD_TIMEOUT = (30, 120)  # (connect, read) seconds; requests has no timeout by default
+
+
+class ModelDownloadError(RuntimeError):
+    """The model weights could not be downloaded. Deliberately not a RelaxBackendError, so a
+    network problem is never recorded as a failed compilation (.failed marker)."""
+
+
+def _download_model(size):
+    """Path of the NequIP-OAM-<size> package in nequip's model cache, downloading it if needed.
+
+    Same cache as nequip itself (~/.nequip/model_cache or NEQUIP_CACHE_DIR), but with timeouts,
+    a completeness check and retries on network errors. nequip writes to a .partial file and
+    renames it only after a complete download, so a failed attempt leaves no broken file.
+    """
+    import functools
+    import requests
+    import lightning.fabric.utilities.rank_zero  # noqa: F401  sets the rank that nequip's logger requires
+    from nequip.utils.model_cache import cache_model, get_cached_model
+    from nequip.utils.model_repository import ModelNotFoundError, NequIPNetAPIClient
+    from tqdm import tqdm
+
+    model_id = NEQUIP_MODEL_IDS[size]
+
+    def fetch(target):
+        with requests.get(url, stream=True, timeout=DOWNLOAD_TIMEOUT) as response:
+            response.raise_for_status()
+            total = int(response.headers.get("content-length", 0))
+            with open(target, "wb") as fh, tqdm(total=total, unit="B", unit_scale=True,
+                                                desc=f"Downloading NequIP-OAM-{size}") as bar:
+                for chunk in response.iter_content(chunk_size=1 << 16):
+                    fh.write(chunk)
+                    bar.update(len(chunk))
+        if total and os.path.getsize(target) != total:
+            raise requests.exceptions.ConnectionError(
+                f"download ended early ({os.path.getsize(target)} of {total} bytes)")
+
+    url, last_error = None, None
+    for attempt in range(len(DOWNLOAD_RETRY_WAITS) + 1):
+        if attempt:
+            wait = DOWNLOAD_RETRY_WAITS[attempt - 1]
+            _log(f"downloading NequIP-OAM-{size} failed ({_short_error(last_error)}); "
+                 f"retry {attempt}/{len(DOWNLOAD_RETRY_WAITS)} in {wait} s")
+            time.sleep(wait)
+        try:
+            with NequIPNetAPIClient() as client:
+                client.session.get = functools.partial(client.session.get, timeout=DOWNLOAD_TIMEOUT)
+                url = client.get_model_download_info(model_id).artifact.download_url
+            cached = get_cached_model(model_id, url)
+            return str(cached if cached is not None else cache_model(model_id, url, fetch))
+        except ModelNotFoundError:
+            raise
+        except requests.exceptions.RequestException as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None and 400 <= status < 500 and status != 429:
+                raise  # e.g. 404: retrying cannot help
+            last_error = exc
+    where = url or f"https://nequip.net (model {model_id})"
+    raise ModelDownloadError(
+        f"Could not download the NequIP-OAM-{size} weights after {len(DOWNLOAD_RETRY_WAITS) + 1} "
+        f"attempts (network problem: {_short_error(last_error)}).\n"
+        f"网络问题，力场权重下载失败，请检查网络后重新运行（会自动重新下载）。\n"
+        f"Or download {where} in a browser and set SLICES_NEQUIP_MODEL_{size}=/path/to/that/file.zip")
+
+
+def _short_error(exc):
+    """One line for a requests exception (the full ones are nested, multi-line urllib3 errors)."""
+    name, text = type(exc).__name__, str(exc)
+    for marker in ("SSLError", "ConnectTimeout", "ReadTimeout", "NewConnectionError", "RemoteDisconnected"):
+        if marker in text:
+            return name if marker == name else f"{name}: {marker}"
+    return f"{name}: {text.splitlines()[0][:120]}" if text else name
 
 
 def _compile(source, out_path, device, mode, oeq):
