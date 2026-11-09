@@ -10,7 +10,11 @@ os.environ["PYTHONWARNINGS"]="ignore"
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.graphs import StructureGraph
-from pymatgen.analysis.local_env import CrystalNN,BrunnerNN_reciprocal,EconNN,MinimumDistanceNN
+from pymatgen.analysis.local_env import CrystalNN,EconNN,MinimumDistanceNN
+try:
+    from pymatgen.analysis.local_env import BrunnerNN_reciprocal
+except ImportError:  # renamed to BrunnerNNReciprocal in pymatgen 2026.3
+    from pymatgen.analysis.local_env import BrunnerNNReciprocal as BrunnerNN_reciprocal
 from pymatgen.core.periodic_table import ElementBase, Element
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.analysis.dimensionality import get_dimensionality_larsen, get_structure_components
@@ -180,16 +184,16 @@ class SLICES:
             StructureGraph: A Pymatgen StructureGraph object.
         """
         if self.graph_method == 'brunnernn':
-            structure_graph = StructureGraph.with_local_env_strategy(
+            structure_graph = StructureGraph.from_local_env_strategy(
                 structure, BrunnerNN_reciprocal())
         elif self.graph_method == 'econnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
+            structure_graph = StructureGraph.from_local_env_strategy(
                 structure, EconNN())
         elif self.graph_method == 'mininn':
-            structure_graph = StructureGraph.with_local_env_strategy(
+            structure_graph = StructureGraph.from_local_env_strategy(
                 structure, MinimumDistanceNN())
         elif self.graph_method == 'crystalnn':
-            structure_graph = StructureGraph.with_local_env_strategy(
+            structure_graph = StructureGraph.from_local_env_strategy(
                 structure, CrystalNN(porous_adjustment=False,weighted_cn=True))
         else:
             print("ERROR - graph_method not implemented") 
@@ -1877,7 +1881,7 @@ class SLICES:
             num_nodes,shortest_path,spanning,uncovered_pair,uncovered_pair_lj,covered_pair_lj,vbond_param_ave_covered,vbond_param_ave, \
             lattice_vectors_scaled,atom_symbols,angle_weight,repul,lattice_type,metric_tensor_std), \
             approx_grad=True, bounds=bounds, m=10, factr=10000000.0, pgtol=1e-05, \
-            epsilon=1e-08, iprint=- 1, maxfun=15000, maxiter=15000, disp=None, callback=None, maxls=20)
+            epsilon=1e-08, maxfun=15000, maxiter=15000, callback=None, maxls=20)
             #get optimized structure
             net.metric_tensor, net.cocycle_rep = self.convert_params(x[0], net.ndim, int(net.order - 1),lattice_type,metric_tensor_std)
             lattice_vectors_new=np.linalg.cholesky(net.metric_tensor)
