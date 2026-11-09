@@ -85,22 +85,32 @@ python -m slices.relax_backends --prepare   # 首次使用：下载并在本机�
 安装完成！
 
 - 环境装在仓库目录下的 `.venv` 中。每次打开新终端后，进入仓库目录运行 `source .venv/bin/activate`；也可以不激活，在命令前加 `uv run`，例如 `uv run python app.py`。
-- 可以同时加多个可选组件，例如 `uv sync --extra cu128 --extra gui`（图形界面，见 1.4）或 `--extra oeq`（OpenEquivariance，NVIDIA 显卡上可进一步加速 NequIP）。
+- 可以同时加多个可选组件，例如 `uv sync --extra cu128 --extra gui`（图形界面，见 1.4）。
 - `uv sync` 会让环境与 `uv.lock` 完全一致，手动用 `uv pip install` 装的额外包会被移除；如需保留，用 `uv sync --inexact`。
 - flash-attn 不再随环境安装（目前没有适配 torch 2.9 的预编译包）。MatterGPT 检测不到 flash-attn 时会改用 PyTorch 自带的 `scaled_dot_product_attention`，结果相同。
 - 只有 CPU 时训练 MatterGPT 很耗内存：教程中 `batch_size=36` 约需 13 GB，16 GB 内存的电脑（包括 WSL）建议把 `BATCH_SIZE` 改为 8（约 5.5 GB），否则可能把系统内存耗尽。
 
 ### 1.3 NequIP 力场（解码最后一步的结构弛豫）
-`SLICES(relax_model="auto")`（默认）会自动选择力场：
-- 检测到 CUDA GPU：用 NequIP-OAM-L 弛豫；
-- 没有 GPU：用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量，CPU 上速度与以前的 M3GNet 相当。
+`SLICES(relax_model="auto")`（默认）在所有机器上都一样：在 CPU 上用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量（`nequip-s+l`）。所有机器默认结果一致，解码不占用 GPU，GPU 可以留给 MatterGPT 训练和生成。
 
-所有方案的能量都来自 NequIP-OAM-L，因此 GPU 和 CPU 机器的结果可以直接比较。
+在 MP-20 全部 2383 个结构上（CPU）：
 
-- 编译好的模型与本机 GPU、CUDA、torch、nequip 版本绑定，缓存在 `~/.cache/slices/nequip`，换机器需要重新运行 `--prepare`。
-- 在开多个并行解码进程之前先运行一次 `--prepare`，避免第一次运行时等待编译。
-- 也可以显式指定 `relax_model="nequip-l"`、`"nequip-s+l"` 或 `"nequip-m+l"`，或者设置环境变量 `SLICES_RELAX_MODEL`、`SLICES_DEVICE=cpu|cuda`。完整说明见 `src/slices/relax_backends.py`。
+| 方案 | 结构复现率（StructureMatcher） | 相对耗时 |
+|---|---|---|
+| 旧版（xtb + M3GNet） | 88.7% | — |
+| `nequip-s+l`（默认） | 93.8% | 1× |
+| `nequip-m+l` | 94.8% | 约 2× |
+
+- 编译好的模型缓存在 `~/.cache/slices/nequip`（CPU 上约 1 分钟），换机器需要重新运行 `--prepare`。在开多个并行解码进程之前先运行一次，避免第一次运行时等待编译。
+- 追求精度可以用 `relax_model="nequip-m+l"`，或设置环境变量 `SLICES_RELAX_MODEL=nequip-m+l`。
+- 弛豫前会自动处理原子重叠的初始结构（约 2% 的结构），并防止晶胞塌缩导致的卡死。
 - M3GNet 已移除，不再安装 TensorFlow。
+
+<details>
+<summary>高级：在 GPU 上解码</summary>
+
+解码约 90% 的时间花在 CPU 步骤上，GPU 只能快约 12%，因此默认不用。如需使用：设置 `SLICES_DEVICE=cuda`，可配合 `relax_model="nequip-l"`。GPU 上需要安装 CUDA toolkit（设置 `CUDA_HOME`）才能用 AOTInductor 编译模型，否则会退回到 TorchScript，比 CPU 还慢；`uv sync --extra oeq` 可再加 OpenEquivariance 加速。完整说明见 `src/slices/relax_backends.py`。
+</details>
 
 ### 1.4 访问图形界面
 ```bash

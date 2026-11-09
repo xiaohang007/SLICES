@@ -66,14 +66,14 @@ print('flash_attn importable', importlib.util.find_spec('flash_attn') is not Non
 \""
 cat "$OUT/torch_info.log" | sed 's/^/    /'
 
-# 2. compile/cache NequIP models (GPU via auto, and the CPU path for comparison)
-step prepare_gpu 3600 "python -m slices.relax_backends --prepare"
-step prepare_cpu 1800 "SLICES_DEVICE=cpu python -m slices.relax_backends --prepare"
+# 2. compile/cache NequIP models (default CPU path, and the opt-in GPU path for comparison)
+step prepare_cpu 1800 "python -m slices.relax_backends --prepare"
+step prepare_gpu 3600 "SLICES_DEVICE=cuda python -m slices.relax_backends --prepare --relax-model nequip-l"
 grep -h -E "relax_model=|compiled|failed|falling back|test relaxation" "$OUT"/prepare_*.log | sed 's/^/    /'
 
 # 3. force-field benchmark on 32 real SLICES (one process)
-step bench_gpu 3600 "python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-s+l nequip-m+l"
-step bench_cpu 3600 "SLICES_DEVICE=cpu python examples/3.benchmark_relax_models.py --n 32 --models auto"
+step bench_cpu 3600 "python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-m+l"
+step bench_gpu 3600 "SLICES_DEVICE=cuda python examples/3.benchmark_relax_models.py --n 32 --models nequip-l nequip-s+l"
 grep -h -A4 "^summary" "$OUT"/bench_*.log | sed 's/^/    /'
 
 # 4. MatterGPT in a copy (so the repo stays clean)

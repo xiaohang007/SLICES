@@ -3,20 +3,24 @@
 
 ``SLICES(relax_model=...)`` accepts:
 
-* ``"auto"`` (default): NequIP-OAM-L on a usable CUDA GPU. Without a GPU, relax with
-  NequIP-OAM-S and take the energy from a NequIP-OAM-L single point (about as fast as the
-  former M3GNet relaxer on CPU).
-* ``"nequip-l"``: relax with NequIP-OAM-L.
+* ``"auto"`` (default): ``"nequip-s+l"`` on every machine.
 * ``"nequip-s+l"`` / ``"nequip-m+l"``: relax with NequIP-OAM-S / -M, energy from NequIP-OAM-L.
+* ``"nequip-l"``: relax with NequIP-OAM-L (practical only on a GPU).
 * ``None`` or ``"none"``: no relaxer.
 
-All NequIP variants report the NequIP-OAM-L energy, so results from GPU and CPU machines are
-on the same energy scale.
+All NequIP variants report the NequIP-OAM-L energy. Models run on the CPU unless
+``SLICES_DEVICE=cuda``. On the 2383 MP-20 structures (CPU), ``nequip-s+l`` reproduced 93.8% of
+the reference structures (M3GNet pipeline: 88.7%); ``nequip-m+l`` reached 94.8% at twice the
+CPU time. A GPU made decoding only ~12% faster, since most of the decode time is the CPU-side
+GFN-FF and lattice optimization steps, so the GPU path is opt-in.
 
 Environment variables:
 
-* ``SLICES_RELAX_MODEL``: used when ``relax_model="auto"``, e.g. ``nequip-s+l`` or ``nequip-m+l``.
-* ``SLICES_DEVICE``: ``cpu`` or ``cuda``, overrides GPU detection.
+* ``SLICES_RELAX_MODEL``: used when ``relax_model="auto"``, e.g. ``nequip-m+l``.
+* ``SLICES_DEVICE``: ``cpu`` (default) or ``cuda``. GPU runs compile the models with
+  AOTInductor, which needs the CUDA toolkit (``CUDA_HOME``); without it they fall back to
+  TorchScript, which on a GPU is slower than the CPU path. ``uv sync --extra oeq`` adds
+  OpenEquivariance kernels for the GPU.
 * ``SLICES_MODEL_CACHE``: directory for compiled NequIP models (default ``~/.cache/slices/nequip``).
 * ``SLICES_TORCH_THREADS``: PyTorch CPU threads per process (default ``OMP_NUM_THREADS`` or 1;
   one thread per process with many processes gives the best throughput for small cells).
@@ -80,23 +84,24 @@ def _nequip_install_hint():
 
 
 def choose_device():
-    """``cuda`` if a CUDA GPU is visible to torch, else ``cpu``; ``SLICES_DEVICE`` overrides."""
-    forced = os.environ.get("SLICES_DEVICE", "").strip().lower()
-    if forced in ("cpu", "cuda"):
-        return forced
-    if forced:
-        raise ValueError(f"SLICES_DEVICE must be 'cpu' or 'cuda', got {forced!r}")
-    import torch
-    return "cuda" if torch.cuda.is_available() and torch.cuda.device_count() > 0 else "cpu"
+    """``SLICES_DEVICE`` (``cpu`` or ``cuda``), default ``cpu``."""
+    device = os.environ.get("SLICES_DEVICE", "").strip().lower() or "cpu"
+    if device not in ("cpu", "cuda"):
+        raise ValueError(f"SLICES_DEVICE must be 'cpu' or 'cuda', got {device!r}")
+    if device == "cuda":
+        import torch
+        if not torch.cuda.is_available():
+            _announce("SLICES_DEVICE=cuda but torch sees no CUDA GPU; using the CPU")
+            return "cpu"
+    return device
 
 
 def resolve_relax_model(relax_model):
-    """Return ``(name, device, from_auto)`` for a ``relax_model`` value."""
+    """Return ``(name, device)`` for a ``relax_model`` value (device None without a relaxer)."""
     if relax_model is None:
-        return "none", None, False
+        return "none", None
     name = str(relax_model).strip().lower()
-    from_auto = name == "auto"
-    if from_auto:
+    if name == "auto":
         name = os.environ.get("SLICES_RELAX_MODEL", "auto").strip().lower() or "auto"
     if name == "m3gnet":
         raise ValueError("M3GNet support has been removed; use relax_model='auto' or one of "
@@ -104,26 +109,23 @@ def resolve_relax_model(relax_model):
     if name not in RELAX_MODELS:
         raise ValueError(f"Unknown relax_model {relax_model!r}; choose from {RELAX_MODELS}")
     if name == "auto":
-        if not nequip_available():
-            raise ImportError(f"relax_model='auto' needs torch and nequip ({_nequip_install_hint()})")
-        device = choose_device()
-        return ("nequip-l" if device == "cuda" else "nequip-s+l"), device, True
+        name = "nequip-s+l"
     if name in NEQUIP_PLANS:
         if not nequip_available():
             raise ImportError(f"relax_model={name!r} needs torch and nequip ({_nequip_install_hint()})")
-        return name, choose_device(), from_auto
-    return name, None, from_auto
+        return name, choose_device()
+    return name, None
 
 
 def make_relaxer(relax_model="auto", optimizer="BFGS"):
     """Build the relaxer for ``relax_model``. Returns ``(relaxer or None, resolved name)``."""
-    name, device, from_auto = resolve_relax_model(relax_model)
+    name, device = resolve_relax_model(relax_model)
     if name == "none":
         return None, "none"
     try:
         relaxer = NequIPRelaxer(name, device, optimizer)
     except Exception as exc:
-        if not (from_auto and device == "cuda"):
+        if device != "cuda":
             raise
         _announce(f"GPU setup failed ({type(exc).__name__}: {exc}); falling back to CPU nequip-s+l")
         name, device = "nequip-s+l", "cpu"
@@ -232,6 +234,8 @@ def _set_cpu_threads():
 
 def _load_calculator(path, device):
     from nequip.integrations.ase import NequIPCalculator
+    if "aotinductor-oeq" in os.path.basename(path):
+        import openequivariance  # noqa: F401  registers the libtorch_tp_jit ops the package calls
     return NequIPCalculator.from_compiled_model(path, device=device)
 
 
@@ -329,17 +333,157 @@ class NequIPRelaxer:
             + f", optimizer {optimizer}"
 
     def relax(self, structure, fmax=0.1, steps=500, **kwargs):
+        """Remove atom overlaps if needed, relax with the collapse guard, and on a collapse retry
+        once with NequIP-OAM-S + FIRE from the same start. Energy from the plan's energy model."""
         from pymatgen.io.ase import AseAtomsAdaptor
 
+        structure, pre = preoptimize(structure)
         atoms = AseAtomsAdaptor.get_atoms(structure)
-        atoms.calc = self.relax_calc
-        n_steps = _optimize(_cell_filter(atoms), self.optimizer, fmax, steps)
+        retry = 0
+        try:
+            with _collapse_guard(self.relax_calc, atoms):
+                atoms.calc = self.relax_calc
+                n_steps = _optimize(_cell_filter(atoms), self.optimizer, fmax, steps)
+        except CellCollapse as exc:
+            from ase.optimize import FIRE
+            retry = 1
+            s_calc, _ = get_calculator("S", self.device)
+            atoms = AseAtomsAdaptor.get_atoms(structure)
+            with _collapse_guard(s_calc, atoms):  # a second collapse propagates (relax failed)
+                atoms.calc = s_calc
+                opt = FIRE(_cell_filter(atoms), logfile=None, maxstep=0.1)
+                opt.run(fmax=fmax, steps=2 * steps)
+                n_steps = opt.nsteps
+            _log(f"relaxation collapsed ({exc}); retried with NequIP-OAM-S + FIRE")
         atoms.calc = None
         final = AseAtomsAdaptor.get_structure(atoms)
         atoms.calc = self.energy_calc or self.relax_calc
         energy = float(atoms.get_potential_energy())
         return {"final_structure": final, "trajectory": types.SimpleNamespace(energies=[energy]),
-                "steps": n_steps}
+                "steps": n_steps, "preoptimized": pre["applied"], "retry": retry}
+
+
+# ----------------------------------------------------------------------------- start-structure safety
+# Lattice optimization occasionally returns overlapping atoms (closest pair down to 0 A). Started
+# from such a structure, the ML force fields can collapse the cell (energy holes at unphysical
+# distances), and the neighbor list of a collapsed cell runs for hours in C code that the
+# SIGALRM time limit in core.py cannot interrupt. On the 41 such MP-20 structures, removing the
+# overlaps first raised reference matches from 13-14 to 24-25 and removed all hangs.
+
+OVERLAP_TRIGGER = 0.5   # pre-optimize when the closest pair is below this fraction of r_i + r_j
+OVERLAP_TARGET = 0.7    # push pairs apart to at least this fraction
+COLLAPSE_VOLUME = 2.0   # A^3 per atom; real crystals have >= ~5
+
+
+class CellCollapse(RelaxBackendError):
+    """The cell collapsed or degenerated during relaxation."""
+
+
+def _covalent_radii(structure):
+    from pymatgen.analysis.local_env import CovalentRadius
+    import numpy as np
+    return np.array([CovalentRadius.radius.get(el.symbol, 1.5) for el in structure.species])
+
+
+def closest_pair_ratio(structure):
+    """Smallest d_ij / (r_i + r_j) over all pairs (periodic images included), covalent radii."""
+    import numpy as np
+    rad = _covalent_radii(structure)
+    d = structure.distance_matrix.copy()
+    np.fill_diagonal(d, np.inf)
+    return float((d / (rad[:, None] + rad[None, :])).min())
+
+
+def remove_overlaps(structure, target=OVERLAP_TARGET, max_iter=300, max_expand=1.5, seed=0):
+    """Push apart atoms closer than target * (r_i + r_j) (pure geometry, no force field).
+
+    Each overlapping pair moves apart along its separation vector by the missing distance,
+    split between the two atoms; exactly coincident atoms get a random direction. If overlaps
+    persist, the cell grows by 2% every 20 iterations (fractional coordinates kept), up to
+    max_expand times its starting size. Takes milliseconds for SLICES-sized cells.
+    """
+    import numpy as np
+    from pymatgen.core import Lattice, Structure
+    rng = np.random.default_rng(seed)
+    s = structure.copy()
+    rad = _covalent_radii(s)
+    scale = 1.0
+    for it in range(max_iter):
+        i, j, img, d = s.get_neighbor_list(target * 2 * rad.max())
+        need = target * (rad[i] + rad[j])
+        m = (d < need) & (i < j)
+        if not m.any():
+            break
+        i, j, img, d, need = i[m], j[m], img[m], d[m], need[m]
+        cart = s.cart_coords
+        vec = cart[j] + img @ s.lattice.matrix - cart[i]
+        tiny = d < 1e-3
+        if tiny.any():
+            rnd = rng.normal(size=(int(tiny.sum()), 3))
+            vec[tiny] = rnd / np.linalg.norm(rnd, axis=1)[:, None] * 1e-3
+            d = np.where(tiny, 1e-3, d)
+        push = 0.525 * (need - d)[:, None] * vec / d[:, None]
+        delta = np.zeros_like(cart)
+        np.add.at(delta, i, -push)
+        np.add.at(delta, j, push)
+        cart = cart + delta
+        lattice = s.lattice
+        if it and it % 20 == 0 and scale * 1.02 <= max_expand:
+            frac = lattice.get_fractional_coords(cart)
+            lattice = Lattice(lattice.matrix * 1.02)
+            cart = lattice.get_cartesian_coords(frac)
+            scale *= 1.02
+        s = Structure(lattice, s.species, cart, coords_are_cartesian=True)
+    return s
+
+
+def preoptimize(structure, trigger=OVERLAP_TRIGGER):
+    """Niggli-reduce and remove overlaps when the closest pair is below trigger * (r_i + r_j);
+    otherwise return the structure unchanged."""
+    ratio = closest_pair_ratio(structure)
+    if ratio >= trigger:
+        return structure, {"applied": False, "ratio": ratio}
+    s = structure
+    try:
+        s = s.get_reduced_structure("niggli")
+    except Exception:  # degenerate cell: keep it, the overlap removal still applies
+        pass
+    s = remove_overlaps(s)
+    return s, {"applied": True, "ratio_before": ratio, "ratio": closest_pair_ratio(s)}
+
+
+class _collapse_guard:
+    """Make an ASE calculator refuse collapsed or degenerate cells before evaluating them.
+
+    Collapsed: below COLLAPSE_VOLUME per atom and below half the starting volume (a start that
+    is already small, e.g. a one-atom He cell, may still relax). Degenerate: lattice lengths
+    differing by more than 20x or an angle below 5 degrees (no MP-20 structure comes close).
+    """
+
+    def __init__(self, calc, atoms):
+        self.calc, self.natoms = calc, len(atoms)
+        self.min_volume = min(COLLAPSE_VOLUME, 0.5 * atoms.get_volume() / len(atoms))
+
+    def __enter__(self):
+        calc, natoms, min_volume, orig = self.calc, self.natoms, self.min_volume, self.calc.calculate
+        self.orig = orig
+
+        def calculate(atoms=None, *args, **kwargs):
+            if atoms is not None:
+                volume = atoms.get_volume() / natoms
+                if not volume >= min_volume:
+                    raise CellCollapse(f"cell collapsed to {volume:.2f} A^3/atom")
+                lengths = atoms.cell.lengths()
+                if lengths.max() > 20 * lengths.min() or min(atoms.cell.angles()) < 5:
+                    raise CellCollapse("cell degenerated")
+            return orig(atoms, *args, **kwargs)
+
+        calc.calculate = calculate
+        return self
+
+    def __exit__(self, *exc):
+        self.calc.calculate = self.orig
+        return False
 
 
 # ----------------------------------------------------------------------------- CLI
@@ -360,7 +504,7 @@ def _main():
         print(f"torch {torch.__version__}  CUDA available: {cuda}"
               + (f"  GPU: {torch.cuda.get_device_name(0)}" if cuda else "")
               + f"  OpenEquivariance: {importlib.util.find_spec('openequivariance') is not None}")
-    name, device, _ = resolve_relax_model(args.relax_model)
+    name, device = resolve_relax_model(args.relax_model)
     print(f"relax_model={args.relax_model!r} resolves to {name!r} on {device}")
     if not args.prepare:
         return

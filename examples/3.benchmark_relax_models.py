@@ -8,8 +8,8 @@ dataset (computed like MatterGPT/2_decode, using chemPotMP.json).
 Run from the repository root, e.g.:
     python -m slices.relax_backends --prepare          # compile/cache the NequIP models first
     python examples/3.benchmark_relax_models.py --n 32
-    python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-s+l nequip-m+l
-    SLICES_DEVICE=cpu python examples/3.benchmark_relax_models.py   # force the CPU path on a GPU machine
+    python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-m+l
+    SLICES_DEVICE=cuda python examples/3.benchmark_relax_models.py --models nequip-l   # GPU (opt-in)
 
 The timing is for one process; MatterGPT decoding runs several such processes in parallel.
 """

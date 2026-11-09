@@ -16,6 +16,22 @@
 - 代价：辅助程序这一步慢一些（典型 0.5 s vs 0.12 s），整条解码中位数 1.59 s vs 1.37 s。
 - 自检：`python -m slices.gfnff_helper`
 
+### 工作站测试结论：解码默认改为 CPU `nequip-s+l`（2026-11-09）
+- **GPU 对解码帮助很小。** 单进程分解（32 个结构）：GFN-FF 0.43 s + 晶格优化 0.45 s（都在 CPU 上）+ NequIP 弛豫 0.10 s（GPU，L 模型）或 0.25 s（CPU，S 模型）。GPU 上每次力场调用 6.5 ms，CPU 上 18 ms，但每次解码只有约 11 次调用，所以 GPU 最多快约 12%。没装 CUDA toolkit 时 GPU 走 TorchScript，比 CPU 还慢（每个结构 1.70 s 对 1.15 s）。
+- **因此 `auto` 在所有机器上都是 CPU `nequip-s+l`**；GPU 改为手动开启（`SLICES_DEVICE=cuda`）。所有机器默认结果一致，GPU 留给 MatterGPT。
+- **全量对比（MP-20 全部 2383 个结构，CPU，同一套形成能计算和匹配器）：**
+
+  | 方案 | 成功 | 标准匹配 | 宽松匹配 | 形成能误差中位数 |
+  |---|---|---|---|---|
+  | 旧版 xtb + M3GNet | 2291 | 88.67% | 91.23% | 0.048 |
+  | `nequip-s+l`（默认） | 2374 | 93.79% | 95.97% | 0.025 |
+  | `nequip-m+l` | 2374 | 94.80% | 96.18% | 0.021（CPU 时间约 2 倍） |
+  | MatterSim-1M（同样的起点） | 2374 | 94.67% | 96.01% | 0.050（按元素重新校准化学势后仍不如 NequIP） |
+
+- **修复：弛豫卡死。** 约 1.7% 的结构在晶格优化后有原子重叠（最短间距低至 0 Å），NequIP 弛豫时晶胞塌缩，近邻表计算在 C 代码里无限运行，`core.py` 的 SIGALRM 超时打断不了（实测挂了 7 小时）。现在 `NequIPRelaxer.relax` 会：(1) 最短间距 < 0.5 倍共价半径和时，先做 Niggli 约化并用纯几何的软球排斥把原子推开（毫秒级）；(2) 每次力场调用前检查晶胞，塌缩就改用 OAM-S + FIRE 重来一次。效果：卡死 2→0，发散（误差 > 5 eV/atom）`s+l` 2→0、`m+l` 11→0；这 40 个结构的标准匹配 13→24；其余结构结果不变。GFN-FF 预优化也测过，效果不如软球排斥（原子重合时 GFN-FF 会判错成键）。
+- **OEQ 加载修复：** AOT+OpenEquivariance 编译的模型加载前需要 `import openequivariance` 注册自定义算子，否则报 `Could not find schema for libtorch_tp_jit::jit_conv_forward` 并降级。
+- **WSL2 装 CUDA toolkit（只在用 GPU 解码时需要）：** 不要装驱动（驱动来自 Windows）。没有 sudo 时可以用 NVIDIA 官方 runfile 装到用户目录：`sh cuda_12.8.1_570.124.06_linux.run --nox11 --silent --toolkit --toolkitpath=$HOME/cuda-12.8 --no-drm --no-man-page --override`，然后 `export CUDA_HOME=$HOME/cuda-12.8 PATH=$CUDA_HOME/bin:$PATH`。
+
 ## 2. 笔记本上已经验证过的
 - 21 项力场选择/降级测试全部通过（包括强制 GPU 但不可用时自动降级到 CPU）。
 - 用新环境（numpy 2.2、pymatgen 2025.10）重新编码 MatterGPT 全部 2383 个结构：与仓库数据 0 个不同。
