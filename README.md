@@ -54,7 +54,18 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 ---
 
 ## Installation
-可以选择 1.本地安装 **或者** 2.docker安装。
+可以选择 1.本地安装 **或者** 2.docker安装。只在自己的代码里用 SLICES 库（编码/解码晶体）的话，直接从 PyPI 安装即可：
+
+### 只安装 SLICES 库（pip / uv 一键安装）
+```bash
+uv venv && source .venv/bin/activate
+uv pip install slices --torch-backend=auto   # 自动选择 CPU 或与显卡驱动匹配的 CUDA 版 PyTorch
+# 或者：pip install slices                    # Linux 上默认安装 CUDA 版 PyTorch（没有显卡也能运行，只是下载更大）
+```
+- 仅支持 Linux x86_64（包括 Win11 的 WSL2），Python ≥ 3.10。
+- 第一次解码时会自动下载 NequIP 力场权重并在本机编译（约 1–2 分钟），之后直接使用缓存。
+- MatterGPT 的训练、生成和教程脚本不在 PyPI 包里，需要按下面的方式下载仓库并安装环境。
+
 ## Local Installation
 本地安装指南（Ubuntu 或者 Win11 的 WSL2 Ubuntu 子系统）。环境由 [uv](https://docs.astral.sh/uv/) 管理：Python 3.10 由 uv 自动下载，不需要 conda；所有依赖的确切版本锁定在 `uv.lock` 中，每台机器装出来的环境完全一致。PyPI 默认使用清华镜像（在 `pyproject.toml` 中配置），PyTorch 从官方源下载。
 

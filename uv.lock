@@ -5861,7 +5861,7 @@ wheels = [
 
 [[package]]
 name = "slices"
-version = "2.0.12"
+version = "4.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },

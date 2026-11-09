@@ -1,12 +1,19 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "slices"
-version = "2.0.12"
+version = "4.0.0"
+description = "Invertible crystal representation (SLICES) and the MatterGPT generative model for inverse materials design"
 authors = [{name = "Hang Xiao", email = "xiaohang07@live.cn"}]
 requires-python = ">=3.10"
+license-files = ["LICENSE", "src/slices/_vendor/gfnff_extra/LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
 dependencies = [
     "numpy",
     "scipy",
@@ -25,6 +32,9 @@ dependencies = [
     "nequip==0.17.1",
     "matscipy>=1.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/xiaohang007/SLICES"
 
 [project.optional-dependencies]
 cpu = ["torch>=2.6,<2.10"]
