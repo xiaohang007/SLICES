@@ -67,7 +67,8 @@ class CausalSelfAttention(nn.Module):
         self.resid_drop = nn.Dropout(config.resid_pdrop)
         # output projection
         self.proj = nn.Linear(config.n_embd, config.n_embd)
-        # causal mask to ensure that attention is only applied to the left in the input sequence
+        # causal mask; no longer used in forward (scaled_dot_product_attention applies it), kept so
+        # that existing checkpoints, whose state_dict contains this buffer, still load
         num = int(bool(config.num_props))
         self.register_buffer("mask", torch.tril(torch.ones(config.block_size + num, config.block_size + num))
                                      .view(1, 1, config.block_size + num, config.block_size + num))
@@ -82,18 +83,18 @@ class CausalSelfAttention(nn.Module):
         q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
-        # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        att = att.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
-        att = F.softmax(att, dim=-1)
-        attn_save = att
-        att = self.attn_drop(att)
-        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        # causal self-attention via PyTorch's fused kernels: same result as softmax(q k^T / sqrt(hs)) v
+        # with a causal mask. On GPU it can use FlashAttention / memory-efficient kernels (with
+        # dropout) without the flash-attn package. On CPU the memory-efficient kernel does not
+        # support dropout, so training falls back to the plain computation (same memory as before,
+        # about 13 GB at batch 36 and T ~ 416); dropout-free calls such as generation use the fast kernel.
+        y = F.scaled_dot_product_attention(
+            q, k, v, dropout_p=self.attn_drop.p if self.training else 0.0, is_causal=True)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
         y = self.resid_drop(self.proj(y))
-        return y, attn_save
+        return y, None  # attention weights are not materialized (same as the flash-attn path)
 
 
 class FlashCausalSelfAttention(nn.Module):

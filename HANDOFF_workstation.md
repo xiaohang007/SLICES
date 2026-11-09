@@ -1,0 +1,104 @@
+# 交接：在 GPU 工作站上测试 `refactor-uv` 分支
+
+这份文档给在工作站上接手测试的人（或 Claude Code 会话）。笔记本（纯 CPU、WSL2、16 GB 内存）上能测的都已经测过，剩下的是**只能在 GPU 上验证的部分**。
+
+## 1. 分支里有什么
+| 提交 | 内容 |
+|---|---|
+| `eb1f6c9` | 新增 `relax_model="auto"`（`src/slices/relax_backends.py`）：有 CUDA GPU 时用 NequIP-OAM-L 弛豫；没有 GPU 时用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量。模型在本机首次使用时编译并缓存到 `~/.cache/slices/nequip`；GPU 上的编译方式依次尝试 AOT + OpenEquivariance → AOT → TorchScript，失败自动降级 |
+| `119afaf` | 改用 uv 管理环境，Python 3.10，`uv.lock` 锁定版本；去掉 m3gnet、TensorFlow；MatterGPT 的注意力改用 PyTorch 自带的 `scaled_dot_product_attention`，不再需要 flash-attn；并行脚本在导入 numpy 前把数学库线程设为 1；修复 `generate.py` 里 `sys` 被覆盖的问题 |
+
+### 解码辅助程序：开源 GFN-FF 取代 xtb（工作站上完成）
+- 解码时生成键长/键角目标的 GFN-FF 辅助程序（`src/slices/gfnff_helper.py`）改用打包在 `src/slices/_vendor/` 里的开源 GFN-FF（pprcht/gfnff + SLICES 拓扑导出补丁，LGPL-3.0，来自 `transferable/dual_core_recon_noLattice_chemfm` 的 portable wheel，与其 4 万条基准用的是同一个二进制）。ctypes 加载，与 Python 版本无关，3.10 直接可用。
+- **xtb 二进制和相关代码已删除**；解码不再需要 `/dev/shm` 和子进程。默认用旧 xtb 的 86 元素参数表（`SLICES_VENDOR_GFNFF_PARAM_MODE=modern` 改用库自带参数）。
+- `get_nbf_blist` 修复：原子超过 19 个邻居时第 20 行写的是真实邻居数，旧 xtb 会把它当成一个邻居编号；现在写实际列出的邻居数（≤19），与 chemfm 仓库一致。
+- 依据（MatterGPT MP-20 全部 2383 条，CPU）：88% 的结构重构目标与 xtb 完全相同；不同的 194 条中，解码与参考结构匹配 165 条，xtb 只有 79 条（xtb 对锕系给出 inf/nan、39 条输入直接崩溃），标准匹配器下没有一条更差，宽松匹配器下差 1 条。chemfm 的 4 万条基准结论一致：严格指标净 +262，宽松指标净 −30。
+- 代价：辅助程序这一步慢一些（典型 0.5 s vs 0.12 s），整条解码中位数 1.59 s vs 1.37 s。
+- 自检：`python -m slices.gfnff_helper`
+
+### 工作站测试结论：解码默认改为 CPU `nequip-s+l`（2026-11-09）
+- **GPU 对解码帮助很小。** 单进程分解（32 个结构）：GFN-FF 0.43 s + 晶格优化 0.45 s（都在 CPU 上）+ NequIP 弛豫 0.10 s（GPU，L 模型）或 0.25 s（CPU，S 模型）。GPU 上每次力场调用 6.5 ms，CPU 上 18 ms，但每次解码只有约 11 次调用，所以 GPU 最多快约 12%。没装 CUDA toolkit 时 GPU 走 TorchScript，比 CPU 还慢（每个结构 1.70 s 对 1.15 s）。
+- **因此 `auto` 在所有机器上都是 CPU `nequip-s+l`**；GPU 改为手动开启（`SLICES_DEVICE=cuda`）。所有机器默认结果一致，GPU 留给 MatterGPT。
+- **全量对比（MP-20 全部 2383 个结构，CPU，同一套形成能计算和匹配器）：**
+
+  | 方案 | 成功 | 标准匹配 | 宽松匹配 | 形成能误差中位数 |
+  |---|---|---|---|---|
+  | 旧版 xtb + M3GNet | 2291 | 88.67% | 91.23% | 0.048 |
+  | `nequip-s+l`（默认） | 2374 | 93.79% | 95.97% | 0.025 |
+  | `nequip-m+l` | 2374 | 94.80% | 96.18% | 0.021（CPU 时间约 2 倍） |
+  | MatterSim-1M（同样的起点） | 2374 | 94.67% | 96.01% | 0.050（按元素重新校准化学势后仍不如 NequIP） |
+
+- **修复：弛豫卡死。** 约 1.7% 的结构在晶格优化后有原子重叠（最短间距低至 0 Å），NequIP 弛豫时晶胞塌缩，近邻表计算在 C 代码里无限运行，`core.py` 的 SIGALRM 超时打断不了（实测挂了 7 小时）。现在 `NequIPRelaxer.relax` 会：(1) 最短间距 < 0.5 倍共价半径和时，先做 Niggli 约化并用纯几何的软球排斥把原子推开（毫秒级）；(2) 每次力场调用前检查晶胞，塌缩就改用 OAM-S + FIRE 重来一次。效果：卡死 2→0，发散（误差 > 5 eV/atom）`s+l` 2→0、`m+l` 11→0；这 40 个结构的标准匹配 13→24；其余结构结果不变。GFN-FF 预优化也测过，效果不如软球排斥（原子重合时 GFN-FF 会判错成键）。
+- **OEQ 加载修复：** AOT+OpenEquivariance 编译的模型加载前需要 `import openequivariance` 注册自定义算子，否则报 `Could not find schema for libtorch_tp_jit::jit_conv_forward` 并降级。
+- **WSL2 装 CUDA toolkit（只在用 GPU 解码时需要）：** 不要装驱动（驱动来自 Windows）。没有 sudo 时可以用 NVIDIA 官方 runfile 装到用户目录：`sh cuda_12.8.1_570.124.06_linux.run --nox11 --silent --toolkit --toolkitpath=$HOME/cuda-12.8 --no-drm --no-man-page --override`，然后 `export CUDA_HOME=$HOME/cuda-12.8 PATH=$CUDA_HOME/bin:$PATH`。
+
+## 2. 笔记本上已经验证过的
+- 21 项力场选择/降级测试全部通过（包括强制 GPU 但不可用时自动降级到 CPU）。
+- 用新环境（numpy 2.2、pymatgen 2025.10）重新编码 MatterGPT 全部 2383 个结构：与仓库数据 0 个不同。
+- 新注意力实现与旧实现结果一致：模型输出差 < 1e-6，同一随机种子生成的字符串完全相同，旧的 `.pt` 权重可以照常加载。
+- MatterGPT 全流程在 CPU 上跑通：数据集 → 训练（batch 8）→ 生成 → 解码 + 形成能 + 新颖性（32 条真实 SLICES 中 31 条成功，形成能误差中位数 0.016 eV/atom）。
+- 图形界面能启动。
+
+## 3. 需要在工作站上确认的
+1. `uv sync --extra cu128 --extra oeq` 能否装上，特别是 OpenEquivariance（`oeq`）。
+2. NequIP 在 GPU 上实际用哪种编译方式：文件名里是 `aotinductor-oeq`、`aotinductor` 还是 `torchscript`。
+3. GPU 上解码的速度，以及多个解码进程共用一块 GPU 时的显存（每个进程都会加载一份 OAM-L）。
+4. GPU 上训练 MatterGPT 的速度和显存：现在没有 flash-attn，用的是 PyTorch 自带的注意力。
+5. GPU 结果和 CPU 方案（`SLICES_DEVICE=cpu`）对比。
+
+## 4. 怎么跑
+前提：`nvidia-smi` 能正常显示显卡，驱动支持 CUDA 12.8（50 系显卡必须）。
+
+```bash
+# 没装 uv 的话（任选一种）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# pip install uv -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+cd <SLICES 仓库目录>
+git fetch origin
+git switch refactor-uv
+git pull
+
+bash tools/workstation_check.sh
+```
+
+脚本会依次做：装环境 → 打印 torch/GPU 信息 → 编译模型（GPU 和 CPU 各一次）→ 力场对比测试（32 条真实 SLICES）→ 训练 MatterGPT 1 轮（教程参数，batch 36）→ 生成 10 条 → 用 4 个和 8 个进程解码 32 条真实 SLICES。全程每 5 秒记录一次显存和内存。
+
+- 所有结果写到 `~/slices_ws_test/<日期_时间>/`，**把整个文件夹打包发回来**；最重要的是 `summary.log`。
+- MatterGPT 在这个文件夹里的副本中运行，不会在仓库里留下文件。环境装在仓库下的 `.venv`，不影响已有的 conda 环境或 LeMat-GenBench 的环境。
+- 整个过程大约 0.5–1.5 小时，主要看训练速度。
+
+可调的选项（环境变量）：
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `EXTRAS` | `--extra cu128 --extra oeq` | 驱动较老时改成 `--extra cu126`；`oeq` 装不上时脚本会自动去掉后重试 |
+| `TRAIN_EPOCHS` | `1` | `0` 跳过训练和生成 |
+| `DECODE_THREADS` | `4 8` | 要测试的解码进程数 |
+
+例如只测力场、不训练：`TRAIN_EPOCHS=0 bash tools/workstation_check.sh`
+
+## 5. 可能遇到的问题
+| 现象 | 处理 |
+|---|---|
+| `uv sync` 下载 torch 很慢 | torch 从 download.pytorch.org 下载（其他包走清华镜像），第一次需要耐心；之后有缓存 |
+| `oeq` 装不上或编译失败 | 脚本会自动降级。把 `uv_sync.log` 和 `prepare_gpu.log` 发回来 |
+| 某种编译方式失败后不想再重试 | 失败记录在 `~/.cache/slices/nequip/*.failed`，删掉对应文件后会重新尝试 |
+| 训练报 CUDA out of memory | 记下显卡型号和显存；可以先用 `TRAIN_EPOCHS=0` 完成其余测试 |
+| 解码时显存不够 | 把 `DECODE_THREADS` 调小，例如 `DECODE_THREADS="2 4"` |
+
+## 6. 已知问题和待定事项
+- **CPU 上训练很耗内存**：PyTorch 的省内存注意力在 CPU 上不支持 dropout（模型的注意力 dropout 是 0.1），batch 36 约需 13 GB 内存，曾两次把笔记本的 WSL 撑崩。要不要把注意力 dropout 改为 0，需要作者决定。GPU 上没有这个限制，这次的测试会顺便确认。
+- flash-attn 没有适配 torch 2.9 + Python 3.10 的预编译包，所以不再安装。
+- Docker 镜像和 Dockerfile 还是旧环境（M3GNet），没有更新。
+- PyPI 上的 slices 仍是 2.0.12（旧代码）；合并后需要升版本号再发布。
+- HTS/ 和 benchmark/ 下的旧流程仍然写着 `relax_model="m3gnet"`，在新环境里会报错；RNN 相关脚本按约定不改动。
+
+## 7. 手动单独测某一项
+```bash
+source .venv/bin/activate
+python -m slices.relax_backends                 # 只看会选哪个力场
+python -m slices.relax_backends --prepare       # 编译并试跑
+python examples/3.benchmark_relax_models.py --n 32 --models auto nequip-s+l nequip-m+l
+SLICES_DEVICE=cpu python examples/3.benchmark_relax_models.py --n 32 --models auto
+```

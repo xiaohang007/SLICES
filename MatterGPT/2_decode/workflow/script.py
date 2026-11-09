@@ -2,17 +2,18 @@
 # Yan Chen 2023.10
 # yanchen@xjtu.edu.com
 import os
+# One math-library thread per worker process (many workers run in parallel);
+# must be set before numpy is imported to take effect.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_var] = "1"
 import csv
 import gc
 import json
-import tensorflow as tf
 import configparser
 from slices.core import SLICES
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-# 设置环境变量
-os.environ["OMP_NUM_THREADS"] = "1"
 
 
 def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> bool:
@@ -23,7 +24,7 @@ def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> 
 # Load chemical potentials (same logic as demo)
 chem_pot_path = "./chemPotMP.json"
 if not os.path.exists(chem_pot_path):
-    alt_path = "../demo_decode_novelty_check_eform_m3gnet/workflow/chemPotMP.json"
+    alt_path = "../demo_decode_novelty_check_eform/workflow/chemPotMP.json"
     if os.path.exists(alt_path):
         chem_pot_path = alt_path
     else:
@@ -41,7 +42,7 @@ graph_method = config.get("Settings", "graph_method", fallback="default")
 
 # Initialize SLICES
 check = False
-CG = SLICES(graph_method=graph_method, check_results=check, relax_model="m3gnet")
+CG = SLICES(graph_method=graph_method, check_results=check)
 
 with open("temp_splited.csv", "r", encoding="utf-8") as f:
     reader = csv.reader(f)
@@ -87,6 +88,5 @@ with open("temp_splited.csv", "r", encoding="utf-8") as f:
         except Exception as e:
             print(f"Error: {e}")
             del CG
-            CG = SLICES(graph_method=graph_method, check_results=check, relax_model="m3gnet")
+            CG = SLICES(graph_method=graph_method, check_results=check)
             gc.collect()
-            tf.keras.backend.clear_session()

@@ -25,7 +25,7 @@ print(delta_theta,lattice_expand)
 with open('temp.json', 'r') as f:
     cifs=json.load(f)
 cifs_filtered=[]
-CG=SLICES(graph_method=graph_method,relax_model="m3gnet")
+CG=SLICES(graph_method=graph_method,relax_model=None)  # encoding only
 for i  in range(len(cifs)):
     cif_string=cifs[i]["cif"]
     try:

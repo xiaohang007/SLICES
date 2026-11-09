@@ -47,6 +47,31 @@ def is_slurm_available():
     return shutil.which('sinfo') is not None or shutil.which('squeue') is not None
 
 
+# SLURM job IDs submitted by the last splitRun/splitRun_csv call; show_progress waits for
+# (and Ctrl+C cancels) only these, so other jobs of the same user are left alone.
+_SUBMITTED_SLURM_JOBS = []
+
+
+def _submit_slurm_job(script='0_run.sh'):
+    """sbatch ``script`` in the current directory and remember its job ID."""
+    # the job script runs "${SLICES_PYTHON:-python}", so jobs use this interpreter's environment
+    env = dict(os.environ, SLICES_PYTHON=sys.executable)
+    result = subprocess.run(['sbatch', '--parsable', script], stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, env=env)
+    job_id = result.stdout.strip().split(';')[0]
+    if result.returncode == 0 and job_id:
+        _SUBMITTED_SLURM_JOBS.append(job_id)
+    else:
+        print(f"sbatch failed in {os.getcwd()}: {result.stderr.strip()}")
+
+
+def _run_local_job(script='0_run.py'):
+    """Start ``script`` in the background in the current directory (no SLURM), with this interpreter."""
+    env = dict(os.environ, SLICES_PYTHON=sys.executable)
+    with open('log.txt', 'w') as out, open('error.txt', 'w') as err:
+        subprocess.Popen([sys.executable, script], stdout=out, stderr=err, env=env)
+
+
 def splitRun(filename,threads,skip_header=False):
     """
     分割并在本地运行任务，自动调整线程数以避免空任务分配。
@@ -86,6 +111,7 @@ def splitRun(filename,threads,skip_header=False):
     # 分割任务列表
     cifs_split = list(split_list(tasks, actual_threads))
     use_slurm = is_slurm_available()
+    _SUBMITTED_SLURM_JOBS.clear()
     # 创建并提交每个子任务
     for i in range(len(cifs_split)):
         job_dir = f'job_{i}'
@@ -98,9 +124,9 @@ def splitRun(filename,threads,skip_header=False):
         # 提交任务
         os.chdir(job_dir)
         if use_slurm:
-            os.system('sbatch 0_run.sh > /dev/null 2>&1')
+            _submit_slurm_job()
         else:
-            os.system('python 0_run.py > log.txt 2> error.txt &')
+            _run_local_job()
         os.chdir('..')
     
     print("计算任务已提交。")
@@ -129,6 +155,7 @@ def splitRun_csv(filename,threads,skip_header=False):
     # 分割任务列表
     cifs_split = list(split_list(cifs, actual_threads))
     use_slurm = is_slurm_available()
+    _SUBMITTED_SLURM_JOBS.clear()
     # 创建并提交每个子任务
     for i in range(len(cifs_split)):
         job_dir = f'job_{i}'
@@ -141,9 +168,9 @@ def splitRun_csv(filename,threads,skip_header=False):
         # 提交任务
         os.chdir(job_dir)
         if use_slurm:
-            os.system('sbatch 0_run.sh > /dev/null 2>&1')
+            _submit_slurm_job()
         else:
-            os.system('python 0_run.py > log.txt 2> error.txt &')
+            _run_local_job()
         os.chdir('..')
     
     print("计算任务已提交。")
@@ -179,16 +206,18 @@ def show_progress(total_jobs=None, check_interval=5):
                 pbar.set_description("Progress")
                 while True:
                     countTask0 = countTask
-                    # 使用squeue命令获取当前用户的作业状态
+                    # 使用squeue命令获取作业状态：只看本次提交的作业（没有记录时退回到当前用户的全部作业）
                     try:
                         result = subprocess.run(
-                            ['squeue', '-u', current_user, '-h', '-o', '%T'],
+                            ['squeue', '-u', current_user, '-h', '-o', '%i %T'],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             text=True,
                             check=True
                         )
-                        log = result.stdout.splitlines()
+                        tracked = set(_SUBMITTED_SLURM_JOBS)
+                        log = [state for job_id, _, state in (line.partition(' ') for line in result.stdout.splitlines())
+                               if not tracked or job_id.split('_')[0] in tracked]
                     except subprocess.CalledProcessError as e:
                         print(f"Error executing squeue: {e.stderr}")
                         break
@@ -214,10 +243,14 @@ def show_progress(total_jobs=None, check_interval=5):
 
                     time.sleep(check_interval)
         except KeyboardInterrupt:
-            # 用户中断时取消所有作业
+            # 用户中断时取消本次提交的作业（没有记录时取消当前用户的全部作业）
             try:
-                subprocess.run(['scancel', '-u', current_user], check=True)
-                print("\nAll jobs have been canceled")
+                if _SUBMITTED_SLURM_JOBS:
+                    subprocess.run(['scancel', *_SUBMITTED_SLURM_JOBS], check=True)
+                    print(f"\n{len(_SUBMITTED_SLURM_JOBS)} submitted jobs have been canceled")
+                else:
+                    subprocess.run(['scancel', '-u', current_user], check=True)
+                    print("\nAll jobs have been canceled")
             except subprocess.CalledProcessError as e:
                 print(f"\nError cancelling jobs: {e.stderr}")
         except EnvironmentError as env_err:

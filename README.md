@@ -54,101 +54,78 @@ We provide a huggingface space to allow one-click conversion of CIF to SLICES an
 ---
 
 ## Installation
-可以选择 1.本地安装 **或者** 2.docker安装。
+可以选择 1.本地安装 **或者** 2.docker安装。只在自己的代码里用 SLICES 库（编码/解码晶体）的话，直接从 PyPI 安装即可：
+
+### 只安装 SLICES 库（pip / uv 一键安装）
+```bash
+uv venv && source .venv/bin/activate
+uv pip install slices --torch-backend=auto   # 自动选择 CPU 或与显卡驱动匹配的 CUDA 版 PyTorch
+# 或者：pip install slices                    # Linux 上默认安装 CUDA 版 PyTorch（没有显卡也能运行，只是下载更大）
+```
+- 仅支持 Linux x86_64（包括 Win11 的 WSL2），Python ≥ 3.10。
+- 第一次解码时会自动下载 NequIP 力场权重并在本机编译（约 1–2 分钟），之后直接使用缓存。
+- MatterGPT 的训练、生成和教程脚本不在 PyPI 包里，需要按下面的方式下载仓库并安装环境。
+
 ## Local Installation
-本地安装指南(Ubuntu或者win11的Ubuntu子系统)
-### 1.1 安装 Miniconda 并配置中国源 
-**如果你已经安装了 Miniconda 并配置好了中国镜像源，可以跳过这一步。**
-- 首先，更新 Ubuntu 系统的包索引并安装 `wget` 工具，用于下载文件。
-- 然后，你通过 `wget` 下载 Miniconda 安装脚本并执行安装，将 Miniconda 安装到 `~/miniconda3` 目录。
-- 在安装完成后，删除安装脚本，并配置了 `pip` 使用清华大学的镜像源，以提高下载速度。
+本地安装指南（Ubuntu 或者 Win11 的 WSL2 Ubuntu 子系统）。环境由 [uv](https://docs.astral.sh/uv/) 管理：Python 3.10 由 uv 自动下载，不需要 conda；所有依赖的确切版本锁定在 `uv.lock` 中，每台机器装出来的环境完全一致。PyPI 默认使用清华镜像（在 `pyproject.toml` 中配置），PyTorch 从官方源下载。
+
+### 1.1 安装 uv
+**如果已经装好 uv，可以跳过这一步。**
 
 ```bash
-sudo apt-get update
-sudo apt-get install wget
-mkdir -p ~/miniconda3
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-rm ~/miniconda3/miniconda.sh
-source ~/miniconda3/bin/activate
-conda init --all
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
-conda config --set show_channel_urls yes
-pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-python -m pip install --upgrade pip
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 如果上面的命令下载慢，也可以用已有的 pip 从清华镜像安装：
+# pip install uv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+安装后重新打开终端，运行 `uv --version` 确认安装成功。
 
-### 1.2.1 下载 SLICES 仓库并安装 Conda 子环境及 SLICES 包
-- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
-- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
-- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
+### 1.2 下载 SLICES 仓库并安装环境
+根据你的硬件选择一个 PyTorch 版本（三选一）：
+- `--extra cu128`：NVIDIA 显卡，**50 系显卡必须用这个**；
+- `--extra cu126`：NVIDIA 显卡，驱动较老、不支持 CUDA 12.8 时使用；
+- `--extra cpu`：没有 NVIDIA 显卡。
 
 ```bash
 wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
 unzip slices_repo.zip
 cd SLICES-main
-conda create --name slices python=3.9
-conda activate slices
-pip install  tensorflow-cpu==2.13.0
-pip install --no-deps m3gnet
-pip install smact==2.5.5
-pip install ase==3.22.1
-pip install pymatgen==2024.8.9
-pip install scipy==1.13.0
-pip install scikit-learn==1.3.1
-pip install numpy==1.26.4
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install gradio==4.44.1
-pip install slices --no-deps
-python -m pip install einops
-wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
-pip install flash_attn-2.8.2+cu12torch2.5cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
+uv sync --extra cu128              # 按上面的说明换成 cu126 或 cpu
+source .venv/bin/activate          # 激活环境；之后的命令都在这个环境里运行
+python -m slices.relax_backends --prepare   # 首次使用：下载并在本机编译 NequIP 力场模型
 ```
 安装完成！
 
-MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
+- 环境装在仓库目录下的 `.venv` 中。每次打开新终端后，进入仓库目录运行 `source .venv/bin/activate`；也可以不激活，在命令前加 `uv run`，例如 `uv run python app.py`。
+- 可以同时加多个可选组件，例如 `uv sync --extra cu128 --extra gui`（图形界面，见 1.4）。
+- `uv sync` 会让环境与 `uv.lock` 完全一致，手动用 `uv pip install` 装的额外包会被移除；如需保留，用 `uv sync --inexact`。
+- flash-attn 不再随环境安装（目前没有适配 torch 2.9 的预编译包）。MatterGPT 检测不到 flash-attn 时会改用 PyTorch 自带的 `scaled_dot_product_attention`，结果相同。
+- 只有 CPU 时训练 MatterGPT 很耗内存：教程中 `batch_size=36` 约需 13 GB，16 GB 内存的电脑（包括 WSL）建议把 `BATCH_SIZE` 改为 8（约 5.5 GB），否则可能把系统内存耗尽。
 
+### 1.3 NequIP 力场（解码最后一步的结构弛豫）
+`SLICES(relax_model="auto")`（默认）在所有机器上都一样：在 CPU 上用 NequIP-OAM-S 弛豫，再用 NequIP-OAM-L 算一次能量（`nequip-s+l`）。所有机器默认结果一致，解码不占用 GPU，GPU 可以留给 MatterGPT 训练和生成。
 
-### 1.2.2 50x系列新显卡的 PyTorch (cu128) 安装
+在 MP-20 全部 2383 个结构上（CPU）：
 
+| 方案 | 结构复现率（StructureMatcher） | 相对耗时 |
+|---|---|---|
+| 旧版（xtb + M3GNet） | 88.7% | — |
+| `nequip-s+l`（默认） | 93.8% | 1× |
+| `nequip-m+l` | 94.8% | 约 2× |
 
-如果你的电脑是 50x 显卡，按 1.2.1 安装后可能无法调用显卡驱动。可按下面步骤将 PyTorch 调整为 `torch==2.7.0` / `cu128` 版本。
-- 下载 SLICES 项目的 GitHub 文件夹，并将其解压。
-- 进入解压后的目录，使用 `conda` 创建一个新环境，并安装所需的依赖。
-- 然后，激活 `slices` 环境，并使用 `pip install slices` 安装 SLICES 包。
+- 编译好的模型缓存在 `~/.cache/slices/nequip`（CPU 上约 1 分钟），换机器需要重新运行 `--prepare`。在开多个并行解码进程之前先运行一次，避免第一次运行时等待编译。
+- 追求精度可以用 `relax_model="nequip-m+l"`，或设置环境变量 `SLICES_RELAX_MODEL=nequip-m+l`。
+- 弛豫前会自动处理原子重叠的初始结构（约 2% 的结构），并防止晶胞塌缩导致的卡死。
+- M3GNet 已移除，不再安装 TensorFlow。
 
+<details>
+<summary>高级：在 GPU 上解码</summary>
+
+解码约 90% 的时间花在 CPU 步骤上，GPU 只能快约 12%，因此默认不用。如需使用：设置 `SLICES_DEVICE=cuda`，可配合 `relax_model="nequip-l"`。GPU 上需要安装 CUDA toolkit（设置 `CUDA_HOME`）才能用 AOTInductor 编译模型，否则会退回到 TorchScript，比 CPU 还慢；`uv sync --extra oeq` 可再加 OpenEquivariance 加速。完整说明见 `src/slices/relax_backends.py`。
+</details>
+
+### 1.4 访问图形界面
 ```bash
-wget https://github.com/xiaohang007/SLICES/archive/refs/heads/main.zip -O slices_repo.zip
-unzip slices_repo.zip
-cd SLICES-main
-conda create --name slices_50x python=3.9
-conda activate slices_50x
-pip install  tensorflow-cpu==2.13.0
-pip install --no-deps m3gnet
-pip install smact==2.5.5
-pip install ase==3.22.1
-pip install pymatgen==2024.8.9
-pip install scipy==1.13.0
-pip install scikit-learn==1.3.1
-pip install numpy==1.26.4
-python -m pip install \
-  torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
-  --index-url https://download.pytorch.org/whl/cu128
-pip install gradio==4.44.1
-pip install slices --no-deps
-python -m pip install einops
-python -m wget https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.2/flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl
-python -m pip install flash_attn-2.8.2+cu12torch2.7cxx11abiFALSE-cp39-cp39-linux_x86_64.whl --no-deps
-```
-安装完成！
-
-MatterGPT 会自动检测是否可用 flash-attn：可用时走 FlashAttention；安装失败或不可用时自动回退到普通 attention，无需切换文件夹。
-
-安装完成！
-
-### 1.3 访问图形界面  注意访问图形界面必须安装slices>=2.0.8
-```bash
+uv sync --extra cu128 --extra gui   # 安装图形界面所需的 gradio（cu128 换成你在 1.2 中的选择）
 cd MatterGPT
 python app.py
 ```
@@ -157,6 +134,8 @@ python app.py
 
 如果想用Docker来跑SLICES的环境，可以选择下面的安装方法：
 ### Docker Installation
+
+> 注意：Docker 镜像 v12 仍是旧环境（包含 M3GNet 的旧版 SLICES），还没有更新到上面的 uv 环境。
 
 请按照以下步骤使用 Docker 安装 SLICES:
 
@@ -193,7 +172,7 @@ xz -T4 -dc dockerv12.tar.xz | docker load
 # 您也可以使用此仓库中的 Dockerfile 构建自己的 docker 镜像。感谢 Haidi Wang 教授 (https://haidi-ustc.github.io/about/) 提供的 Dockerfile。
 
 # 使脚本具有执行权限
-sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh ./src/slices/xtb_noring_nooutput_nostdout_noCN
+sudo chmod +x entrypoint_set_cpus_gradio.sh entrypoint_set_cpus.sh
 
 # 运行 Docker
 docker run -it -p 7860:7860 -h workq --shm-size=0.5gb --gpus all -v ./:/crystal xiaohang07/slices:v12 /crystal/entrypoint_set_cpus_gradio.sh
@@ -309,6 +288,7 @@ If you use SLICES, MatterGPT or SLICES-PLUS, please cite the following works:
 Special thanks to the open-source projects and developers that inspired this work:
 - [tobascco](https://github.com/peteboyd/tobascco)
 - [xtb](https://github.com/grimme-lab/xtb)
+- [gfnff](https://github.com/pprcht/gfnff) (bundled GFN-FF library used for SLICES decoding, LGPL-3.0)
 - [m3gnet](https://github.com/materialsvirtuallab/m3gnet)
 - [chgnet](https://github.com/CederGroupHub/chgnet)
 - [molgpt](https://github.com/devalab/molgpt)

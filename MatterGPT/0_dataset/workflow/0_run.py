@@ -3,6 +3,10 @@
 # xiaohang07@live.cn
 
 import os
+# One math-library thread per worker process (many workers run in parallel);
+# must be set before numpy is imported to take effect.
+for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_var] = "1"
 import sys
 import json
 from slices.core import SLICES
@@ -11,7 +15,6 @@ import configparser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 import numpy as np
 
-os.environ["OMP_NUM_THREADS"] = "1"
 
 # 读取配置文件
 config = configparser.ConfigParser()
@@ -30,7 +33,7 @@ else:
     sys.exit(1)
 
 cifs_filtered = []
-CG = SLICES(graph_method=graph_method, relax_model="m3gnet")
+CG = SLICES(graph_method=graph_method, relax_model=None)  # encoding only, no force field needed
 csv_lines = []
 
 for cif in cifs:

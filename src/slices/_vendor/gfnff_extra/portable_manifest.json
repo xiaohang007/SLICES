@@ -1,0 +1,93 @@
+{
+  "artifact": "portable vendored GFN-FF runtime",
+  "build_date": "2026-07-13",
+  "upstream_repository": "https://github.com/pprcht/gfnff",
+  "upstream_commit": "d88b1393e6464c3d3164cf85968ff9261a7e00c0",
+  "local_patch": "patches/0001-export-topology-api.patch",
+  "gfnff_version": "0.1.1",
+  "build_image": {
+    "reference": "quay.io/pypa/manylinux2014_x86_64@sha256:35baef377f64c2ae2e7ed647917ecd090c50f6e8b06fd605012661c2e954cc92",
+    "image_id": "sha256:045d72ebf9f1072ed745b797caf3ef7d4679fa964a27c17630b54cd9b3476432",
+    "architecture": "x86_64",
+    "glibc": "2.17"
+  },
+  "build_tools": {
+    "compiler": "GCC/GFortran 10.2.1 from pinned manylinux2014 image",
+    "python": "CPython 3.11",
+    "numpy": "1.26.4",
+    "scikit_build_core": "1.0.3",
+    "cmake": "4.4.0",
+    "auditwheel": "6.7.0"
+  },
+  "supported_targets": {
+    "operating_system": "Linux",
+    "architecture": "x86_64",
+    "libc": "glibc >= 2.17",
+    "excluded": [
+      "AArch64/ARM64",
+      "32-bit x86",
+      "musl/Alpine Linux",
+      "macOS",
+      "Windows"
+    ]
+  },
+  "wheel": {
+    "path": "portable_dist/gfnff-0.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+    "sha256": "6e0dbd40884ca8eb71c4c517854fff58b5ffdcd7992f2b0e4ebbdc1c66e2f8f3"
+  },
+  "runtime_files": [
+    {
+      "path": "upstream/python/gfnff/libgfnff.so.0.1.1",
+      "sha256": "8d77a4d8044064ea5a78187cf6666c7daa2d0a89504ac53e8e6fe7be33ff161b",
+      "max_required_glibc": "2.14"
+    },
+    {
+      "path": "upstream/python/gfnff.libs/libblas-3bcff391.so.3.9.0",
+      "sha256": "8c78b320b8e193b22893b54ceadbedd5c0452eafa43691534e8d0d8b4e9b386a",
+      "license": "BSD-3-Clause",
+      "max_required_glibc": "2.4"
+    },
+    {
+      "path": "upstream/python/gfnff.libs/libgfortran-13710bb8.so.5.0.0",
+      "sha256": "f34040eca936a28bef80525ce78a71314b4d4dfe31b749297ac3d2260100ea05",
+      "license": "GPL-3.0-only WITH GCC-exception-3.1",
+      "max_required_glibc": "2.17"
+    },
+    {
+      "path": "upstream/python/gfnff.libs/libgomp-23edb748.so.1.0.0",
+      "sha256": "818cb0dd87b2825f6fe7becaee6c4808e4ae70de51dab57a87ecb5657b0a3038",
+      "license": "GPL-3.0-only WITH GCC-exception-3.1",
+      "max_required_glibc": "2.17"
+    },
+    {
+      "path": "upstream/python/gfnff.libs/liblapack-185986f1.so.3.9.0",
+      "sha256": "48d79281571b5ce5c6bd547eb69ab29d48a7964c4cb2b252930c9eb0785a4daf",
+      "license": "BSD-3-Clause",
+      "max_required_glibc": "2.14"
+    },
+    {
+      "path": "upstream/python/gfnff.libs/libquadmath-e7e30dd4.so.0.0.0",
+      "sha256": "c2f0388db587ac0d7fd5f6651bb62634581f9d1dd9cebc1b947608ce5e13bd46",
+      "license": "GPL-3.0-only WITH GCC-exception-3.1",
+      "max_required_glibc": "2.14"
+    }
+  ],
+  "runtime_contract": {
+    "rpath": "$ORIGIN/../gfnff.libs",
+    "python_loading": "ctypes",
+    "host_build_prefix_required_at_runtime": false,
+    "system_blas_lapack_gfortran_gomp_required_at_runtime": false,
+    "source_copy_requirement": "copy upstream/python/gfnff and sibling upstream/python/gfnff.libs together"
+  },
+  "validation": {
+    "clean_container": "pinned manylinux2014 image with network disabled and no host linalg prefix mounted",
+    "clean_wheel_import": "pass",
+    "clean_source_tree_import": "pass",
+    "z1_periodic_edges": "pass",
+    "z103_periodic_edges": "pass",
+    "mixed_heavy_elements_periodic_edges": "pass",
+    "legacy86_overlay_helper_before_sha256": "53f5f5972f13f8528f77568bfd999634646c7c5c1f64e6425b91de0e1b174be4",
+    "legacy86_overlay_helper_after_sha256": "53f5f5972f13f8528f77568bfd999634646c7c5c1f64e6425b91de0e1b174be4",
+    "python_3_13_torch_2_9_mattersim_1_2_3_interop": "pass"
+  }
+}

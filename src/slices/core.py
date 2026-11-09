@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Hang Xiao 2023.04
 # xiaohang07@live.cn
-import os,subprocess,random,warnings
-os.environ["CUDA_VISIBLE_DEVICES"]=""
+import os,random,warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["XTB_MOD_PATH"] = os.path.abspath(os.path.dirname(__file__))+"/xtb_noring_nooutput_nostdout_noCN"
 os.environ["PYTHONWARNINGS"]="ignore" 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
@@ -23,26 +21,22 @@ from networkx.algorithms import tree
 import numpy as np
 from slices.tobascco_net import Net, SystreDB
 from slices.config import OFFSET, LJ_PARAMS_LIST, PERIODIC_DATA
+from slices.gfnff_helper import run_gfnff_helper, write_debug_files
 from slices.utils_wyckoff import get_space_group_num_from_letter_enc, get_tokenized_enc
 import math
-import tempfile
 import json
 from scipy.optimize import fsolve,fmin_l_bfgs_b
 from collections import defaultdict, deque
 from io import StringIO
 import pandas as pd
 import matplotlib.pyplot as plt
-from m3gnet.models import Relaxer
 import logging
-import tensorflow as tf
 import signal,gc
 from contextlib import contextmanager
 from functools import wraps
 import itertools
 import copy,sys
-import m3gnet.models
-tf.config.threading.set_inter_op_parallelism_threads(1)
-tf.config.threading.set_intra_op_parallelism_threads(1)
+from slices.relax_backends import make_relaxer
 def function_timeout(seconds: int):
     """Define a decorator that sets a time limit for a function call.
 
@@ -78,7 +72,7 @@ def function_timeout(seconds: int):
 class SLICES:
     """Invertible Crystal Representation (SLICES and labeled quotient graph)
     """    
-    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="m3gnet"):
+    def __init__(self, atom_types=None, edge_indices=None, to_jimages=None, graph_method='econnn', check_results=False, optimizer="BFGS",fmax=0.2,steps=100,relax_model="auto"):
         """__init__
 
         Args:
@@ -89,12 +83,18 @@ class SLICES:
                 to generate labeled quotient graphs. Defaults to 'econnn'.
             check_results (bool, optional): Flag to indicate whether to output intermediate results for 
                 debugging purposes. Defaults to False.
-            optimizer (str, optional): Optimizer used in M3GNet_IAP optimization. Defaults to "BFGS".
-            fmax (float, optional): Convergence criterion of maximum allowable force on each atom. 
+            optimizer (str, optional): Optimizer for the final cell relaxation. Defaults to "BFGS".
+                NequIP force fields also accept "LBFGS", "FIRE" and "FIRE+BFGS" (10 FIRE steps,
+                then BFGS; more robust for strongly distorted inputs).
+            fmax (float, optional): Convergence criterion of maximum allowable force on each atom.
                 Defaults to 0.2.
             steps (int, optional): Max steps. Defaults to 100.
-        """        
-        tf.keras.backend.clear_session()
+            relax_model (str, optional): Force field for the final relaxation. Defaults to "auto":
+                NequIP-OAM-L on a CUDA GPU, otherwise NequIP-OAM-S relaxation plus a NequIP-OAM-L
+                single-point energy on CPU. Other values: "nequip-l", "nequip-s+l", "nequip-m+l",
+                or None for no relaxer. See slices.relax_backends for details and environment variables.
+                After construction, self.relax_model holds the resolved choice.
+        """
         gc.collect()
         self.atom_types = atom_types
         self.edge_indices = edge_indices
@@ -106,18 +106,8 @@ class SLICES:
         self.unstable_graph = False  # unstable graph flag
         self.fmax=fmax
         self.steps=steps
-        self.relax_model=relax_model
         self.space_group_num = None
-
-        # copy m3gnet model file?
-        if self.relax_model=="m3gnet":
-            model_path=m3gnet.models.__path__[0]+'/MP-2021.2.8-EFS/'
-            if not os.path.isdir(model_path):
-                data_path=os.path.dirname(__file__)+'/MP-2021.2.8-EFS'
-                subprocess.call(['mkdir','-p', model_path])
-                subprocess.call(['cp',data_path+'/checkpoint',data_path+'/m3gnet.data-00000-of-00001',\
-                data_path+'/m3gnet.index',data_path+'/m3gnet.json',model_path])
-            self.relaxer = Relaxer(optimizer=optimizer)
+        self.relaxer, self.relax_model = make_relaxer(relax_model, optimizer)
 
     @contextmanager
     def suppress_output(self):
@@ -937,7 +927,7 @@ class SLICES:
 
 
     def get_nbf_blist(self):
-        """ (1) Get nbf(neighbor list with atom types for xtb_mod).
+        """ (1) Get nbf(neighbor list with atom types for the GFN-FF helper).
             (2) Get blist(node indexes of the central unit cell edges in the 3*3*3 supercell). 
 
         Returns:
@@ -1021,7 +1011,7 @@ class SLICES:
                     column=column[:19]
                 for j in range(len(row)):
                     neighbor_list[j,i]=voltage_super_cut[row[j],1-column[j]] + 1   # nbf indexing starts with 1 instead of 0
-                neighbor_list[19,i]=total
+                neighbor_list[19,i]=len(row)  # listed neighbors (<=19), not the full count, which the 19-slot format cannot hold
 
             nbf=str(n_atom*27-len(no_neighbor_index))+'\n'+' '.join(atom_symbol_list_super)+'\n'
             for i in range(20):
@@ -1054,20 +1044,9 @@ class SLICES:
             list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
-        temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
-        with open(temp_dir.name+'/testBonds_cut.top','w') as f:
-            f.write(nbf)
-        subprocess.call(os.environ["XTB_MOD_PATH"]+' --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl', \
-        cwd=temp_dir.name, shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        data = run_gfnff_helper(nbf)  # blist,vbond,alist,vangl
         if self.check_results:
-            os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
-            os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-        with open(temp_dir.name+'/gfnff_lists.json', 'r') as fgfn:
-            txt=fgfn.read()
-            txt=txt.replace("********","       0") # deal with the xtb output bug
-            data = json.loads(txt)  # read blist,vbond,alist,vangl
-            del(txt)
-        temp_dir.cleanup()
+            write_debug_files(nbf, data)
         blist_original=blist
         blist_flip=np.flip(blist_original,1) # reverse the order
         bond_weight=[]
@@ -1160,21 +1139,10 @@ class SLICES:
             list: Colattice weights.
         """
         nbf, blist = self.get_nbf_blist()
-        temp_dir = tempfile.TemporaryDirectory(dir="/dev/shm")
         try:
-            with open(temp_dir.name+'/testBonds_cut.top','w') as f:
-                f.write(nbf)
-            subprocess.call(os.environ["XTB_MOD_PATH"]+' --gfnff testBonds_cut.top --wrtopo blist,vbond,alist,vangl', \
-            cwd=temp_dir.name, shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+            data = run_gfnff_helper(nbf)  # blist,vbond,alist,vangl
             if self.check_results:
-                os.system("cp "+temp_dir.name+'/testBonds_cut.top '+os.getcwd())
-                os.system("cp "+temp_dir.name+'/gfnff_lists.json '+os.getcwd())
-            with open(temp_dir.name+'/gfnff_lists.json', 'r') as fgfn:
-                txt=fgfn.read()
-                txt=txt.replace("********","       0") # deal with the xtb output bug
-                data = json.loads(txt)  # read blist,vbond,alist,vangl
-                del(txt)
-            temp_dir.cleanup()
+                write_debug_files(nbf, data)
             blist_original=blist
             blist_flip=np.flip(blist_original,1) # reverse the order
             bond_weight=[]
@@ -1252,7 +1220,6 @@ class SLICES:
             return inner_p_target, colattice_inds, colattice_weights
         except Exception as e:
             print(e)
-            temp_dir.cleanup()
 
     def convert_graph(self):
         """Convert self.edge_indices, self.to_jimages into networkx format.
@@ -1799,13 +1766,13 @@ class SLICES:
     def to_structures(self, bond_scaling=1.05, delta_theta=0.005, delta_x=0.45,lattice_shrink=1,lattice_expand=1.25,angle_weight=0.5,vbond_param_ave_covered=0.00,vbond_param_ave=0.01,repul=True):        
         """The inverse transform of the crystal graph of a SLICES string to its crystal structure.
         Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
-        3 pymatgen structure objects and the energy per atom predicted with M3GNet.
+        3 pymatgen structure objects and the energy per atom predicted with the force field (relax_model).
 
         (1) barycentric embedding net with rescaled lattice based on the average bond scaling factors
          calculated with modified GFN-FF predicted geometry 
         (2) non-barycentric net embedding that matches bond lengths and bond angles predicted with
          modified GFN-FF
-        (3) non-barycentric net embedding undergone cell optimization using M3GNet IAPs
+        (3) non-barycentric net embedding undergone cell optimization using the force field (relax_model)
         if cell optimization failed, then output (1) and (2)
 
         Args:
@@ -1825,7 +1792,7 @@ class SLICES:
 
         Returns:
             list: [Rescaled Structure, ZL*-optimized Structure,  IAP-optimized Structure]
-            float: Energy per atom predicted with M3GNet.
+            float: Energy per atom predicted with the force field (relax_model).
         """
         x_dat, net_voltage = self.convert_graph()
         net = Net(x_dat,dim=3)
@@ -1946,7 +1913,7 @@ class SLICES:
 
         Returns:
             Structure: A pymatgen Structure object.
-            float: Energy per atom predicted with M3GNet.
+            float: Energy per atom predicted with the force field (relax_model).
         """
         self.from_SLICES(SLICES,strategy,fix_duplicate_edge)
         structures,final_energy_per_atom = self.to_structures()
@@ -1956,7 +1923,7 @@ class SLICES:
         """
         Convert edge_indices, to_jimages and atom_types stored in the InvCryRep instance back to 
         a pymatgen structure object: non-barycentric net embedding undergone cell optimization 
-        using M3GNet IAPs.
+        using the force field (relax_model).
         If cell optimization failed, then raise error.
         """
         structures,final_energy_per_atom=self.to_structures(bond_scaling,delta_theta,delta_x,lattice_shrink,lattice_expand,angle_weight,vbond_param_ave_covered,vbond_param_ave,repul)
@@ -1979,15 +1946,15 @@ class SLICES:
 
     @function_timeout(seconds=360)
     def relax(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 60 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 60 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            Structure: Optimized pymatgen Structure object.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
@@ -2000,15 +1967,15 @@ class SLICES:
 
     @function_timeout(seconds=720)
     def relax_large_cell1(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 360 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 360 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            Structure: Optimized pymatgen Structure object.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc,fmax=self.fmax,steps=self.steps)
@@ -2021,16 +1988,16 @@ class SLICES:
 
     @function_timeout(seconds=2000)
     def relax_large_cell2(self,struc):
-        """Cell optimization using CHGNET/M3GNET IAPs (time limit is set to 1000 seconds 
+        """Cell optimization using the force field selected by relax_model (time limit is set to 1000 seconds 
         to prevent buggy cell optimization that takes fovever to finish).
 
         Args:
             struc (Structure): A pymatgen Structure object.
 
         Returns:
-            Structure: Optimized pymatgen Structure object with CHGNET/M3GNET IAP.
+            Structure: Optimized pymatgen Structure object.
 
-            float: Energy per atom predicted with CHGNET/M3GNET.
+            float: Energy per atom predicted with the force field.
         """
         if self.check_results:
             relax_results = self.relaxer.relax(struc)

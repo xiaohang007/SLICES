@@ -37,8 +37,8 @@ def process_data(input_csv, output_csv, threads):
     header_in = _read_csv_header(csv_file_to_run)
     
     # 假设最后一列是 "SLICES"，前面若干列是各种属性名称
-    # 结果里要再添加 "eform_chgnet", "space_group_num", "poscar" 三列
-    dynamic_header = header_in + ["eform_chgnet", "space_group_num", "poscar"]
+    # 结果里要再添加 "eform_pred", "space_group_num", "poscar" 三列
+    dynamic_header = header_in + ["eform_pred", "space_group_num", "poscar"]
     # 变成字符串
     result_header_line = ",".join(dynamic_header) + "\n"
 

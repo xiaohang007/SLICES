@@ -1,0 +1,2 @@
+# Bundled GFN-FF runtime and parameter files: never convert line endings (Fortran reads the .xtb table).
+src/slices/_vendor/** -text

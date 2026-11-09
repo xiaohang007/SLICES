@@ -41,7 +41,7 @@ def process_dataset(csv_file, cif_col, *prop_cols):
         
         # 构建命令
         cmd = [
-            "python", 
+            sys.executable, 
             "run.py",
             "--raw_data_path", csv_file.name,
             "--cif_column_index", str(cif_col_idx),
@@ -103,7 +103,7 @@ def train_model(run_name, batch_size, max_epochs, n_embd, n_layer, n_head, lr, n
         train_dir = os.path.join(os.getcwd(), "1_train_generate")
         
         cmd = [
-            "python",
+            sys.executable,
             "-u",
             "train.py",
             "--run_name", run_name,
@@ -174,7 +174,7 @@ def generate_structures(model_weight, prop_targets, gen_size, batch_size):
         output_csv = os.path.join(train_dir, f"{os.path.splitext(model_weight)[0]}_generated.csv")
 
         cmd = [
-            "python",
+            sys.executable,
             "generate.py",
             "--model_weight", model_weight,
             "--prop_targets", prop_targets,
@@ -225,7 +225,7 @@ def decode_slices(run_name):
         output_csv = os.path.join(decode_dir, f"{run_name}_decoded.csv")
         
         cmd = [
-            "python",
+            sys.executable,
             "run.py",
             "--input_csv", input_csv,
             "--output_csv", output_csv
@@ -272,7 +272,7 @@ def check_novelty(run_name, structure_json):
         output_csv = os.path.join(novelty_dir, f"{run_name}_novelty_checked.csv")
         
         cmd = [
-            "python",
+            sys.executable,
             "run.py",
             "--input_csv", input_csv,
             "--output_csv", output_csv,

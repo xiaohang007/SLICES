@@ -1,24 +1,85 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "slices"
-version = "2.0.12"
+version = "4.0.0"
+description = "Invertible crystal representation (SLICES) and the MatterGPT generative model for inverse materials design"
 authors = [{name = "Hang Xiao", email = "xiaohang07@live.cn"}]
-requires-python = ">=3.9"
-dependencies = [
-    "setuptools>=18.0",
-    "m3gnet==0.2.4",
-    "smact==2.5.5",
+requires-python = ">=3.10"
+license-files = ["LICENSE", "src/slices/_vendor/gfnff_extra/LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Chemistry",
 ]
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "matplotlib",
+    "networkx",
+    "sympy",
+    "pymatgen",
+    "scikit-learn",
+    "tqdm",
+    "einops",             # MatterGPT model
+    "ase",
+    # PyTorch + NequIP force fields for relax_model="auto". Pick the torch build with one of
+    # the extras below: uv sync --extra cpu | cu126 | cu128
+    "torch>=2.6,<2.10",   # 2.6+ for AOTInductor export; 2.9 is the tested version
+    "nequip==0.17.1",
+    "matscipy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/xiaohang007/SLICES"
+
+[project.optional-dependencies]
+cpu = ["torch>=2.6,<2.10"]
+cu126 = ["torch>=2.6,<2.10"]   # NVIDIA GPUs up to the RTX 40 series
+cu128 = ["torch>=2.6,<2.10"]   # also needed for RTX 50 series
+gui = ["gradio"]               # MatterGPT/app.py
+oeq = ["openequivariance"]     # optional faster NequIP kernels on NVIDIA GPUs
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "cu126" }, { extra = "cu128" }]]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu126", extra = "cu126" },
+    { index = "pytorch-cu128", extra = "cu128" },
+]
+
+# Tsinghua PyPI mirror as the default index, so uv.lock resolves the same everywhere without
+# extra settings. Users outside China can set UV_DEFAULT_INDEX=https://pypi.org/simple (uv then
+# re-resolves; use `uv sync --locked` to keep exactly the locked versions from the mirror).
+[[tool.uv.index]]
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.setuptools.package-data]
 slices = [
     "nlopt.h",
-    "xtb_noring_nooutput_nostdout_noCN",
-    "MP-2021.2.8-EFS/checkpoint",
-    "MP-2021.2.8-EFS/m3gnet.data-00000-of-00001",
-    "MP-2021.2.8-EFS/m3gnet.index",
-    "MP-2021.2.8-EFS/m3gnet.json"
+    "_vendor/gfnff/libgfnff.so*",
+    "_vendor/gfnff.libs/*",
+    "_vendor/gfnff_extra/*",
 ]
