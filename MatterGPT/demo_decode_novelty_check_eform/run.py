@@ -324,7 +324,7 @@ def process_data(input_csv, output_csv, structure_json_path, threads):
     show_progress()
 
     prop_cols = _infer_prop_columns_from_input(input_csv)
-    header = ",".join(prop_cols + ["SLICES", "eform_chgnet", "spacegroup", "poscar", "novelty"]) + "\n"
+    header = ",".join(prop_cols + ["SLICES", "eform_pred", "spacegroup", "poscar", "novelty"]) + "\n"
     print(f"Collecting results into '{output_csv}'...")
     collect_csv(
         output=output_csv,
@@ -337,7 +337,8 @@ def process_data(input_csv, output_csv, structure_json_path, threads):
 
 def _detect_result_columns(df):
     slices_col = "SLICES" if "SLICES" in df.columns else ("symSLICES" if "symSLICES" in df.columns else None)
-    pred_col = "eform_chgnet" if "eform_chgnet" in df.columns else (df.columns[2] if len(df.columns) > 2 else None)
+    # "eform_chgnet" is the column name in results written by older versions
+    pred_col = next((c for c in ("eform_pred", "eform_chgnet") if c in df.columns), df.columns[2] if len(df.columns) > 2 else None)
     novelty_col = "novelty" if "novelty" in df.columns else (df.columns[-1] if len(df.columns) > 0 else None)
 
     exclude_cols = {slices_col, pred_col, novelty_col, "spacegroup", "spacegroup_number", "poscar", "crystal_system", None}
@@ -654,7 +655,6 @@ def main():
         default="combined_results.png",
         help="Output figure path.",
     )
-    parser.add_argument("--cleanup", action="store_true", help="If set, cleanup intermediate files after processing.")
 
     args = parser.parse_args()
 
@@ -689,9 +689,6 @@ def main():
     print(f"Saved figure to '{args.figure_output}'.")
     print(metrics_text)
 
-    if args.cleanup:
-        os.system("rm energy_formation_chgnet_lists.csv energy_formation_chgnet_lists_novel.csv")
-        print("Cleaned up intermediate CSV files.")
 
 
 if __name__ == "__main__":

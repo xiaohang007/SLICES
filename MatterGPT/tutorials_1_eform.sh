@@ -18,7 +18,7 @@ RAW_DATA_PATH=$SCRIPT_DIR/raw_mp20_dataset_mini.csv
 TRAIN_DIR=$MATTERGPT_DIR/1_train_generate
 DECODE_DIR=$MATTERGPT_DIR/2_decode
 NOVELTY_CHECK_DIR=$MATTERGPT_DIR/3_novelty
-DECODE_DIR_EFORM=$MATTERGPT_DIR/demo_decode_novelty_check_eform_m3gnet
+DECODE_DIR_EFORM=$MATTERGPT_DIR/demo_decode_novelty_check_eform
 STRUCTURE_JSON_FOR_NOVELTY_CHECK=$DATA_DIR/cifs_filtered.json
 TRAINING_FILE=$DATA_DIR/train_data.csv
 VAL_DATASET=$DATA_DIR/val_data.csv
@@ -100,5 +100,5 @@ python run.py \
     --training_file $TRAINING_FILE \
     --output_csv ${RUN_NAME}_decode.csv \
     --threads $THREADS 
-cp combined_results.png ../${RUN_NAME}_m3gnet.png
+cp combined_results.png ../${RUN_NAME}_results.png
 

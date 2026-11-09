@@ -24,7 +24,7 @@ def find_abnormal_lattices(structure: Structure, threshold: float = 10000.0) -> 
 # Load chemical potentials (same logic as demo)
 chem_pot_path = "./chemPotMP.json"
 if not os.path.exists(chem_pot_path):
-    alt_path = "../demo_decode_novelty_check_eform_m3gnet/workflow/chemPotMP.json"
+    alt_path = "../demo_decode_novelty_check_eform/workflow/chemPotMP.json"
     if os.path.exists(alt_path):
         chem_pot_path = alt_path
     else:

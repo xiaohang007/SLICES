@@ -107,16 +107,16 @@ with open(f"{mg}/1_train_generate/input_32.csv", "w", newline="") as f:
         w.writerow([r["formation_energy_per_atom"], r["crystal_system"], r["SLICES"]])
 EOF
 for n in $DECODE_THREADS; do
-  step decode_t$n 3600 "cd $MG/demo_decode_novelty_check_eform_m3gnet && rm -rf job_* structure_database.db && \
+  step decode_t$n 3600 "cd $MG/demo_decode_novelty_check_eform && rm -rf job_* structure_database.db && \
       python run.py --input_csv ../1_train_generate/input_32.csv \
       --structure_json_for_novelty_check ../0_dataset/cifs_filtered.json --training_file ../0_dataset/train_data.csv \
       --output_csv decode_t$n.csv --threads $n"
-  python - "$MG/demo_decode_novelty_check_eform_m3gnet/decode_t$n.csv" <<'EOF' | sed 's/^/    /'
+  python - "$MG/demo_decode_novelty_check_eform/decode_t$n.csv" <<'EOF' | sed 's/^/    /'
 import csv, statistics as st, sys
 csv.field_size_limit(10**9)
 try:
     rows = list(csv.DictReader(open(sys.argv[1])))
-    err = [abs(float(r["eform_chgnet"]) - float(r["prop_0"])) for r in rows if r.get("eform_chgnet")]
+    err = [abs(float(r["eform_pred"]) - float(r["prop_0"])) for r in rows if r.get("eform_pred")]
     print(f"decoded {len(rows)}/32, |eform - DFT| median {st.median(err):.3f} eV/atom")
 except Exception as e:
     print("no decode result:", e)
